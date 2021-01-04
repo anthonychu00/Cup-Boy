@@ -15,23 +15,29 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="registers\word.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="registers\split_register.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="registers\single_register.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="registers\full_register.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="registers\flag_register.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="memory\memory_map.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CPU\CPU.h">
-      <Filter>Source Files</Filter>
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="registers\full_register.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="registers\flag_register.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="registers\single_register.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="registers\split_register.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="registers\word.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="video\video.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -48,6 +54,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CPU\CPU.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="memory\memory_map.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="video\video.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CPU\opcodes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

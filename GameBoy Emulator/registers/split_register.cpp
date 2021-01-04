@@ -1,6 +1,5 @@
 #include "split_register.h"
 
-
 SplitRegister::SplitRegister(uint8_t h, uint8_t l):
 	high(h),
 	low(l)
@@ -19,6 +18,7 @@ void SplitRegister::increment(){
 void SplitRegister::decrement(){
 	set(getValue() - 1);
 }
+
 uint16_t SplitRegister::getValue() const{
 	return ((uint16_t)low.getByte() << 8) | high.getByte();
 	

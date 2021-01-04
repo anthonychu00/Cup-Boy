@@ -140,6 +140,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="CPU\CPU.h" />
+    <ClInclude Include="memory\memory_map.h" />
+    <ClInclude Include="video\video.h" />
     <ClInclude Include="registers\flag_register.h" />
     <ClInclude Include="registers\single_register.h" />
     <ClInclude Include="registers\split_register.h" />
@@ -148,6 +150,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CPU\CPU.cpp" />
+    <ClCompile Include="CPU\opcodes.cpp" />
+    <ClCompile Include="memory\memory_map.cpp" />
+    <ClCompile Include="video\video.cpp" />
     <ClCompile Include="registers\flag_register.cpp" />
     <ClCompile Include="registers\single_register.cpp" />
     <ClCompile Include="registers\split_register.cpp" />

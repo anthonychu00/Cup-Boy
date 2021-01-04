@@ -6,17 +6,10 @@ class CPU {
 public:
 	
 	CPU() = default;
-	uint8_t fetchOperations(uint16_t op);
 	void executeOperations();
-
-
-	struct Clock {
-		//figure out best representation of time units for CPU
-		int p;	//time to execute previous operation (need to time how long each operation takes)
-		int t;  //total time CPU has run
-	};
-
-
+	int executeOpcode(uint8_t opcode, uint16_t PCValue);
+	void setClockPrevious(int ticks);
+	
 	//fetch an op like uint8_t op = fetchOp(PC);
 	//function to decode and execute ( lots of switch cases probably)
 
@@ -25,6 +18,13 @@ public:
 	// the CPU will use an address bus of 16 bits to communicate with memory outside its registers, it will only be able to read and write to these
 	// this is basically how the CPU will affect the state of the actual emulator
 private:
+
+	struct Clock {
+		//figure out best representation of time units for CPU
+		int p;	//time to execute previous operation (need to time how long each operation takes)
+		int t;  //total time CPU has run
+	};
+
 	//SplitRegisters can be used as a 16 bit address or 2 separate 8 bit ones
 	SplitRegister AF;//A = high, F = low
 	SplitRegister BC;
@@ -37,8 +37,28 @@ private:
 
 	Clock clock;
 
-	//fetch
+	uint8_t PCFetchByte();
+	uint16_t PCFetchWord();
 
+	//opcodes
+	void opcodeNOP();//0x00
+
+	//Load words
+	void opcodeLoadWord(SplitRegister& r);//0x01, 0x11, 0x21
+	void opcodeLoadWord(FullRegister& r);//0x31
+
+	//load accumulator to memory
+	void opcodeLoadAToMemory(SplitRegister& r);//0x02, 0x12, 0x22, 0x32
+
+	void opcodeIncrement(SplitRegister& r);//0x03, 0x13, 0x23, 0x33
+	void opcodeIncrement(FullRegister& r);
+	void opcodeIncrement(SingleRegister& r);
+	//void opcodeIncrement(Address value);
+
+	void opcodeDecrement(SplitRegister& r);
+	void opcodeDecrement(FullRegister& r);
+	void opcodeDecrement(SingleRegister& r);
+	//void opcodeDecrement(Address value);
 
 
 };

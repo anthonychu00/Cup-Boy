@@ -3,6 +3,7 @@
 
 //"interface" for the two types of 16-bit registers, FullRegisters and SplitRegisters
 class Word {
+public:
 	Word() = default;
 	~Word() = default;
 
