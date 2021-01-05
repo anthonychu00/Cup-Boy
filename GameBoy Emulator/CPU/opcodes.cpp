@@ -12,6 +12,13 @@ void CPU::opcodeNOP() {
 	setClockPrevious(4);
 }
 
+//load byte
+void CPU::opcodeLoadByte(SingleRegister& r) {
+	uint8_t newValue = PCFetchByte();
+	r.set(newValue);
+	setClockPrevious(8);
+}
+
 //load words
 //0x01, 0x11, 0x21
 void CPU::opcodeLoadWord(SplitRegister& r) {

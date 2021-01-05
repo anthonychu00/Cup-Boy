@@ -32,3 +32,26 @@ uint8_t SplitRegister::getLow() const {
 	return low.getByte();
 }
 
+SingleRegister& SplitRegister::getHighRegister() {
+	return high;
+}
+SingleRegister& SplitRegister::getLowRegister() {
+	return low;
+}
+/*
+void SplitRegister::incrementHigh() {
+	high.increment();
+}
+
+void SplitRegister::decrementHigh() {
+	high.decrement();
+}
+
+void SplitRegister::incrementLow() {
+	low.increment();
+}
+
+void SplitRegister::decrementLow() {
+	low.decrement();
+}*/
+

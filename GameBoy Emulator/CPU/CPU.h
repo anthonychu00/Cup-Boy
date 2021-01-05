@@ -43,6 +43,9 @@ private:
 	//opcodes
 	void opcodeNOP();//0x00
 
+	//load bytes
+	void opcodeLoadByte(SingleRegister& r);
+
 	//Load words
 	void opcodeLoadWord(SplitRegister& r);//0x01, 0x11, 0x21
 	void opcodeLoadWord(FullRegister& r);//0x31
