@@ -88,4 +88,15 @@ void CPU::opcodeDecrement(SingleRegister& r) {
 }*/
 
 
+//Rotates A to the left with bit 7 being moved to bit 0 and also stored into the carry.
+void CPU::opcodeRLCA() {
+	uint8_t temp = AF.getHighRegister().getByte();//gets value of A register's byte
+	AF.getLowRegister().setBit(4, (temp >> 7) & 0x1);//sets carry flag bit to the 7th bit of A
+	temp = ((temp << 1) | (temp >> 7));//rotate A left 
+	AF.getHighRegister().set(temp);
+}
 
+//Rotates A register to the left with the carry's value put into bit 0 and bit 7 is put into the carry.
+void CPU::opcodeRLA() {
+
+}

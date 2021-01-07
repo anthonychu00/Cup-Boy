@@ -63,5 +63,8 @@ private:
 	void opcodeDecrement(SingleRegister& r);
 	//void opcodeDecrement(Address value);
 
+	void opcodeRLCA();
+	void opcodeRLA();
+
 
 };

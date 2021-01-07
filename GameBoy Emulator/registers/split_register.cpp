@@ -38,20 +38,4 @@ SingleRegister& SplitRegister::getHighRegister() {
 SingleRegister& SplitRegister::getLowRegister() {
 	return low;
 }
-/*
-void SplitRegister::incrementHigh() {
-	high.increment();
-}
-
-void SplitRegister::decrementHigh() {
-	high.decrement();
-}
-
-void SplitRegister::incrementLow() {
-	low.increment();
-}
-
-void SplitRegister::decrementLow() {
-	low.decrement();
-}*/
 
