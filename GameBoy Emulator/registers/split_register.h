@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include "single_register.h"
+#include "flag_register.h"
 #include "word.h"
 
 //16-bit register that can be split into two 8-bit registers

@@ -66,5 +66,7 @@ private:
 	void opcodeRLCA();
 	void opcodeRLA();
 
+	void opcodeDAA();
+	void opcodeSCF();
 
 };

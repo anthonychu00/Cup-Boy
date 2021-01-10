@@ -94,9 +94,31 @@ void CPU::opcodeRLCA() {
 	AF.getLowRegister().setBit(4, (temp >> 7) & 0x1);//sets carry flag bit to the 7th bit of A
 	temp = ((temp << 1) | (temp >> 7));//rotate A left 
 	AF.getHighRegister().set(temp);
+
+	setClockPrevious(4);
 }
 
 //Rotates A register to the left with the carry's value put into bit 0 and bit 7 is put into the carry.
 void CPU::opcodeRLA() {
+	uint8_t temp = AF.getHighRegister().getByte();
+	SingleRegister& flag =  AF.getLowRegister();
+
+	FlagRegister& flagRef = dynamic_cast<FlagRegister&>(flag);//dynamic casting from superclass to subclass
+	bool carryValue = flagRef.getCarryFlag();//gets carry flag value for later
+
+	flag.setBit(4, (temp >> 7) & 0x1);//sets carry flag to bit 7 of A's value
+	temp = ((temp << 1) | (temp >> 7));//rotate A left
+	temp = (temp & ~(1UL << 0)) | (carryValue << 0);//set bit 0 of A to carry value
+	AF.getHighRegister().set(temp);//update A value in register
+
+	setClockPrevious(4);
+}
+
+//Decimal adjust register A
+void CPU::opcodeDAA() {
+
+}
+
+void CPU::opcodeSCF() {
 
 }

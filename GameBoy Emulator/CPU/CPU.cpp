@@ -34,13 +34,14 @@ int CPU::executeOpcode(uint8_t opcode, uint16_t PCValue) {
 		case 0x04: opcodeIncrement(BC.getHighRegister()); break;
 		case 0x05: opcodeDecrement(BC.getHighRegister()); break;
 		case 0x06: opcodeLoadByte(BC.getHighRegister()); break;
-		case 0x07: break;
+		case 0x07: opcodeRLCA(); break;
 		case 0x11: opcodeLoadWord(DE); break;
 		case 0x12: opcodeLoadAToMemory(DE); break;
 		case 0x13: opcodeIncrement(DE); break;
 		case 0x14: opcodeIncrement(DE.getHighRegister()); break;
 		case 0x15: opcodeDecrement(DE.getHighRegister()); break;
 		case 0x16: opcodeLoadByte(DE.getHighRegister()); break;
+		case 0x17: opcodeRLA(); break;
 		case 0x21: opcodeLoadWord(HL); break;
 		case 0x22: opcodeLoadAToMemory(HL); break;//examine difference
 		case 0x23: opcodeIncrement(HL); break;
