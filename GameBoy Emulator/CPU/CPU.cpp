@@ -35,6 +35,7 @@ int CPU::executeOpcode(uint8_t opcode, uint16_t PCValue) {
 		case 0x05: opcodeDecrement(BC.getHighRegister()); break;
 		case 0x06: opcodeLoadByte(BC.getHighRegister()); break;
 		case 0x07: opcodeRLCA(); break;
+		//case 0x08: opcodeLoadWord(Address, SP); break;
 		case 0x11: opcodeLoadWord(DE); break;
 		case 0x12: opcodeLoadAToMemory(DE); break;
 		case 0x13: opcodeIncrement(DE); break;
@@ -48,12 +49,14 @@ int CPU::executeOpcode(uint8_t opcode, uint16_t PCValue) {
 		case 0x24: opcodeIncrement(HL.getHighRegister()); break;
 		case 0x25: opcodeDecrement(HL.getHighRegister()); break;
 		case 0x26: opcodeLoadByte(HL.getHighRegister()); break;
+		case 0x27: opcodeDAA(); break;
 		case 0x31: opcodeLoadWord(SP); break;
 		case 0x32: opcodeLoadAToMemory(HL); break;//examine difference
 		case 0x33: opcodeIncrement(SP); break;
 		//case 0x34: opcodeIncrement(); break; <- increment memory address pointed to by HL
 		//case 0x35: opcodeIncrement(); break; <- decrement memory address pointed to by HL
 		//case 0x36: opcodeLoadByte(Address) <- load byte to HL address in memory
+		case 0x37: opcodeSCF(); break;
 	}
 
 	return clock.p;

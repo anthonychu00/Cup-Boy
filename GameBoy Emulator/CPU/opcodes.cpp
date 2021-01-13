@@ -34,6 +34,14 @@ void CPU::opcodeLoadWord(FullRegister& r) {
 	setClockPrevious(12);
 }
 
+//0x08
+/*void CPU::opcodeLoadWord(Address, SP) {
+	Address is a uint16_t grabbed from program counter
+	- write SP.low() to (u16) address
+	- write SP.high() to (u16 + 1) address
+	setClockPrevious(20);
+}*/
+
 //load accumulator to memory
 //0x02, 0x12, 0x22, 0x32
 void CPU::opcodeLoadAToMemory(SplitRegister& r) {
@@ -91,7 +99,7 @@ void CPU::opcodeDecrement(SingleRegister& r) {
 //Rotates A to the left with bit 7 being moved to bit 0 and also stored into the carry.
 void CPU::opcodeRLCA() {
 	uint8_t temp = AF.getHighRegister().getByte();//gets value of A register's byte
-	AF.getLowRegister().setBit(4, (temp >> 7) & 0x1);//sets carry flag bit to the 7th bit of A
+	F.setCarryFlag((temp >> 7) & 0x1);//sets carry flag bit to the 7th bit of A
 	temp = ((temp << 1) | (temp >> 7));//rotate A left 
 	AF.getHighRegister().set(temp);
 
@@ -101,12 +109,9 @@ void CPU::opcodeRLCA() {
 //Rotates A register to the left with the carry's value put into bit 0 and bit 7 is put into the carry.
 void CPU::opcodeRLA() {
 	uint8_t temp = AF.getHighRegister().getByte();
-	SingleRegister& flag =  AF.getLowRegister();
+	bool carryValue = F.getCarryFlag();//gets carry flag value for later
 
-	FlagRegister& flagRef = dynamic_cast<FlagRegister&>(flag);//dynamic casting from superclass to subclass
-	bool carryValue = flagRef.getCarryFlag();//gets carry flag value for later
-
-	flag.setBit(4, (temp >> 7) & 0x1);//sets carry flag to bit 7 of A's value
+	F.setCarryFlag((temp >> 7) & 0x1);//sets carry flag to bit 7 of A's value
 	temp = ((temp << 1) | (temp >> 7));//rotate A left
 	temp = (temp & ~(1UL << 0)) | (carryValue << 0);//set bit 0 of A to carry value
 	AF.getHighRegister().set(temp);//update A value in register
@@ -116,9 +121,40 @@ void CPU::opcodeRLA() {
 
 //Decimal adjust register A
 void CPU::opcodeDAA() {
+	uint8_t a = AF.getHighRegister().getByte();
+	if(!F.getAddSubFlag()) { //addition was performed (AddSubFlag = 0)
+		if (F.getCarryFlag() || a > 0x99) {
+			a += 0x60;
+			F.setCarryFlag(1);//used if a > 0x99 is true, but F.getCarryFlag() = 0;
+		}
+		if(F.getHalfCarryFlag() || (a & 0x0f) > 0x09) {
+			a += 0x6;
+		}
+	}
+	else { //subtraction was performed (AddSubFlag = 1)
+		if (F.getCarryFlag()) {a -= 0x60;}
+		if (F.getHalfCarryFlag()) { a -= 0x6; }
+	}
 
+	F.setZeroFlag(a == 0);//see if A is 0
+	F.setHalfCarryFlag(0);//we reset half carry flag always
+
+	AF.getHighRegister().set(a);//set A to adjusted value
+	setClockPrevious(4);
 }
 
+//set carry flag and reset other flags
 void CPU::opcodeSCF() {
-
+	F.setAddSubFlag(0);
+	F.setHalfCarryFlag(0);
+	F.setCarryFlag(1);
+	setClockPrevious(4);
 }
+
+void CPU::opcodeJR() {
+	//get a signed byte from program counter (increment)
+	//get value of program counter (address its pointing to)
+	//add the signed byte to said address
+	//set PC to this added value, thereby jumping to it
+}
+

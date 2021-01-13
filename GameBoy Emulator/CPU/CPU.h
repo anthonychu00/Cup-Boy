@@ -35,6 +35,9 @@ private:
 	FullRegister SP;
 	FullRegister PC;
 
+	//separate FlagRegister object for ease of access
+	FlagRegister F;
+
 	Clock clock;
 
 	uint8_t PCFetchByte();
@@ -49,6 +52,7 @@ private:
 	//Load words
 	void opcodeLoadWord(SplitRegister& r);//0x01, 0x11, 0x21
 	void opcodeLoadWord(FullRegister& r);//0x31
+	//void opcodeLoadWord(Address, SP);
 
 	//load accumulator to memory
 	void opcodeLoadAToMemory(SplitRegister& r);//0x02, 0x12, 0x22, 0x32
@@ -69,4 +73,5 @@ private:
 	void opcodeDAA();
 	void opcodeSCF();
 
+	void opcodeJR();
 };
