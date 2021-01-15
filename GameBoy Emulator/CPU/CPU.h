@@ -2,6 +2,11 @@
 #include <cstdint>
 #include "../registers/split_register.h"
 #include "../registers/full_register.h"
+
+enum class Condition {
+	NZ, Z, NC, C
+};//conditions for flag register in jump operations
+
 class CPU {
 public:
 	
@@ -42,6 +47,7 @@ private:
 
 	uint8_t PCFetchByte();
 	uint16_t PCFetchWord();
+	bool checkCondition(Condition c);
 
 	//opcodes
 	void opcodeNOP();//0x00
@@ -56,6 +62,7 @@ private:
 
 	//load accumulator to memory
 	void opcodeLoadAToMemory(SplitRegister& r);//0x02, 0x12, 0x22, 0x32
+	void opcodeLoadMemoryToA(SplitRegister& r);
 
 	void opcodeIncrement(SplitRegister& r);//0x03, 0x13, 0x23, 0x33
 	void opcodeIncrement(FullRegister& r);
@@ -69,9 +76,15 @@ private:
 
 	void opcodeRLCA();
 	void opcodeRLA();
+	void opcodeRRCA();
+	void opcodeRRA();
 
 	void opcodeDAA();
 	void opcodeSCF();
 
 	void opcodeJR();
+	void opcodeJR(Condition c);
+
+	void opcodeAddHL(SplitRegister& addedVal);
+	void opcodeAddHL(FullRegister& addedVal);
 };

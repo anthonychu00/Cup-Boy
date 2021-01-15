@@ -50,6 +50,12 @@ void CPU::opcodeLoadAToMemory(SplitRegister& r) {
 	setClockPrevious(8);
 }
 
+//load byte in memory to accumulator
+void CPU::opcodeLoadMemoryToA(SplitRegister& r) {
+	//opposite of above, implement once memory is done
+	setClockPrevious(8);
+}
+
 //increment registers
 void CPU::opcodeIncrement(SplitRegister& r) {
 	r.increment();
@@ -119,6 +125,20 @@ void CPU::opcodeRLA() {
 	setClockPrevious(4);
 }
 
+
+void CPU::opcodeRRCA() {
+	//*******************
+	setClockPrevious(4);
+}
+
+void CPU::opcodeRRA() {
+	//*************************
+	setClockPrevious(4);
+}
+
+
+
+
 //Decimal adjust register A
 void CPU::opcodeDAA() {
 	uint8_t a = AF.getHighRegister().getByte();
@@ -156,5 +176,44 @@ void CPU::opcodeJR() {
 	//get value of program counter (address its pointing to)
 	//add the signed byte to said address
 	//set PC to this added value, thereby jumping to it
+	setClockPrevious(12);
+}
+
+void CPU::opcodeJR(Condition c) {
+	bool result = checkCondition(c);
+	if (result) { //we do branch
+		opcodeJR(); 	
+	}
+	else {
+		//fetch signed byte from program coounter, but do nothing with it
+		setClockPrevious(8);
+	}
+}
+
+
+void CPU::opcodeAddHL(SplitRegister& addedVal) {
+	uint16_t HLVal = HL.getValue();
+
+	HLVal += addedVal.getValue();
+
+	F.setAddSubFlag(0);
+	F.setHalfCarryFlag(1);//***********************TODO:set if carried rom bit 11
+	F.setCarryFlag(1);//*******************TODO: set if carried from bit 15
+
+	HL.set(HLVal);
+	setClockPrevious(8);
+}
+
+void CPU::opcodeAddHL(FullRegister& addedVal) {
+	uint16_t HLVal = HL.getValue();
+
+	HLVal += addedVal.getValue();
+
+	F.setAddSubFlag(0);
+	F.setHalfCarryFlag(1);//***********************TODO:set if carried rom bit 11
+	F.setCarryFlag(1);//*******************TODO: set if carried from bit 15
+
+	HL.set(HLVal);
+	setClockPrevious(8);
 }
 
