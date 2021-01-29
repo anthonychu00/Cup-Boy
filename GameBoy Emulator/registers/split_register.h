@@ -16,8 +16,8 @@ public:
 	SingleRegister& getHighRegister();
 	SingleRegister& getLowRegister();
 
-	void increment(); //+1 to the byte value
-	void decrement();
+	void increment() override; //+1 to the byte value
+	void decrement() override;
 
 
 private:

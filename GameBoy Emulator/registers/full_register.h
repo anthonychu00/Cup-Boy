@@ -11,8 +11,8 @@ public:
 	uint8_t getHigh() const override;
 	uint8_t getLow() const override;
 
-	void increment();
-	void decrement();
+	void increment() override;
+	void decrement() override;
 private:
 	uint16_t word = 0x0;
 };
