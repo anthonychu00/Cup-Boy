@@ -150,7 +150,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CPU\CPU.cpp" />
-    <ClCompile Include="CPU\opcodes.cpp" />
+    <ClCompile Include="CPU\opcodes_misc.cpp" />
+    <ClCompile Include="CPU\opcodes_arithmetic.cpp" />
+    <ClCompile Include="CPU\opcodes_control.cpp" />
+    <ClCompile Include="CPU\opcodes_load.cpp" />
+    <ClCompile Include="CPU\opcodes_rotate_shift.cpp" />
     <ClCompile Include="memory\memory_map.cpp" />
     <ClCompile Include="video\video.cpp" />
     <ClCompile Include="registers\flag_register.cpp" />

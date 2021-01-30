@@ -7,6 +7,7 @@ public:
 	SingleRegister() = default;
 	SingleRegister(uint8_t b);
 	~SingleRegister() = default;
+
 	virtual void set(uint8_t b);
 	void setBit(int bitNum, bool bitVal);
 
@@ -15,5 +16,5 @@ public:
 
 	uint8_t getByte() const;
 protected:
-	uint8_t byte = 0x0;
+	uint8_t byte = 0x00;
 };

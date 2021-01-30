@@ -1,14 +1,14 @@
 #include "split_register.h"
 
-SplitRegister::SplitRegister(uint8_t h, uint8_t l):
-	high(h),
-	low(l)
+SplitRegister::SplitRegister(uint8_t h, uint8_t l)
 {	
+	high.set(h);
+	low.set(l);
 }
 
 void SplitRegister::set(const uint16_t high_low){
-	high.set(static_cast<uint8_t>((high_low) >> 8));
-	low.set(static_cast<uint8_t>(high_low));
+	high.set(static_cast<uint8_t>((high_low) >> 8));//shift right 8 bits and lop off empty first byte
+	low.set(static_cast<uint8_t>(high_low));//cast lops off first byte
 }
 
 void SplitRegister::increment(){
@@ -21,7 +21,6 @@ void SplitRegister::decrement(){
 
 uint16_t SplitRegister::getValue() const{
 	return ((uint16_t)low.getByte() << 8) | high.getByte();
-	
 }
 
 uint8_t SplitRegister::getHigh() const {

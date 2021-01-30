@@ -6,6 +6,7 @@
 class FlagRegister : public SingleRegister {
 public:
 	FlagRegister() = default;
+	~FlagRegister() = default;
 
 	//flag register only cares about its first 4 bits
 	void set(uint8_t byte) override;

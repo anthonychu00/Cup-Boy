@@ -2,132 +2,6 @@
 #include <cstdlib>
 #include "CPU.h"
 
-void CPU::setClockPrevious(int ticks) {
-	clock.p = ticks;
-}
-
-//0x00
-void CPU::opcodeNOP() {
-	//no operation
-	setClockPrevious(4);
-}
-
-//load byte
-void CPU::opcodeLoadByte(SingleRegister& r) {
-	uint8_t newValue = PCFetchByte();
-	r.set(newValue);
-	setClockPrevious(8);
-}
-
-void CPU::opcodeLoadByte(SingleRegister& r, const SingleRegister& newReg) {
-	r.set(newReg.getByte());
-	setClockPrevious(4);
-}
-
-void CPU::opcodeLoadByte(SingleRegister& r, uint16_t address) {
-	//load byte stored in address (from HL) in memory to register r
-	setClockPrevious(8);
-}
-
-void CPU::opcodeLoadByte(uint16_t address, SingleRegister& r) {
-	//load byte in register r to memory address pointed to by HL
-	setClockPrevious(8);
-}
-
-//byte to address
-
-
-void CPU::opcodeLoadWord(Word& r) {
-	uint16_t newValue = PCFetchWord();//get 16 bytes from PC
-	r.set(newValue);
-	setClockPrevious(12);
-}
-
-//0x08
-/*void CPU::opcodeLoadWord(Address, SP) {
-	Address is a uint16_t grabbed from program counter
-	- write SP.low() to (u16) address
-	- write SP.high() to (u16 + 1) address
-	setClockPrevious(20);
-}*/
-
-void CPU::opcodeLoadHLSP() {
-	int8_t addedVal = static_cast<int8_t>(PCFetchByte());
-	HL.set(SP.getValue() + static_cast<uint16_t>(addedVal));
-
-	F.setZeroFlag(0);
-	F.setAddSubFlag(0);
-	F.setHalfCarryFlag((SP.getValue() & 0x0F) + (addedVal & 0x0F) > 0x0F);
-	F.setCarryFlag((SP.getValue() & 0xFF) + (addedVal & 0xFF) > 0xFF);
-
-	setClockPrevious(12);
-}
-
-void CPU::opcodeLoadSPHL() {
-	SP.set(HL.getValue());
-	setClockPrevious(8);
-}
-//load accumulator to memory
-
-void CPU::opcodeLoadAToMemory16() {
-	uint16_t address = PCFetchWord();
-	//put value of A into address pointed to by uint16_t address
-	setClockPrevious(16);
-}
-
-void CPU::opcodeLoadAToMemory() {
-	uint8_t location = PCFetchByte();
-	uint16_t address = static_cast<uint16_t>(0xFF00 + static_cast<uint16_t>(location));
-
-	//load A into 16 bit memory address specified above
-	setClockPrevious(12);
-}
-
-void CPU::opcodeLoadAToMemory(SingleRegister& r) {
-	uint8_t location = r.getByte();
-	uint16_t address = static_cast<uint16_t>(0xFF00 + static_cast<uint16_t>(location));
-
-	//load A into memory address above
-	setClockPrevious(8);
-}
-
-//0x02, 0x12, 0x22, 0x32
-void CPU::opcodeLoadAToMemory(SplitRegister& r) {
-	//loads memory address specified by SplitRegister value with accumulator value
-	//remember memory has 2 byte addresses, but 1 byte data
-	setClockPrevious(8);
-}
-
-void CPU::opcodeLoadMemoryToA16() {
-	uint16_t address = PCFetchWord();
-	//put 8-bit value of uint16_t memory address into A
-	setClockPrevious(16);
-}
-
-void CPU::opcodeLoadMemoryToA() {
-	uint8_t location = PCFetchByte();
-	uint16_t address = static_cast<uint16_t>(0xFF00 + static_cast<uint16_t>(location));
-
-	//load 16 bit address's value into A
-	setClockPrevious(12);
-}
-
-void CPU::opcodeLoadMemoryToA(SingleRegister& r) {
-	uint8_t location = r.getByte();
-	uint16_t address = static_cast<uint16_t>(0xFF00 + static_cast<uint16_t>(location));
-
-	//load 16 bit address value in memory to A
-	setClockPrevious(8);
-}
-
-
-//load byte in memory to accumulator
-void CPU::opcodeLoadMemoryToA(SplitRegister& r) {
-	//opposite of above, implement once memory is done
-	setClockPrevious(8);
-}
-
-
 //increment registers
 void CPU::opcodeIncrement(Word& r) {
 	r.increment();
@@ -174,94 +48,20 @@ void CPU::opcodeDecrement(SingleRegister& r) {
 	setClockPrevious(12);
 }*/
 
-
-void CPU::opcodeRLCAux(uint8_t val) {
-	F.setCarryFlag((val >> 7) & 0x1);//sets carry flag bit to the 7th bit of A
-	val = ((val << 1) | (val >> 7));//rotate A left 
-	AF.getHighRegister().set(val);
-
-	F.setZeroFlag(val == 0);//********might have to override == operator here? 
-	F.setHalfCarryFlag(0);
-	F.setAddSubFlag(0);
-}
-
-//Rotates A to the left with bit 7 being moved to bit 0 and also stored into the carry.
-void CPU::opcodeRLCA() {
-	uint8_t temp = AF.getHighRegister().getByte();//gets value of A register's byte
-	F.setCarryFlag((temp >> 7) & 0x1);//sets carry flag bit to the 7th bit of A
-	temp = ((temp << 1) | (temp >> 7));//rotate A left 
-	AF.getHighRegister().set(temp);
-
-	F.setZeroFlag(temp == 0);//********might have to override == operator here? 
-	F.setHalfCarryFlag(0);
-	F.setAddSubFlag(0);
-
-	setClockPrevious(4);
-}
-
-//Rotates A register to the left with the carry's value put into bit 0 and bit 7 is put into the carry.
-void CPU::opcodeRLA() {
-	uint8_t temp = AF.getHighRegister().getByte();
-	bool carryValue = F.getCarryFlag();//gets carry flag value for later
-
-	F.setCarryFlag((temp >> 7) & 0x1);//sets carry flag to bit 7 of A's value
-	temp = ((temp << 1) | (temp >> 7));//rotate A left
-	temp = (temp & ~(1UL << 0)) | (carryValue << 0);//set bit 0 of A to carry value
-	AF.getHighRegister().set(temp);//update A value in register
-
-	F.setZeroFlag(temp == 0);//********might have to override == operator here? 
-	F.setHalfCarryFlag(0);
-	F.setAddSubFlag(0);
-
-	setClockPrevious(4);
-}
-
-//Rotates A to the right with bit 0 moved to bit 7 and also stored into the carry.
-void CPU::opcodeRRCA() {
-	uint8_t temp = AF.getHighRegister().getByte();//gets value of A register's byte
-	F.setCarryFlag((temp >> 0) & 0x1);
-	temp = ((temp >> 1) | (temp << 7));
-	AF.getHighRegister().set(temp);
-
-	F.setZeroFlag(temp == 0);//********might have to override == operator here? 
-	F.setHalfCarryFlag(0);
-	F.setAddSubFlag(0);
-
-	setClockPrevious(4);
-}
-
-//Rotates A to the right with the carry put into bit 7 and bit 0 put into the carry flag.
-void CPU::opcodeRRA() {
-	uint8_t temp = AF.getHighRegister().getByte();
-	bool carryValue = F.getCarryFlag();
-
-	F.setCarryFlag((temp >> 0) & 0x1);
-	temp = ((temp >> 1) | (temp << 7));
-	temp = (temp & ~(1UL << 7)) | (carryValue << 7);//set bit 7 of A to carry value
-	AF.getHighRegister().set(temp);
-
-	F.setZeroFlag(temp == 0);//********might have to override == operator here? 
-	F.setHalfCarryFlag(0);
-	F.setAddSubFlag(0);
-
-	setClockPrevious(4);
-}
-
-
 //Decimal adjust register A
 void CPU::opcodeDAA() {
 	uint8_t a = AF.getHighRegister().getByte();
-	if(!F.getAddSubFlag()) { //addition was performed (AddSubFlag = 0)
+	if (!F.getAddSubFlag()) { //addition was performed (AddSubFlag = 0)
 		if (F.getCarryFlag() || a > 0x99) {
 			a += 0x60;
 			F.setCarryFlag(1);//used if a > 0x99 is true, but F.getCarryFlag() = 0;
 		}
-		if(F.getHalfCarryFlag() || (a & 0x0f) > 0x09) {
+		if (F.getHalfCarryFlag() || (a & 0x0f) > 0x09) {
 			a += 0x6;
 		}
 	}
 	else { //subtraction was performed (AddSubFlag = 1)
-		if (F.getCarryFlag()) {a -= 0x60;}
+		if (F.getCarryFlag()) { a -= 0x60; }
 		if (F.getHalfCarryFlag()) { a -= 0x6; }
 	}
 
@@ -280,49 +80,7 @@ void CPU::opcodeSCF() {
 	setClockPrevious(4);
 }
 
-//jumps
-void CPU::opcodeJP() {
-	uint16_t address = PCFetchWord();
-	PC.set(address);
-	setClockPrevious(16);
-}
-
-void CPU::opcodeJPHL() {
-	PC.set(HL.getValue());//jump to address pointed by HL, but do not actually access it
-	setClockPrevious(4);
-}
-void CPU::opcodeJP(Condition c) {
-	bool result = checkCondition(c);
-	if (result) {
-		opcodeJP();
-	}
-	else {
-		uint16_t word = PCFetchWord();
-		setClockPrevious(12);
-	}
-}
-
-void CPU::opcodeJR() {
-	//get a signed byte from program counter (increment PC as well)
-	//get value of program counter (address its pointing to)
-	//add the signed byte to said address
-	//set PC to this added value, thereby jumping to it
-	setClockPrevious(12);
-}
-
-void CPU::opcodeJR(Condition c) {
-	bool result = checkCondition(c);
-	if (result) { //we do branch
-		opcodeJR(); 	
-	}
-	else {
-		//fetch signed byte from program coounter, but do nothing with it
-		setClockPrevious(8);
-	}
-}
-
-
-void CPU::opcodeAddSP(){//********check if it works closely
+void CPU::opcodeAddSP() {//********check if it works closely
 	int8_t addedVal = static_cast<int8_t>(PCFetchByte());
 	//SP value is uint16_t
 	F.setZeroFlag(0);
@@ -344,7 +102,7 @@ void CPU::opcodeAddAAux(uint8_t addedVal) {
 
 	F.setZeroFlag(AF.getHighRegister().getByte() == 0);
 	F.setAddSubFlag(0);
-	F.setHalfCarryFlag( (a & 0xF) + (addedVal & 0xF) > 0xF);//check first 4 bits only
+	F.setHalfCarryFlag((a & 0xF) + (addedVal & 0xF) > 0xF);//check first 4 bits only
 	F.setCarryFlag(toSet > 0xFF);// added value > 255
 }
 
@@ -373,7 +131,7 @@ void CPU::opcodeADCAux(uint8_t addedVal) {
 
 	F.setZeroFlag(AF.getHighRegister().getByte() == 0);
 	F.setAddSubFlag(0);
-	F.setHalfCarryFlag( (a & 0xF) + (addedVal & 0xF) + c > 0xF);//check first 4 bits
+	F.setHalfCarryFlag((a & 0xF) + (addedVal & 0xF) + c > 0xF);//check first 4 bits
 	F.setCarryFlag(toSet > 0xFF);
 }
 
@@ -392,7 +150,7 @@ void CPU::opcodeADC(uint16_t address) {
 	setClockPrevious(8);
 }
 
-void CPU::opcodeAddHLAux(uint16_t addedVal) { 
+void CPU::opcodeAddHLAux(uint16_t addedVal) {
 	uint16_t HLVal = HL.getValue();
 
 	uint32_t toSet = static_cast<uint32_t>(HLVal + addedVal);
@@ -476,7 +234,7 @@ void CPU::opcodeAndAux(uint8_t val) {
 	uint8_t result = a & val;
 
 	AF.getHighRegister().set(result);
-	
+
 	F.setZeroFlag(result == 0);
 	F.setAddSubFlag(0);
 	F.setHalfCarryFlag(1);
@@ -594,73 +352,3 @@ void CPU::opcodeCCF() {
 	F.setHalfCarryFlag(0);
 	setClockPrevious(4);
 }
-
-void CPU::opcodeHalt() {
-	halt = true;
-	setClockPrevious(4);
-}
-
-void CPU::opcodeRet() {
-	stackPop(PC);
-	setClockPrevious(16);
-}
-
-void CPU::opcodeRet(Condition c) {
-	bool result = checkCondition(c);
-	if (result) { //we do branch
-		opcodeRet();
-		setClockPrevious(20);
-	}
-	else {
-		setClockPrevious(8);
-	}
-}
-
-void CPU::opcodeRetI() {
-	stackPop(PC);
-	opcodeEI();
-	setClockPrevious(16);
-}
-
-void CPU::opcodeCall() {
-	uint16_t address = PCFetchWord();
-	stackPush(PC);
-	PC.set(address);
-	setClockPrevious(24);
-}
-
-void CPU::opcodeCall(Condition c) {
-	bool result = checkCondition(c);
-	if (result) { //we do branch
-		opcodeCall();
-	}
-	else {
-		uint16_t word = PCFetchWord();
-		setClockPrevious(12);
-	}
-}
-
-void CPU::opcodeRST(uint8_t location) {
-	stackPush(PC);
-	uint16_t address = static_cast<uint16_t>(0x0000 + static_cast<uint16_t>(location));
-	PC.set(address);
-	setClockPrevious(16);
-}
-
-void CPU::opcodeEI() {
-	interrupts = true;
-	setClockPrevious(4);
-}
-
-void CPU::opcodeDI() {
-	interrupts = false;
-	setClockPrevious(4);
-}
-
-void CPU::opcodePrefix() {
-	/// <summary>
-	/// 
-	/// </summary>
-	setClockPrevious(4);
-}
-

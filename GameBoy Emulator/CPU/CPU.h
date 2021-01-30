@@ -92,10 +92,16 @@ private:
 	void opcodeDecrement(SingleRegister& r);
 	//void opcodeDecrement(Address value);
 
-	void opcodeRLCAux(uint8_t val);
+	uint8_t opcodeRLCAux(uint8_t val);
 	void opcodeRLCA();
+	void opcodeRLC(SingleRegister& r);
+	void opcodeRLC(uint16_t address);
 
+	uint8_t opcodeRLAux(uint8_t val);
 	void opcodeRLA();
+	void opcodeRL(SingleRegister& r);
+	void opcodeRL(uint16_t address);
+
 	void opcodeRRCA();
 	void opcodeRRA();
 

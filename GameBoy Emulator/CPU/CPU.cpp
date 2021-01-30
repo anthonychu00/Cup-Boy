@@ -10,7 +10,7 @@ void CPU::executeOperations() {
 }
 
 uint8_t CPU::PCFetchByte() {
-	//uint8_t byte = fetch byte from memory address
+	//uint8_t byte = fetch byte from memory address of PC
 	PC.increment();
 	//return byte;
 }
@@ -23,24 +23,9 @@ uint16_t CPU::PCFetchWord() {
 	return ((uint16_t)low << 8) | high;
 }
 
-//pop 2 bytes from SP and load into 2 registers
-void CPU::stackPop(Word& r) {
-	//get lower byte memory from address in memory pointed to by SP
-	//SP.increment();
-	//get higher byte memory from address
-	//SP.increment();
-
-	//word = ((uint16_t)low.getByte() << 8) | high.getByte();
-	//set register to popped val (jumps if PC)
+void CPU::setClockPrevious(int ticks) {
+	clock.p = ticks;
 }
-
-void CPU::stackPush(const Word& r) {
-	//decrement SP
-	//write r -> high to address pointed to by SP
-	//decrement
-	//write r-> low to new address pointed by SP
-}
-
 
 bool CPU::checkCondition(Condition c) {
 	bool result = 0;

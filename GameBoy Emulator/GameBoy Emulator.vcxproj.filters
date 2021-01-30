@@ -62,7 +62,19 @@
     <ClCompile Include="video\video.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CPU\opcodes.cpp">
+    <ClCompile Include="CPU\opcodes_load.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CPU\opcodes_arithmetic.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CPU\opcodes_rotate_shift.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CPU\opcodes_control.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CPU\opcodes_misc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
