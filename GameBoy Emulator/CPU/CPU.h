@@ -14,7 +14,7 @@ public:
 	int executePrefixedOpcode(uint8_t opcode, uint16_t PCValue);
 	void setClockPrevious(int ticks);
 	
-	enum class Condition {
+	enum class Flag {
 		NZ, Z, NC, C
 	};//conditions for flag register in jump operations
 
@@ -55,7 +55,7 @@ private:
 	uint16_t PCFetchWord();
 	void stackPop(Word& r);
 	void stackPush(const Word& r);
-	bool checkCondition(Condition c);
+	bool checkCondition(Flag fl);
 
 	//opcodes
 	void opcodeNOP();//0x00
@@ -102,18 +102,50 @@ private:
 	void opcodeRL(SingleRegister& r);
 	void opcodeRL(uint16_t address);
 
+	uint8_t opcodeRRCAux(uint8_t val);
 	void opcodeRRCA();
+	void opcodeRRC(SingleRegister& r);
+	void opcodeRRC(uint16_t address);
+
+	uint8_t opcodeRRAux(uint8_t val);
 	void opcodeRRA();
+	void opcodeRR(SingleRegister& r);
+	void opcodeRR(uint16_t address);
+
+	uint8_t opcodeSLAAux(uint8_t val);
+	void opcodeSLA(SingleRegister& r);
+	void opcodeSLA(uint16_t address);
+
+	uint8_t opcodeSRAAux(uint8_t val);
+	void opcodeSRA(SingleRegister& r);
+	void opcodeSRA(uint16_t address);
+
+	uint8_t opcodeSRLAux(uint8_t val);
+	void opcodeSRL(SingleRegister& r);
+	void opcodeSRL(uint16_t address);
+
+	uint8_t opcodeSwapAux(uint8_t val);
+	void opcodeSwap(SingleRegister& r);
+	void opcodeSwap(uint16_t address);
+
+	void opcodeBit(int position, SingleRegister& r);
+	void opcodeBit(int position, uint16_t address);
+
+	void opcodeReset(int position, SingleRegister& r);
+	void opcodeReset(int position, uint16_t address);
+
+	void opcodeSet(int position, SingleRegister& r);
+	void opcodeSet(int position, uint16_t address);
 
 	void opcodeDAA();
 	void opcodeSCF();
 
 	void opcodeJP();
-	void opcodeJP(Condition c);
+	void opcodeJP(Flag fl);
 	void opcodeJPHL();
 
 	void opcodeJR();
-	void opcodeJR(Condition c);
+	void opcodeJR(Flag fl);
 
 	void opcodeAddSP();
 
@@ -167,16 +199,15 @@ private:
 	void opcodeHalt();
 
 	void opcodeRet();
-	void opcodeRet(Condition c);
+	void opcodeRet(Flag fl);
 	void opcodeRetI();
 
 	void opcodeCall();
-	void opcodeCall(Condition c);
+	void opcodeCall(Flag fl);
 
 	void opcodeRST(uint8_t location);//recheck
 
 	void opcodeEI();
 	void opcodeDI();
 
-	void opcodePrefix();
 };

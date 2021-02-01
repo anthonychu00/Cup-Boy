@@ -8,8 +8,8 @@ void SingleRegister::set(const uint8_t b){
 	byte = b;
 }
 
-void SingleRegister::setBit(int bitNum, bool bitVal) {
-	byte = (byte & ~(1UL << bitNum)) | (bitVal << bitNum);
+void SingleRegister::setBit(int position, bool bitVal) {
+	byte = (byte & ~(1UL << position)) | (bitVal << position);
 }
 
 void SingleRegister::increment(){

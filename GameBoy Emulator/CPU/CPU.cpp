@@ -27,20 +27,20 @@ void CPU::setClockPrevious(int ticks) {
 	clock.p = ticks;
 }
 
-bool CPU::checkCondition(Condition c) {
+bool CPU::checkCondition(Flag fl) {
 	bool result = 0;
 
-	switch (c) {
-	case Condition::NZ:
+	switch (fl) {
+	case Flag::NZ:
 		result = !F.getZeroFlag();
 		break;
-	case Condition::Z:
+	case Flag::Z:
 		result = F.getZeroFlag();
 		break;
-	case Condition::NC:
+	case Flag::NC:
 		result = !F.getCarryFlag();
 		break;
-	case Condition::C:
+	case Flag::C:
 		result = F.getCarryFlag();
 		break;
 
@@ -86,6 +86,7 @@ int CPU::executeOpcode(uint8_t opcode, uint16_t PCValue) {
 		case 0x1D: opcodeDecrement(DE.getLowRegister()); break;
 		case 0x1E: opcodeLoadByte(DE.getLowRegister()); break;
 		case 0x1F: opcodeRRA(); break;
+		case 0x20: opcodeJR(Flag::NZ); break;
 		case 0x21: opcodeLoadWord(HL); break;
 		case 0x22: opcodeLoadAToMemory(HL); break;//examine difference
 		case 0x23: opcodeIncrement(HL); break;
@@ -93,7 +94,7 @@ int CPU::executeOpcode(uint8_t opcode, uint16_t PCValue) {
 		case 0x25: opcodeDecrement(HL.getHighRegister()); break;
 		case 0x26: opcodeLoadByte(HL.getHighRegister()); break;
 		case 0x27: opcodeDAA(); break;
-		case 0x28: opcodeJR(Condition::Z); break;
+		case 0x28: opcodeJR(Flag::Z); break;
 		case 0x29: opcodeAddHL(HL); break;
 		case 0x2A: opcodeLoadMemoryToA(HL); break;//examine difference
 		case 0x2B: opcodeDecrement(HL); break;
@@ -101,6 +102,7 @@ int CPU::executeOpcode(uint8_t opcode, uint16_t PCValue) {
 		case 0x2D: opcodeDecrement(HL.getLowRegister()); break;
 		case 0x2E: opcodeLoadByte(HL.getLowRegister()); break;
 		case 0x2F: opcodeCPL(); break;
+		case 0x30: opcodeJR(Flag::NC); break;
 		case 0x31: opcodeLoadWord(SP); break;
 		case 0x32: opcodeLoadAToMemory(HL); break;//examine difference
 		case 0x33: opcodeIncrement(SP); break;
@@ -108,7 +110,7 @@ int CPU::executeOpcode(uint8_t opcode, uint16_t PCValue) {
 		//case 0x35: opcodeIncrement(); break; <- decrement memory address pointed to by HL
 		//case 0x36: opcodeLoadByte(Address) <- load byte to HL address in memory
 		case 0x37: opcodeSCF(); break;
-		case 0x38: opcodeJR(Condition::C); break;
+		case 0x38: opcodeJR(Flag::C); break;
 		case 0x39: opcodeAddHL(SP); break;
 		case 0x3A: opcodeLoadMemoryToA(HL); break;//examine difference
 		case 0x3B: opcodeDecrement(SP); break;
@@ -246,34 +248,34 @@ int CPU::executeOpcode(uint8_t opcode, uint16_t PCValue) {
 		case 0xBD: opcodeCP(HL.getLowRegister()); break;
 		//case 0xBE: opcodeCP(HL.getValue()); break;
 		case 0xBF: opcodeCP(AF.getHighRegister()); break;
-		case 0xC0: opcodeRet(Condition::NZ); break;
+		case 0xC0: opcodeRet(Flag::NZ); break;
 		case 0xC1: stackPop(BC); break;
-		case 0xC2: opcodeJP(Condition::NZ); break;
+		case 0xC2: opcodeJP(Flag::NZ); break;
 		case 0xC3: opcodeJP(); break;
-		case 0xC4: opcodeCall(Condition::NZ); break;
+		case 0xC4: opcodeCall(Flag::NZ); break;
 		case 0xC5: stackPush(BC); break;
 		case 0xC6: opcodeAddA(); break;
 		case 0xC7: opcodeRST(0x00); break;
-		case 0xC8: opcodeRet(Condition::Z); break;
+		case 0xC8: opcodeRet(Flag::Z); break;
 		case 0xC9: opcodeRet(); break;
-		case 0xCA: opcodeJP(Condition::Z); break;
-		case 0xCC: opcodeCall(Condition::Z); break;
+		case 0xCA: opcodeJP(Flag::Z); break;
+		case 0xCC: opcodeCall(Flag::Z); break;
 		case 0xCD: opcodeCall(); break;
 		case 0xCE: opcodeADC(); break;
 		case 0xCF: opcodeRST(0x08); break;
-		case 0xD0: opcodeRet(Condition::NC); break;
+		case 0xD0: opcodeRet(Flag::NC); break;
 		case 0xD1: stackPop(DE); break;
-		case 0xD2: opcodeJP(Condition::NC); break;
+		case 0xD2: opcodeJP(Flag::NC); break;
 		case 0xD3: break; //no operation
-		case 0xD4: opcodeCall(Condition::NC); break;
+		case 0xD4: opcodeCall(Flag::NC); break;
 		case 0xD5: stackPush(DE); break;
 		case 0xD6: opcodeSubA(); break;
 		case 0xD7: opcodeRST(0x10); break;
-		case 0xD8: opcodeRet(Condition::C); break;
+		case 0xD8: opcodeRet(Flag::C); break;
 		case 0xD9: opcodeRetI(); break;
-		case 0xDA: opcodeJP(Condition::C); break;
+		case 0xDA: opcodeJP(Flag::C); break;
 		case 0xDB: break; //no operation
-		case 0xDC: opcodeCall(Condition::C); break;
+		case 0xDC: opcodeCall(Flag::C); break;
 		case 0xDD: break; //no operation
 		case 0xDE: opcodeSBC(); break;
 		case 0xDF: opcodeRST(0x18); break;
@@ -317,7 +319,262 @@ int CPU::executeOpcode(uint8_t opcode, uint16_t PCValue) {
 
 int CPU::executePrefixedOpcode(uint8_t opcode, uint16_t PCValue) {
 	switch (opcode) {
-	case 0x00: //rlc b break;
+	case 0x00: opcodeRLC(BC.getHighRegister()); break;
+	case 0x01: opcodeRLC(BC.getLowRegister()); break;
+	case 0x02: opcodeRLC(DE.getHighRegister()); break;
+	case 0x03: opcodeRLC(DE.getLowRegister()); break;
+	case 0x04: opcodeRLC(HL.getHighRegister()); break;
+	case 0x05: opcodeRLC(HL.getLowRegister()); break;
+	//case 0x06: opcodeRLC(HL.getValue()); break;
+	case 0x07: opcodeRLC(AF.getHighRegister()); break;
+	case 0x08: opcodeRRC(BC.getHighRegister()); break;
+	case 0x09: opcodeRRC(BC.getLowRegister()); break;
+	case 0x0A: opcodeRRC(DE.getHighRegister()); break;
+	case 0x0B: opcodeRRC(DE.getLowRegister()); break;
+	case 0x0C: opcodeRRC(HL.getHighRegister()); break;
+	case 0x0D: opcodeRRC(HL.getLowRegister()); break;
+	//case 0x0E: opcodeRRC(HL.getValue()); break;
+	case 0x0F: opcodeRRC(AF.getHighRegister()); break;
+	case 0x10: opcodeRL(BC.getHighRegister()); break;
+	case 0x11: opcodeRL(BC.getLowRegister()); break;
+	case 0x12: opcodeRL(DE.getHighRegister()); break;
+	case 0x13: opcodeRL(DE.getLowRegister()); break;
+	case 0x14: opcodeRL(HL.getHighRegister()); break;
+	case 0x15: opcodeRL(HL.getLowRegister()); break;
+	//case 0x16: opcodeRL(HL.getValue()); break;
+	case 0x17: opcodeRL(AF.getHighRegister()); break;
+	case 0x18: opcodeRR(BC.getHighRegister()); break;
+	case 0x19: opcodeRR(BC.getLowRegister()); break;
+	case 0x1A: opcodeRR(DE.getHighRegister()); break;
+	case 0x1B: opcodeRR(DE.getLowRegister()); break;
+	case 0x1C: opcodeRR(HL.getHighRegister()); break;
+	case 0x1D: opcodeRR(HL.getLowRegister()); break;
+	//case 0x1E: opcodeRR(Hl.getValue()); break;
+	case 0x1F: opcodeRR(AF.getHighRegister()); break;
+	case 0x20: opcodeSLA(BC.getHighRegister()); break;
+	case 0x21: opcodeSLA(BC.getLowRegister()); break;
+	case 0x22: opcodeSLA(DE.getHighRegister()); break;
+	case 0x23: opcodeSLA(DE.getLowRegister()); break;
+	case 0x24: opcodeSLA(HL.getHighRegister()); break;
+	case 0x25: opcodeSLA(HL.getLowRegister()); break;
+	//case 0x26: opcodeSLA(HL.getValue()); break;
+	case 0x27: opcodeSLA(AF.getHighRegister()); break;
+	case 0x28: opcodeSRA(BC.getHighRegister()); break;
+	case 0x29: opcodeSRA(BC.getLowRegister()); break;
+	case 0x2A: opcodeSRA(DE.getHighRegister()); break;
+	case 0x2B: opcodeSRA(DE.getLowRegister()); break;
+	case 0x2C: opcodeSRA(HL.getHighRegister()); break;
+	case 0x2D: opcodeSRA(HL.getLowRegister()); break;
+		//case 0x2E: opcodeSRA(Hl.getValue()); break;
+	case 0x2F: opcodeSRA(AF.getHighRegister()); break;
+	case 0x30: opcodeSwap(BC.getHighRegister()); break;
+	case 0x31: opcodeSwap(BC.getLowRegister()); break;
+	case 0x32: opcodeSwap(DE.getHighRegister()); break;
+	case 0x33: opcodeSwap(DE.getLowRegister()); break;
+	case 0x34: opcodeSwap(HL.getHighRegister()); break;
+	case 0x35: opcodeSwap(HL.getLowRegister()); break;
+		//case 0x36: opcodeSwap(HL.getValue()); break;
+	case 0x37: opcodeSwap(AF.getHighRegister()); break;
+	case 0x38: opcodeSRL(BC.getHighRegister()); break;
+	case 0x39: opcodeSRL(BC.getLowRegister()); break;
+	case 0x3A: opcodeSRL(DE.getHighRegister()); break;
+	case 0x3B: opcodeSRL(DE.getLowRegister()); break;
+	case 0x3C: opcodeSRL(HL.getHighRegister()); break;
+	case 0x3D: opcodeSRL(HL.getLowRegister()); break;
+		//case 0x3E: opcodeSRL(Hl.getValue()); break;
+	case 0x3F: opcodeSRL(AF.getHighRegister()); break;
+	case 0x40: opcodeBit(0, BC.getHighRegister()); break;
+	case 0x41: opcodeBit(0, BC.getLowRegister()); break;
+	case 0x42: opcodeBit(0, DE.getHighRegister()); break;
+	case 0x43: opcodeBit(0, DE.getLowRegister()); break;
+	case 0x44: opcodeBit(0, HL.getHighRegister()); break;
+	case 0x45: opcodeBit(0, HL.getLowRegister()); break;
+		//case 0x46: opcodeBit(0, HL.getValue()); break;
+	case 0x47: opcodeBit(0, AF.getHighRegister()); break;
+	case 0x48: opcodeBit(1, BC.getHighRegister()); break;
+	case 0x49: opcodeBit(1, BC.getLowRegister()); break;
+	case 0x4A: opcodeBit(1, DE.getHighRegister()); break;
+	case 0x4B: opcodeBit(1, DE.getLowRegister()); break;
+	case 0x4C: opcodeBit(1, HL.getHighRegister()); break;
+	case 0x4D: opcodeBit(1, HL.getLowRegister()); break;
+		//case 0x4E: opcodeBit(1, HL.getValue()); break;
+	case 0x4F: opcodeBit(1, AF.getHighRegister()); break;
+	case 0x50: opcodeBit(2, BC.getHighRegister()); break;
+	case 0x51: opcodeBit(2, BC.getLowRegister()); break;
+	case 0x52: opcodeBit(2, DE.getHighRegister()); break;
+	case 0x53: opcodeBit(2, DE.getLowRegister()); break;
+	case 0x54: opcodeBit(2, HL.getHighRegister()); break;
+	case 0x55: opcodeBit(2, HL.getLowRegister()); break;
+		//case 0x56: opcodeBit(2, HL.getValue()); break;
+	case 0x57: opcodeBit(2, AF.getHighRegister()); break;
+	case 0x58: opcodeBit(3, BC.getHighRegister()); break;
+	case 0x59: opcodeBit(3, BC.getLowRegister()); break;
+	case 0x5A: opcodeBit(3, DE.getHighRegister()); break;
+	case 0x5B: opcodeBit(3, DE.getLowRegister()); break;
+	case 0x5C: opcodeBit(3, HL.getHighRegister()); break;
+	case 0x5D: opcodeBit(3, HL.getLowRegister()); break;
+		//case 0x5E: opcodeBit(3, HL.getValue()); break;
+	case 0x5F: opcodeBit(3, AF.getHighRegister()); break;
+	case 0x60: opcodeBit(4, BC.getHighRegister()); break;
+	case 0x61: opcodeBit(4, BC.getLowRegister()); break;
+	case 0x62: opcodeBit(4, DE.getHighRegister()); break;
+	case 0x63: opcodeBit(4, DE.getLowRegister()); break;
+	case 0x64: opcodeBit(4, HL.getHighRegister()); break;
+	case 0x65: opcodeBit(4, HL.getLowRegister()); break;
+		//case 0x66: opcodeBit(4, HL.getValue()); break;
+	case 0x67: opcodeBit(4, AF.getHighRegister()); break;
+	case 0x68: opcodeBit(5, BC.getHighRegister()); break;
+	case 0x69: opcodeBit(5, BC.getLowRegister()); break;
+	case 0x6A: opcodeBit(5, DE.getHighRegister()); break;
+	case 0x6B: opcodeBit(5, DE.getLowRegister()); break;
+	case 0x6C: opcodeBit(5, HL.getHighRegister()); break;
+	case 0x6D: opcodeBit(5, HL.getLowRegister()); break;
+		//case 0x6E: opcodeBit(5, HL.getValue()); break;
+	case 0x6F: opcodeBit(5, AF.getHighRegister()); break;
+	case 0x70: opcodeBit(6, BC.getHighRegister()); break;
+	case 0x71: opcodeBit(6, BC.getLowRegister()); break;
+	case 0x72: opcodeBit(6, DE.getHighRegister()); break;
+	case 0x73: opcodeBit(6, DE.getLowRegister()); break;
+	case 0x74: opcodeBit(6, HL.getHighRegister()); break;
+	case 0x75: opcodeBit(6, HL.getLowRegister()); break;
+		//case 0x76: opcodeBit(6, HL.getValue()); break;
+	case 0x77: opcodeBit(6, AF.getHighRegister()); break;
+	case 0x78: opcodeBit(7, BC.getHighRegister()); break;
+	case 0x79: opcodeBit(7, BC.getLowRegister()); break;
+	case 0x7A: opcodeBit(7, DE.getHighRegister()); break;
+	case 0x7B: opcodeBit(7, DE.getLowRegister()); break;
+	case 0x7C: opcodeBit(7, HL.getHighRegister()); break;
+	case 0x7D: opcodeBit(7, HL.getLowRegister()); break;
+		//case 0x7E: opcodeBit(7, HL.getValue()); break;
+	case 0x7F: opcodeBit(7, AF.getHighRegister()); break;
+	case 0x80: opcodeReset(0, BC.getHighRegister()); break;
+	case 0x81: opcodeReset(0, BC.getLowRegister()); break;
+	case 0x82: opcodeReset(0, DE.getHighRegister()); break;
+	case 0x83: opcodeReset(0, DE.getLowRegister()); break;
+	case 0x84: opcodeReset(0, HL.getHighRegister()); break;
+	case 0x85: opcodeReset(0, HL.getLowRegister()); break;
+		//case 0x86: opcodeReset(0, HL.getValue()); break;
+	case 0x87: opcodeReset(0, AF.getHighRegister()); break;
+	case 0x88: opcodeReset(1, BC.getHighRegister()); break;
+	case 0x89: opcodeReset(1, BC.getLowRegister()); break;
+	case 0x8A: opcodeReset(1, DE.getHighRegister()); break;
+	case 0x8B: opcodeReset(1, DE.getLowRegister()); break;
+	case 0x8C: opcodeReset(1, HL.getHighRegister()); break;
+	case 0x8D: opcodeReset(1, HL.getLowRegister()); break;
+		//case 0x8E: opcodeReset(1, HL.getValue()); break;
+	case 0x8F: opcodeReset(1, AF.getHighRegister()); break;
+	case 0x90: opcodeReset(2, BC.getHighRegister()); break;
+	case 0x91: opcodeReset(2, BC.getLowRegister()); break;
+	case 0x92: opcodeReset(2, DE.getHighRegister()); break;
+	case 0x93: opcodeReset(2, DE.getLowRegister()); break;
+	case 0x94: opcodeReset(2, HL.getHighRegister()); break;
+	case 0x95: opcodeReset(2, HL.getLowRegister()); break;
+		//case 0x96: opcodeReset(2, HL.getValue()); break;
+	case 0x97: opcodeReset(2, AF.getHighRegister()); break;
+	case 0x98: opcodeReset(3, BC.getHighRegister()); break;
+	case 0x99: opcodeReset(3, BC.getLowRegister()); break;
+	case 0x9A: opcodeReset(3, DE.getHighRegister()); break;
+	case 0x9B: opcodeReset(3, DE.getLowRegister()); break;
+	case 0x9C: opcodeReset(3, HL.getHighRegister()); break;
+	case 0x9D: opcodeReset(3, HL.getLowRegister()); break;
+		//case 0x9E: opcodeReset(3, HL.getValue()); break;
+	case 0x9F: opcodeReset(3, AF.getHighRegister()); break;
+	case 0xA0: opcodeReset(4, BC.getHighRegister()); break;
+	case 0xA1: opcodeReset(4, BC.getLowRegister()); break;
+	case 0xA2: opcodeReset(4, DE.getHighRegister()); break;
+	case 0xA3: opcodeReset(4, DE.getLowRegister()); break;
+	case 0xA4: opcodeReset(4, HL.getHighRegister()); break;
+	case 0xA5: opcodeReset(4, HL.getLowRegister()); break;
+		//case 0xA6: opcodeReset(4, HL.getValue()); break;
+	case 0xA7: opcodeReset(4, AF.getHighRegister()); break;
+	case 0xA8: opcodeReset(5, BC.getHighRegister()); break;
+	case 0xA9: opcodeReset(5, BC.getLowRegister()); break;
+	case 0xAA: opcodeReset(5, DE.getHighRegister()); break;
+	case 0xAB: opcodeReset(5, DE.getLowRegister()); break;
+	case 0xAC: opcodeReset(5, HL.getHighRegister()); break;
+	case 0xAD: opcodeReset(5, HL.getLowRegister()); break;
+		//case 0xAE: opcodeReset(5, HL.getValue()); break;
+	case 0xAF: opcodeReset(5, AF.getHighRegister()); break;
+	case 0xB0: opcodeReset(6, BC.getHighRegister()); break;
+	case 0xB1: opcodeReset(6, BC.getLowRegister()); break;
+	case 0xB2: opcodeReset(6, DE.getHighRegister()); break;
+	case 0xB3: opcodeReset(6, DE.getLowRegister()); break;
+	case 0xB4: opcodeReset(6, HL.getHighRegister()); break;
+	case 0xB5: opcodeReset(6, HL.getLowRegister()); break;
+		//case 0xB6: opcodeReset(6, HL.getValue()); break;
+	case 0xB7: opcodeReset(6, AF.getHighRegister()); break;
+	case 0xB8: opcodeReset(7, BC.getHighRegister()); break;
+	case 0xB9: opcodeReset(7, BC.getLowRegister()); break;
+	case 0xBA: opcodeReset(7, DE.getHighRegister()); break;
+	case 0xBB: opcodeReset(7, DE.getLowRegister()); break;
+	case 0xBC: opcodeReset(7, HL.getHighRegister()); break;
+	case 0xBD: opcodeReset(7, HL.getLowRegister()); break;
+		//case 0xBE: opcodeReset(7, HL.getValue()); break;
+	case 0xBF: opcodeReset(7, AF.getHighRegister()); break;
+	case 0xC0: opcodeSet(0, BC.getHighRegister()); break;
+	case 0xC1: opcodeSet(0, BC.getLowRegister()); break;
+	case 0xC2: opcodeSet(0, DE.getHighRegister()); break;
+	case 0xC3: opcodeSet(0, DE.getLowRegister()); break;
+	case 0xC4: opcodeSet(0, HL.getHighRegister()); break;
+	case 0xC5: opcodeSet(0, HL.getLowRegister()); break;
+		//case 0xC6: opcodeSet(0, HL.getValue()); break;
+	case 0xC7: opcodeSet(0, AF.getHighRegister()); break;
+	case 0xC8: opcodeSet(1, BC.getHighRegister()); break;
+	case 0xC9: opcodeSet(1, BC.getLowRegister()); break;
+	case 0xCA: opcodeSet(1, DE.getHighRegister()); break;
+	case 0xCB: opcodeSet(1, DE.getLowRegister()); break;
+	case 0xCC: opcodeSet(1, HL.getHighRegister()); break;
+	case 0xCD: opcodeSet(1, HL.getLowRegister()); break;
+		//case 0xCE: opcodeSet(1, HL.getValue()); break;
+	case 0xCF: opcodeSet(1, AF.getHighRegister()); break;
+	case 0xD0: opcodeSet(2, BC.getHighRegister()); break;
+	case 0xD1: opcodeSet(2, BC.getLowRegister()); break;
+	case 0xD2: opcodeSet(2, DE.getHighRegister()); break;
+	case 0xD3: opcodeSet(2, DE.getLowRegister()); break;
+	case 0xD4: opcodeSet(2, HL.getHighRegister()); break;
+	case 0xD5: opcodeSet(2, HL.getLowRegister()); break;
+		//case 0xD6: opcodeSet(2, HL.getValue()); break;
+	case 0xD7: opcodeSet(2, AF.getHighRegister()); break;
+	case 0xD8: opcodeSet(3, BC.getHighRegister()); break;
+	case 0xD9: opcodeSet(3, BC.getLowRegister()); break;
+	case 0xDA: opcodeSet(3, DE.getHighRegister()); break;
+	case 0xDB: opcodeSet(3, DE.getLowRegister()); break;
+	case 0xDC: opcodeSet(3, HL.getHighRegister()); break;
+	case 0xDD: opcodeSet(3, HL.getLowRegister()); break;
+		//case 0xDE: opcodeSet(3, HL.getValue()); break;
+	case 0xDF: opcodeSet(3, AF.getHighRegister()); break;
+	case 0xE0: opcodeSet(4, BC.getHighRegister()); break;
+	case 0xE1: opcodeSet(4, BC.getLowRegister()); break;
+	case 0xE2: opcodeSet(4, DE.getHighRegister()); break;
+	case 0xE3: opcodeSet(4, DE.getLowRegister()); break;
+	case 0xE4: opcodeSet(4, HL.getHighRegister()); break;
+	case 0xE5: opcodeSet(4, HL.getLowRegister()); break;
+		//case 0xE6: opcodeSet(4, HL.getValue()); break;
+	case 0xE7: opcodeSet(4, AF.getHighRegister()); break;
+	case 0xE8: opcodeSet(5, BC.getHighRegister()); break;
+	case 0xE9: opcodeSet(5, BC.getLowRegister()); break;
+	case 0xEA: opcodeSet(5, DE.getHighRegister()); break;
+	case 0xEB: opcodeSet(5, DE.getLowRegister()); break;
+	case 0xEC: opcodeSet(5, HL.getHighRegister()); break;
+	case 0xED: opcodeSet(5, HL.getLowRegister()); break;
+		//case 0xEE: opcodeSet(5, HL.getValue()); break;
+	case 0xEF: opcodeSet(5, AF.getHighRegister()); break;
+	case 0xF0: opcodeSet(6, BC.getHighRegister()); break;
+	case 0xF1: opcodeSet(6, BC.getLowRegister()); break;
+	case 0xF2: opcodeSet(6, DE.getHighRegister()); break;
+	case 0xF3: opcodeSet(6, DE.getLowRegister()); break;
+	case 0xF4: opcodeSet(6, HL.getHighRegister()); break;
+	case 0xF5: opcodeSet(6, HL.getLowRegister()); break;
+		//case 0xF6: opcodeSet(6, HL.getValue()); break;
+	case 0xF7: opcodeSet(6, AF.getHighRegister()); break;
+	case 0xF8: opcodeSet(7, BC.getHighRegister()); break;
+	case 0xF9: opcodeSet(7, BC.getLowRegister()); break;
+	case 0xFA: opcodeSet(7, DE.getHighRegister()); break;
+	case 0xFB: opcodeSet(7, DE.getLowRegister()); break;
+	case 0xFC: opcodeSet(7, HL.getHighRegister()); break;
+	case 0xFD: opcodeSet(7, HL.getLowRegister()); break;
+		//case 0xFE: opcodeSet(7, HL.getValue()); break;
+	case 0xFF: opcodeSet(7, AF.getHighRegister()); break;
 	}
 
 	return clock.p;

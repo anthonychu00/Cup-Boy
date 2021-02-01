@@ -13,8 +13,8 @@ void CPU::opcodeJPHL() {
 	PC.set(HL.getValue());//jump to address pointed by HL, but do not actually access it
 	setClockPrevious(4);
 }
-void CPU::opcodeJP(Condition c) {
-	bool result = checkCondition(c);
+void CPU::opcodeJP(Flag fl) {
+	bool result = checkCondition(fl);
 	if (result) {
 		opcodeJP();
 	}
@@ -32,8 +32,8 @@ void CPU::opcodeJR() {
 	setClockPrevious(12);
 }
 
-void CPU::opcodeJR(Condition c) {
-	bool result = checkCondition(c);
+void CPU::opcodeJR(Flag fl) {
+	bool result = checkCondition(fl);
 	if (result) { //we do branch
 		opcodeJR();
 	}
@@ -48,8 +48,8 @@ void CPU::opcodeRet() {
 	setClockPrevious(16);
 }
 
-void CPU::opcodeRet(Condition c) {
-	bool result = checkCondition(c);
+void CPU::opcodeRet(Flag fl) {
+	bool result = checkCondition(fl);
 	if (result) { //we do branch
 		opcodeRet();
 		setClockPrevious(20);
@@ -72,8 +72,8 @@ void CPU::opcodeCall() {
 	setClockPrevious(24);
 }
 
-void CPU::opcodeCall(Condition c) {
-	bool result = checkCondition(c);
+void CPU::opcodeCall(Flag fl) {
+	bool result = checkCondition(fl);
 	if (result) { //we do branch
 		opcodeCall();
 	}
