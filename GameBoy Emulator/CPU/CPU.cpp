@@ -49,7 +49,7 @@ bool CPU::checkCondition(Flag fl) {
 	return result;
 }
 
-int CPU::executeOpcode(uint8_t opcode, uint16_t PCValue) {
+int CPU::executeOpcode(const uint8_t opcode, uint16_t PCValue) {
 	if (opcode == 0xCB) {
 		return executePrefixedOpcode(PCFetchByte(), PCValue);
 	}
@@ -317,7 +317,7 @@ int CPU::executeOpcode(uint8_t opcode, uint16_t PCValue) {
 	
 }
 
-int CPU::executePrefixedOpcode(uint8_t opcode, uint16_t PCValue) {
+int CPU::executePrefixedOpcode(const uint8_t opcode, uint16_t PCValue) {
 	switch (opcode) {
 	case 0x00: opcodeRLC(BC.getHighRegister()); break;
 	case 0x01: opcodeRLC(BC.getLowRegister()); break;

@@ -10,8 +10,8 @@ public:
 	
 	CPU() = default;
 	void executeOperations();
-	int executeOpcode(uint8_t opcode, uint16_t PCValue);
-	int executePrefixedOpcode(uint8_t opcode, uint16_t PCValue);
+	int executeOpcode(const uint8_t opcode, uint16_t PCValue);
+	int executePrefixedOpcode(const uint8_t opcode, uint16_t PCValue);
 	void setClockPrevious(int ticks);
 	
 	enum class Flag {
