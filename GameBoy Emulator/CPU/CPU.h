@@ -2,13 +2,16 @@
 #include <cstdint>
 #include "../registers/split_register.h"
 #include "../registers/full_register.h"
+#include "../memory/memory_map.h"
 
 
 
 class CPU {
 public:
 	
-	CPU() = default;
+	CPU(MemoryMap& newMM);//registers default to 0x00 value
+	~CPU() = default;
+
 	void executeOperations();
 	int executeOpcode(const uint8_t opcode, uint16_t PCValue);
 	int executePrefixedOpcode(const uint8_t opcode, uint16_t PCValue);
@@ -18,14 +21,9 @@ public:
 		NZ, Z, NC, C
 	};//conditions for flag register in jump operations
 
-	//fetch an op like uint8_t op = fetchOp(PC);
-	//function to decode and execute ( lots of switch cases probably)
-
-	//execution can either be between its own registers or performing an operation on the address bus
-
-	// the CPU will use an address bus of 16 bits to communicate with memory outside its registers, it will only be able to read and write to these
-	// this is basically how the CPU will affect the state of the actual emulator
 private:
+	
+	MemoryMap& mm;
 
 	struct Clock {
 		//figure out best representation of time units for CPU
@@ -49,13 +47,23 @@ private:
 	Clock clock;
 
 	bool halt = false;
-	bool interrupts = false;
+
+	bool IME = false;//interrupt master enable flag
+	const uint16_t IERegister = 0xFFFF;//needs to be enabled with IME
+	const uint16_t IFRegister = 0xFF0F;
 
 	uint8_t PCFetchByte();
 	uint16_t PCFetchWord();
+
 	void stackPop(Word& r);
 	void stackPush(const Word& r);
+
+	void interruptRequest();
+	void interruptExecute();
+
 	bool checkCondition(Flag fl);
+
+	
 
 	//opcodes
 	void opcodeNOP();//0x00

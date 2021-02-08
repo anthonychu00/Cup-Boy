@@ -7,7 +7,7 @@
 //16-bit register that can be split into two 8-bit registers
 class SplitRegister : public Word{
 public:
-	SplitRegister(uint8_t h, uint8_t l);
+	SplitRegister() = default;
 	void set(uint16_t high_low) override;
 
 	void increment() override; //+1 to the byte value

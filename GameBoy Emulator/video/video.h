@@ -15,4 +15,7 @@ private:
 	SingleRegister ScrollX;//FF43
 	SingleRegister LCDYCoord;
 	SingleRegister LYCompare;
+
+	CPU& cpu;
+	MemoryMap& mm;
 };

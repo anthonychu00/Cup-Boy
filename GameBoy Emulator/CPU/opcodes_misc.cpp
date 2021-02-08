@@ -14,11 +14,11 @@ void CPU::opcodeHalt() {
 }
 
 void CPU::opcodeEI() {
-	interrupts = true;
+	IME = true;
 	setClockPrevious(4);
 }
 
 void CPU::opcodeDI() {
-	interrupts = false;
+	IME = false;
 	setClockPrevious(4);
 }
