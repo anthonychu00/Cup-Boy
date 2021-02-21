@@ -4,8 +4,9 @@ A journey to build my own GameBoy emulator in C++. I'm just aiming in the finish
 
 To do list:
 
+- Make sure everything runs against test roms (in progress)
 - Finish writing opcodes for the CPU (done)
-- Write the memory unit for the CPU to interact with other components (in progress)
+- Write the memory unit for the CPU to interact with other components (done  except for some special routines for some registers)
+- Use SDL2 to emulate the GPU components (researching)
 - Figure out a model for timing and synchronization
 - Implement sound
-- Use SDL2 to emulate the GPU components
