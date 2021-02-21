@@ -58,7 +58,7 @@ private:
 	void stackPop(Word& r);
 	void stackPush(const Word& r);
 
-	void interruptRequest();
+	void checkInterruptRequests();
 	void interruptExecute();
 
 	bool checkCondition(Flag fl);

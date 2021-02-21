@@ -39,6 +39,12 @@
     <ClInclude Include="video\video.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="system.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Cartridge\cartridge.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="registers\split_register.cpp">
@@ -75,6 +81,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CPU\opcodes_misc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="system.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Cartridge\cartridge.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

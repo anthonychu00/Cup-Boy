@@ -6,14 +6,18 @@ CPU::CPU(MemoryMap& newMM): mm(newMM) {
 void CPU::executeOperations() {
 	for (int ticks = 0; ticks <= 69905;) {
 
+		
 		uint16_t PCValue = PC.getValue();
 		//uint8_t opcode = PCFetchByte();
 		//int ticksToExecute = executeOpcode(opcode, PCValue);
 		//ticks += ticksToExecute;
+
+		checkInterruptRequests();//CPU checks interrupts at the end of each instruction
+
 	}
 }
 
-void CPU::interruptRequest() {
+void CPU::checkInterruptRequests() {
 
 }
 
