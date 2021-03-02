@@ -7,7 +7,7 @@
 class Video {
 public:
 	Video(CPU& cpu, MemoryMap& mm);
-	~Video();
+	~Video() = default;
 private:
 	SingleRegister LCDControl;//FF40
 	SingleRegister LCDStatus;//FF41

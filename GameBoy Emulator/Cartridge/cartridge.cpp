@@ -1,6 +1,7 @@
 #include "cartridge.h"
 #include <fstream>
-
+#include <iostream>
+#include <direct.h>
 Cartridge::Cartridge(string path) {
 	romData = readRom(path);
 }
@@ -11,10 +12,23 @@ vector<uint8_t> Cartridge::readRom(string path) {
 	//open file
 	ifstream file(path.c_str(), ios::binary);
 
+	if (!file) {
+		cout << "Error" << endl;
+
+		char buff[FILENAME_MAX]; //create string buffer to hold path
+		_getcwd(buff, FILENAME_MAX);
+		string current_working_dir(buff);
+
+		cout << "Current dir: " << current_working_dir << endl;
+		exit(EXIT_FAILURE);
+	}
+
 	//get size 
 	file.seekg(0, ios::end);
 	romSize = static_cast<long int>(file.tellg());
 	file.seekg(0, ios::beg);
+
+	//cout << "Size: " << romSize << endl;
 
 	//read
 	vector<char> charData(romSize);//temporary char array to convert later
@@ -23,4 +37,9 @@ vector<uint8_t> Cartridge::readRom(string path) {
 
 	//ifstream.read() only reads char, so need to recast to vector<uint8_t> with iterator range
 	return vector<uint8_t>(romData.begin(), romData.end());
+}
+
+//return unmodifiable reference to rom
+const vector<uint8_t>& Cartridge::getRomData() {
+	return romData;
 }

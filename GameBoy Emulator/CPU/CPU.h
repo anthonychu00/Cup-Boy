@@ -4,8 +4,6 @@
 #include "../registers/full_register.h"
 #include "../memory/memory_map.h"
 
-
-
 class CPU {
 public:
 	
@@ -53,10 +51,8 @@ private:
 	const uint16_t IFRegister = 0xFF0F;
 
 	uint8_t PCFetchByte();
+	int8_t PCFetchSignedByte();
 	uint16_t PCFetchWord();
-
-	void stackPop(Word& r);
-	void stackPush(const Word& r);
 
 	void checkInterruptRequests();
 	void interruptExecute();
@@ -68,15 +64,20 @@ private:
 	//opcodes
 	void opcodeNOP();//0x00
 
+	//stack operations
+	void opcodeStackPop(Word& r);
+	void opcodeStackPush(const Word& r);
+
 	//load bytes
 	void opcodeLoadByte(SingleRegister& r);//get byte from PC
 	void opcodeLoadByte(SingleRegister& r, const SingleRegister& newReg);//get byte from other register
+	void opcodeLoadByte(uint16_t address);
 	void opcodeLoadByte(SingleRegister& r, uint16_t address); //address is HL's word value
 	void opcodeLoadByte(uint16_t address, SingleRegister& r);
-
+	
 	//Load words
+	void opcodeLoadSPToMemory();
 	void opcodeLoadWord(Word& r);
-	//void opcodeLoadWord(Address, SP);
 
 	void opcodeLoadHLSP();
 	void opcodeLoadSPHL();
@@ -85,20 +86,24 @@ private:
 	void opcodeLoadAToMemory16();
 	void opcodeLoadAToMemory();
 	void opcodeLoadAToMemory(SingleRegister& r);
-	void opcodeLoadAToMemory(SplitRegister& r);//0x02, 0x12, 0x22, 0x32
+	void opcodeLoadAToMemory(uint16_t address);//0x02, 0x12, 0x22, 0x32
+	void opcodeLoadAToMemoryInc(uint16_t address);//for HL
+	void opcodeLoadAToMemoryDec(uint16_t address);
 	
 	void opcodeLoadMemoryToA16();
 	void opcodeLoadMemoryToA();
 	void opcodeLoadMemoryToA(SingleRegister& r);
-	void opcodeLoadMemoryToA(SplitRegister& r);
+	void opcodeLoadMemoryToA(uint16_t address);
+	void opcodeLoadMemoryToAInc(uint16_t address);
+	void opcodeLoadMemoryToADec(uint16_t address);
 
 	void opcodeIncrement(Word& r);
 	void opcodeIncrement(SingleRegister& r);
-	//void opcodeIncrement(Address value);
+	void opcodeIncrement(uint16_t address);
 
 	void opcodeDecrement(Word& r);
 	void opcodeDecrement(SingleRegister& r);
-	//void opcodeDecrement(Address value);
+	void opcodeDecrement(uint16_t address);
 
 	uint8_t opcodeRLCAux(uint8_t val);
 	void opcodeRLCA();

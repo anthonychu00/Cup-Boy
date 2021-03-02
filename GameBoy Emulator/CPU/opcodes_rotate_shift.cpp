@@ -28,8 +28,9 @@ void CPU::opcodeRLC(SingleRegister& r) {
 }
 
 void CPU::opcodeRLC(uint16_t address) {
-	//uint8_t toSet = opcodeRLCAux(read byte from 16 bit address);
-	//set 16 bit address's value to toSet
+	uint8_t byte = mm.readAddress(address);
+	uint8_t toSet = opcodeRLCAux(byte);
+	mm.writeAddress(address, toSet);
 	setClockPrevious(16);
 }
 
@@ -63,8 +64,9 @@ void CPU::opcodeRL(SingleRegister& r) {
 }
 
 void CPU::opcodeRL(uint16_t address) {
-	//uint8_t toSet = opcodeRLAux(read byte from 16 bit address);
-	//set 16 bit address's value to toSet
+	uint8_t byte = mm.readAddress(address);
+	uint8_t toSet = opcodeRLAux(byte);
+	mm.writeAddress(address, toSet);
 	setClockPrevious(16);
 }
 
@@ -96,8 +98,9 @@ void CPU::opcodeRRC(SingleRegister& r) {
 }
 
 void CPU::opcodeRRC(uint16_t address) {
-	//uint8_t toSet = opcodeRRCAux(read byte from 16 bit address);
-	//set 16 bit address's value to toSet
+	uint8_t byte = mm.readAddress(address);
+	uint8_t toSet = opcodeRRCAux(byte);
+	mm.writeAddress(address, toSet);
 	setClockPrevious(16);
 }
 
@@ -130,8 +133,9 @@ void CPU::opcodeRR(SingleRegister& r) {
 }
 
 void CPU::opcodeRR(uint16_t address) {
-	//uint8_t toSet = opcodeRRAux(read byte from 16 bit address);
-	//set 16 bit address's value to toSet
+	uint8_t byte = mm.readAddress(address);
+	uint8_t toSet = opcodeRRAux(byte);
+	mm.writeAddress(address, toSet);
 	setClockPrevious(16);
 }
 
@@ -154,8 +158,9 @@ void CPU::opcodeSLA(SingleRegister& r) {
 }
 
 void CPU::opcodeSLA(uint16_t address) {
-	//uint8_t toSet = opcodeSLAAux(read byte from 16 bit address);
-	//set 16 bit address's value to toSet
+	uint8_t byte = mm.readAddress(address);
+	uint8_t toSet = opcodeSLAAux(byte);
+	mm.writeAddress(address, toSet);
 	setClockPrevious(16);
 }
 
@@ -181,8 +186,9 @@ void CPU::opcodeSRA(SingleRegister& r) {
 }
 
 void CPU::opcodeSRA(uint16_t address) {
-	//uint8_t toSet = opcodeSRAAux(read byte from 16 bit address);
-	//set 16 bit address's value to toSet
+	uint8_t byte = mm.readAddress(address);
+	uint8_t toSet = opcodeSRAAux(byte);
+	mm.writeAddress(address, toSet);
 	setClockPrevious(16);
 }
 
@@ -207,8 +213,9 @@ void CPU::opcodeSRL(SingleRegister& r) {
 }
 
 void CPU::opcodeSRL(uint16_t address) {
-	//uint8_t toSet = opcodeSRLAux(read byte from 16 bit address);
-	//set 16 bit address's value to toSet
+	uint8_t byte = mm.readAddress(address);
+	uint8_t toSet = opcodeSRLAux(byte);
+	mm.writeAddress(address, toSet);
 	setClockPrevious(16);
 }
 
@@ -231,8 +238,9 @@ void CPU::opcodeSwap(SingleRegister& r) {
 }
 
 void CPU::opcodeSwap(uint16_t address) {
-	//uint8_t toSet = opcodeSwapAux(read byte from 16 bit address);
-	//set 16 bit address's value to toSet
+	uint8_t byte = mm.readAddress(address);
+	uint8_t toSet = opcodeSwapAux(byte);
+	mm.writeAddress(address, toSet);
 	setClockPrevious(16);
 }
 
@@ -248,9 +256,8 @@ void CPU::opcodeBit(int position, SingleRegister& r) {
 }
 
 void CPU::opcodeBit(int position, uint16_t address) {
-	//get uint8_t from uin16_t memory address
-	
-	/*bool test = (val >> position) & 0x1;
+	uint8_t val = mm.readAddress(address);
+	bool test = (val >> position) & 0x1;
 
 	F.setZeroFlag(test == 0);
 	F.setAddSubFlag(0);
@@ -265,9 +272,9 @@ void CPU::opcodeReset(int position, SingleRegister& r) {
 }
 
 void CPU::opcodeReset(int position, uint16_t address) {
-	//get byte from memory
-	//change relevant bit in the byte
-	//rewrite byte to memory
+	uint8_t val = mm.readAddress(address);
+	val = (val & ~(1UL << position)) | (0 << position);
+	mm.writeAddress(address, val);
 	setClockPrevious(16);
 }
 
@@ -277,8 +284,8 @@ void CPU::opcodeSet(int position, SingleRegister& r) {
 }
 
 void CPU::opcodeSet(int position, uint16_t address) {
-	//get byte from memory
-	//change relevant bit in the byte
-	//rewrite byte to memory
+	uint8_t val = mm.readAddress(address);
+	val = (val & ~(1UL << position)) | (1 << position);
+	mm.writeAddress(address, val);
 	setClockPrevious(16);
 }

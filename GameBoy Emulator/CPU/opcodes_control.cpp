@@ -25,10 +25,11 @@ void CPU::opcodeJP(Flag fl) {
 }
 
 void CPU::opcodeJR() {
-	//get a signed byte from program counter (increment PC as well)
-	//get value of program counter (address its pointing to)
-	//add the signed byte to said address
-	//set PC to this added value, thereby jumping to it
+	int8_t val = PCFetchSignedByte();
+	uint16_t PCVal= PC.getValue();
+
+	PC.set(static_cast<uint16_t>(PCVal + val));
+	
 	setClockPrevious(12);
 }
 
@@ -38,13 +39,13 @@ void CPU::opcodeJR(Flag fl) {
 		opcodeJR();
 	}
 	else {
-		//fetch signed byte from program coounter, but do nothing with it
+		//fetch signed byte from program counter, but do nothing with it
 		setClockPrevious(8);
 	}
 }
 
 void CPU::opcodeRet() {
-	stackPop(PC);
+	opcodeStackPop(PC);
 	setClockPrevious(16);
 }
 
@@ -60,14 +61,14 @@ void CPU::opcodeRet(Flag fl) {
 }
 
 void CPU::opcodeRetI() {
-	stackPop(PC);
+	opcodeStackPop(PC);
 	opcodeEI();
 	setClockPrevious(16);
 }
 
 void CPU::opcodeCall() {
 	uint16_t address = PCFetchWord();
-	stackPush(PC);
+	opcodeStackPush(PC);
 	PC.set(address);
 	setClockPrevious(24);
 }
@@ -84,7 +85,7 @@ void CPU::opcodeCall(Flag fl) {
 }
 
 void CPU::opcodeRST(uint8_t location) {
-	stackPush(PC);
+	opcodeStackPush(PC);
 	uint16_t address = static_cast<uint16_t>(0x0000 + static_cast<uint16_t>(location));
 	PC.set(address);
 	setClockPrevious(16);
