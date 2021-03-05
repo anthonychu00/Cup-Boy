@@ -244,7 +244,7 @@ void CPU::opcodeSwap(uint16_t address) {
 	setClockPrevious(16);
 }
 
-void CPU::opcodeBit(int position, SingleRegister& r) {
+void CPU::opcodeBit(const int position, SingleRegister& r) {
 	uint8_t val = r.getByte();
 	bool test = (val >> position) & 0x1;
 
@@ -255,7 +255,7 @@ void CPU::opcodeBit(int position, SingleRegister& r) {
 	setClockPrevious(8);
 }
 
-void CPU::opcodeBit(int position, uint16_t address) {
+void CPU::opcodeBit(const int position, uint16_t address) {
 	uint8_t val = mm.readAddress(address);
 	bool test = (val >> position) & 0x1;
 
@@ -266,24 +266,24 @@ void CPU::opcodeBit(int position, uint16_t address) {
 	setClockPrevious(12);
 }
 
-void CPU::opcodeReset(int position, SingleRegister& r) {
+void CPU::opcodeReset(const int position, SingleRegister& r) {
 	r.setBit(position, 0);
 	setClockPrevious(8);
 }
 
-void CPU::opcodeReset(int position, uint16_t address) {
+void CPU::opcodeReset(const int position, uint16_t address) {
 	uint8_t val = mm.readAddress(address);
 	val = (val & ~(1UL << position)) | (0 << position);
 	mm.writeAddress(address, val);
 	setClockPrevious(16);
 }
 
-void CPU::opcodeSet(int position, SingleRegister& r) {
+void CPU::opcodeSet(const int position, SingleRegister& r) {
 	r.setBit(position, 1);
 	setClockPrevious(8);
 }
 
-void CPU::opcodeSet(int position, uint16_t address) {
+void CPU::opcodeSet(const int position, uint16_t address) {
 	uint8_t val = mm.readAddress(address);
 	val = (val & ~(1UL << position)) | (1 << position);
 	mm.writeAddress(address, val);

@@ -1,18 +1,20 @@
 #include "CPU.h"
-
+#include <iostream>
 CPU::CPU(MemoryMap& newMM): mm(newMM) {
 	PC.set(0x0100);//first instruction for roms, otherwise start at 0x0000
 }
 
-void CPU::executeOperations() {
-	for (int ticks = 0; ticks <= 69905;) {
+void CPU::executeOperations() {//69905
+	for (int ticks = 0; ticks < 69905;) {
 
 		
 		uint16_t PCValue = PC.getValue();
 		uint8_t opcode = PCFetchByte();
 		int ticksToExecute = executeOpcode(opcode, PCValue);
 		ticks += ticksToExecute;
-
+		//std::cout << unsigned(opcode) << endl;
+		//std::cout << unsigned(mm.readAddress(0xFF01)) << endl;
+		std::cout << ticks << endl;
 		checkInterruptRequests();//CPU checks interrupts at the end of each instruction
 
 	}
@@ -41,7 +43,7 @@ uint16_t CPU::PCFetchWord() {
 	uint8_t low = PCFetchByte();
 	uint8_t high = PCFetchByte();
 
-	return ((uint16_t)low << 8) | high;
+	return ((uint16_t)high << 8) | low;
 }
 
 void CPU::setClockPrevious(int ticks) {
@@ -72,8 +74,11 @@ bool CPU::checkCondition(Flag fl) {
 
 int CPU::executeOpcode(const uint8_t opcode, uint16_t PCValue) {
 	if (opcode == 0xCB) {
+		cout << tracePrefixedOpcode(opcode) << endl;
 		return executePrefixedOpcode(PCFetchByte(), PCValue);
 	}
+	cout << traceOpcode(opcode) << endl;
+
 	//perform action according to the opcode
 	switch (opcode) {
 		case 0x00: opcodeNOP(); break;
@@ -92,6 +97,7 @@ int CPU::executeOpcode(const uint8_t opcode, uint16_t PCValue) {
 		case 0x0D: opcodeDecrement(BC.getLowRegister()); break;
 		case 0x0E: opcodeLoadByte(BC.getLowRegister()); break;
 		case 0x0F: opcodeRRCA(); break;
+		case 0x10: opcodeStop(); break;
 		case 0x11: opcodeLoadWord(DE); break;
 		case 0x12: opcodeLoadAToMemory(DE.getValue()); break;
 		case 0x13: opcodeIncrement(DE); break;

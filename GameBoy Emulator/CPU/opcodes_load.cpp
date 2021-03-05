@@ -15,20 +15,20 @@ void CPU::opcodeLoadByte(SingleRegister& r, const SingleRegister& newReg) {
 }
 
 //get byte from program counter
-void CPU::opcodeLoadByte(uint16_t address) {
+void CPU::opcodeLoadByte(const uint16_t address) {
 	uint8_t toWrite = PCFetchByte();
 	mm.writeAddress(address, toWrite);
 	setClockPrevious(12);
 }
 
 //0x66
-void CPU::opcodeLoadByte(SingleRegister& r, uint16_t address) {
+void CPU::opcodeLoadByte(SingleRegister& r, const uint16_t address) {
 	uint8_t toWrite = mm.readAddress(address);
 	r.set(toWrite);
 	setClockPrevious(8);
 }
 
-void CPU::opcodeLoadByte(uint16_t address, SingleRegister& r) {
+void CPU::opcodeLoadByte(const uint16_t address, const SingleRegister& r) {
 	mm.writeAddress(address, r.getByte());
 	setClockPrevious(8);
 }
@@ -87,7 +87,7 @@ void CPU::opcodeLoadAToMemory() {
 	setClockPrevious(12);
 }
 
-void CPU::opcodeLoadAToMemory(SingleRegister& r) {
+void CPU::opcodeLoadAToMemory(const SingleRegister& r) {
 	uint8_t location = r.getByte();
 	uint16_t address = static_cast<uint16_t>(0xFF00 + static_cast<uint16_t>(location));
 
@@ -96,7 +96,7 @@ void CPU::opcodeLoadAToMemory(SingleRegister& r) {
 	setClockPrevious(8);
 }
 
-void CPU::opcodeLoadAToMemory(uint16_t address) {
+void CPU::opcodeLoadAToMemory(const uint16_t address) {
 	//loads memory address specified by SplitRegister value with accumulator value
 	mm.writeAddress(address, AF.getHighRegister().getByte());
 
@@ -104,13 +104,13 @@ void CPU::opcodeLoadAToMemory(uint16_t address) {
 }
 
 //0x22
-void CPU::opcodeLoadAToMemoryInc(uint16_t address) {
+void CPU::opcodeLoadAToMemoryInc(const uint16_t address) {
 	opcodeLoadAToMemory(address);
 	HL.increment();
 }
 
 //0x32
-void CPU::opcodeLoadAToMemoryDec(uint16_t address) {
+void CPU::opcodeLoadAToMemoryDec(const uint16_t address) {
 	opcodeLoadAToMemory(address);
 	HL.decrement();
 }
@@ -135,7 +135,7 @@ void CPU::opcodeLoadMemoryToA() {
 	setClockPrevious(12);
 }
 
-void CPU::opcodeLoadMemoryToA(SingleRegister& r) {
+void CPU::opcodeLoadMemoryToA(const SingleRegister& r) {
 	uint8_t location = r.getByte();
 	uint16_t address = static_cast<uint16_t>(0xFF00 + static_cast<uint16_t>(location));
 
@@ -147,19 +147,19 @@ void CPU::opcodeLoadMemoryToA(SingleRegister& r) {
 }
 
 //load byte in memory to accumulator (0x0A)
-void CPU::opcodeLoadMemoryToA(uint16_t address) {
+void CPU::opcodeLoadMemoryToA(const uint16_t address) {
 	uint8_t toWrite = mm.readAddress(address);
 	AF.getHighRegister().set(toWrite);
 
 	setClockPrevious(8);
 }
 
-void CPU::opcodeLoadMemoryToAInc(uint16_t address) {
+void CPU::opcodeLoadMemoryToAInc(const uint16_t address) {
 	opcodeLoadMemoryToA(address);
 	HL.increment();
 }
 
-void CPU::opcodeLoadMemoryToADec(uint16_t address) {
+void CPU::opcodeLoadMemoryToADec(const uint16_t address) {
 	opcodeLoadMemoryToA(address);
 	HL.decrement();
 }

@@ -158,6 +158,7 @@
     <ClCompile Include="CPU\opcodes_control.cpp" />
     <ClCompile Include="CPU\opcodes_load.cpp" />
     <ClCompile Include="CPU\opcodes_rotate_shift.cpp" />
+    <ClCompile Include="CPU\opcode_trace.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="memory\memory_map.cpp" />
     <ClCompile Include="system.cpp" />

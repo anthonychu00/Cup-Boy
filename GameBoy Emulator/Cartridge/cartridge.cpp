@@ -16,7 +16,7 @@ vector<uint8_t> Cartridge::readRom(string path) {
 		cout << "Error" << endl;
 
 		char buff[FILENAME_MAX]; //create string buffer to hold path
-		_getcwd(buff, FILENAME_MAX);
+		//_getcwd(buff, FILENAME_MAX);
 		string current_working_dir(buff);
 
 		cout << "Current dir: " << current_working_dir << endl;
@@ -25,7 +25,7 @@ vector<uint8_t> Cartridge::readRom(string path) {
 
 	//get size 
 	file.seekg(0, ios::end);
-	romSize = static_cast<long int>(file.tellg());
+	romSize = static_cast<int>(file.tellg());
 	file.seekg(0, ios::beg);
 
 	//cout << "Size: " << romSize << endl;
@@ -36,7 +36,15 @@ vector<uint8_t> Cartridge::readRom(string path) {
 	file.close();
 
 	//ifstream.read() only reads char, so need to recast to vector<uint8_t> with iterator range
-	return vector<uint8_t>(romData.begin(), romData.end());
+	return vector<uint8_t>(charData.begin(), charData.end());
+}
+
+uint8_t Cartridge::readAddress(const uint16_t address) const {
+	return romData.at(address);
+}
+
+void Cartridge::writeAddress(uint16_t address, uint8_t byte) {
+	romData.at(address) = byte;
 }
 
 //return unmodifiable reference to rom

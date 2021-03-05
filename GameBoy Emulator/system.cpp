@@ -4,10 +4,10 @@
 System::System(string path) : 
 	cartridge(path), 
 	cpu(mm),
-	mm(cpu),
+	mm(cpu, cartridge),
 	video(cpu, mm){
 }
 
 void System::start() {
-	
+	cpu.executeOperations();
 }

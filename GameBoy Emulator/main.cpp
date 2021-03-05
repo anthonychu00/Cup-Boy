@@ -8,6 +8,6 @@ int main() {
 	string path = "../../../../gb-test-roms/cpu_instrs/individual/01-special.gb";//get filepath
 	//string path = "../../..";
 	unique_ptr<System> gb = make_unique<System>(path);
-	//gb->start();
+	gb->start();
 	return 0;
 }

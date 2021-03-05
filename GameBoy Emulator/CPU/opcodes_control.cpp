@@ -90,3 +90,7 @@ void CPU::opcodeRST(uint8_t location) {
 	PC.set(address);
 	setClockPrevious(16);
 }
+
+void CPU::opcodeStop() {
+	halt = true;
+}

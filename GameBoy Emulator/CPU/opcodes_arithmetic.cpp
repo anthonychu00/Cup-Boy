@@ -122,12 +122,12 @@ void CPU::opcodeAddA() {//getting value from program counter
 	setClockPrevious(8);
 }
 
-void CPU::opcodeAddA(SingleRegister& r) {
+void CPU::opcodeAddA(const SingleRegister& r) {
 	opcodeAddAAux(r.getByte());
 	setClockPrevious(4);
 }
 
-void CPU::opcodeAddA(uint16_t address) {
+void CPU::opcodeAddA(const uint16_t address) {
 	uint8_t byte = mm.readAddress(address);
 	opcodeAddAAux(byte);
 	setClockPrevious(8);
@@ -152,12 +152,12 @@ void CPU::opcodeADC() {//get from PC
 	setClockPrevious(8);
 }
 
-void CPU::opcodeADC(SingleRegister& r) {
+void CPU::opcodeADC(const SingleRegister& r) {
 	opcodeADCAux(r.getByte());
 	setClockPrevious(4);
 }
 
-void CPU::opcodeADC(uint16_t address) {
+void CPU::opcodeADC(const uint16_t address) {
 	uint8_t byte = mm.readAddress(address);
 	opcodeADCAux(byte);
 	setClockPrevious(8);
@@ -176,11 +176,11 @@ void CPU::opcodeAddHLAux(uint16_t addedVal) {
 	setClockPrevious(8);
 }
 
-void CPU::opcodeAddHL(SplitRegister& addedVal) {
+void CPU::opcodeAddHL(const SplitRegister& addedVal) {
 	opcodeAddHLAux(addedVal.getValue());
 }
 
-void CPU::opcodeAddHL(FullRegister& addedVal) {
+void CPU::opcodeAddHL(const FullRegister& addedVal) {
 	opcodeAddHLAux(addedVal.getValue());
 }
 
@@ -202,12 +202,12 @@ void CPU::opcodeSubA() {
 	setClockPrevious(8);
 }
 
-void CPU::opcodeSubA(SingleRegister& r) {
+void CPU::opcodeSubA(const SingleRegister& r) {
 	opcodeSubAAux(r.getByte());
 	setClockPrevious(4);
 }
 
-void CPU::opcodeSubA(uint16_t address) {
+void CPU::opcodeSubA(const uint16_t address) {
 	uint8_t byte = mm.readAddress(address);
 	opcodeSubAAux(byte);
 	setClockPrevious(8);
@@ -232,12 +232,12 @@ void CPU::opcodeSBC() {
 	setClockPrevious(8);
 }
 
-void CPU::opcodeSBC(SingleRegister& r) {
+void CPU::opcodeSBC(const SingleRegister& r) {
 	opcodeSBCAux(r.getByte());
 	setClockPrevious(4);
 }
 
-void CPU::opcodeSBC(uint16_t address) {
+void CPU::opcodeSBC(const uint16_t address) {
 	uint8_t byte = mm.readAddress(address);
 	opcodeSBCAux(byte);
 	setClockPrevious(8);
@@ -261,12 +261,12 @@ void CPU::opcodeAnd() {
 	setClockPrevious(8);
 }
 
-void CPU::opcodeAnd(SingleRegister& r) {
+void CPU::opcodeAnd(const SingleRegister& r) {
 	opcodeAndAux(r.getByte());
 	setClockPrevious(4);
 }
 
-void CPU::opcodeAnd(uint16_t address) {
+void CPU::opcodeAnd(const uint16_t address) {
 	uint8_t byte = mm.readAddress(address);
 	opcodeAndAux(byte);
 	setClockPrevious(8);
@@ -289,12 +289,12 @@ void CPU::opcodeXOR() {
 	setClockPrevious(8);
 }
 
-void CPU::opcodeXOR(SingleRegister& r) {
+void CPU::opcodeXOR(const SingleRegister& r) {
 	opcodeXORAux(r.getByte());
 	setClockPrevious(4);
 }
 
-void CPU::opcodeXOR(uint16_t address) {
+void CPU::opcodeXOR(const uint16_t address) {
 	uint8_t byte = mm.readAddress(address);
 	opcodeXORAux(byte);
 	setClockPrevious(8);
@@ -317,12 +317,12 @@ void CPU::opcodeOr() {
 	setClockPrevious(8);
 }
 
-void CPU::opcodeOr(SingleRegister& r) {
+void CPU::opcodeOr(const SingleRegister& r) {
 	opcodeOrAux(r.getByte());
 	setClockPrevious(4);
 }
 
-void CPU::opcodeOr(uint16_t address) {
+void CPU::opcodeOr(const uint16_t address) {
 	uint8_t byte = mm.readAddress(address);
 	opcodeOrAux(byte);
 	setClockPrevious(8);
@@ -342,12 +342,12 @@ void CPU::opcodeCP() {
 	setClockPrevious(8);
 }
 
-void CPU::opcodeCP(SingleRegister& r) {
+void CPU::opcodeCP(const SingleRegister& r) {
 	opcodeCPAux(r.getByte());
 	setClockPrevious(4);
 }
 
-void CPU::opcodeCP(uint16_t address) {
+void CPU::opcodeCP(const uint16_t address) {
 	uint8_t byte = mm.readAddress(address);
 	opcodeCPAux(byte);
 	setClockPrevious(8);
