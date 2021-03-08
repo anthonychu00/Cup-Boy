@@ -1,5 +1,5 @@
 #include "memory_map.h"
-
+#include <iostream>
 MemoryMap::MemoryMap(CPU& newCpu, Cartridge& newCartridge) : 
 	cpu(newCpu), 
 	cartridge(newCartridge) {//Add audio, controller, video, and CPU objects as params (and timer?)
@@ -76,6 +76,10 @@ void MemoryMap::writeAddress(const uint16_t address, const uint8_t byte) {
 		//acess prohibiterd
 	}
 	else {
+		if (address == 0xFF01) {
+			printf("%c", byte);
+		}
+		//std::cout << "writing to " << unsigned(address) << endl;
 		memory.at(address) = byte;
 	}
 }

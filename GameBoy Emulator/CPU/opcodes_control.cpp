@@ -39,7 +39,7 @@ void CPU::opcodeJR(Flag fl) {
 		opcodeJR();
 	}
 	else {
-		//fetch signed byte from program counter, but do nothing with it
+		PCFetchSignedByte();
 		setClockPrevious(8);
 	}
 }

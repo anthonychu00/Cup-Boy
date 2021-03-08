@@ -67,20 +67,21 @@ void CPU::opcodeDAA() {
 			a += 0x60;
 			F.setCarryFlag(1);//used if a > 0x99 is true, but F.getCarryFlag() = 0;
 		}
-		if (F.getHalfCarryFlag() || (a & 0x0f) > 0x09) {
+		if (F.getHalfCarryFlag() || (a & 0x0F) > 0x09) {
 			a += 0x6;
 		}
 	}
 	else { //subtraction was performed (AddSubFlag = 1)
-		if (F.getCarryFlag()) { a -= 0x60; }
+		if (F.getCarryFlag()) {a -= 0x60; }
 		if (F.getHalfCarryFlag()) { a -= 0x6; }
 	}
 
 	F.setZeroFlag(a == 0);//see if A is 0
 	F.setHalfCarryFlag(0);//we reset half carry flag always
 
-	AF.getHighRegister().set(a);//set A to adjusted value
+	AF.getHighRegister().set(static_cast<uint8_t>(a));//set A to adjusted value
 	setClockPrevious(4);
+	
 }
 
 //set carry flag and reset other flags
@@ -88,11 +89,12 @@ void CPU::opcodeSCF() {
 	F.setAddSubFlag(0);
 	F.setHalfCarryFlag(0);
 	F.setCarryFlag(1);
+
 	setClockPrevious(4);
 }
 
-void CPU::opcodeAddSP() {//********check if it works closely
-	int8_t addedVal = static_cast<int8_t>(PCFetchByte());
+void CPU::opcodeAddSP() {//0xE8
+	int8_t addedVal = PCFetchSignedByte();
 	//SP value type is uint16_t
 	F.setZeroFlag(0);
 	F.setAddSubFlag(0);
@@ -170,7 +172,7 @@ void CPU::opcodeAddHLAux(uint16_t addedVal) {
 	HL.set(static_cast<uint16_t>(toSet));
 
 	F.setAddSubFlag(0);
-	F.setHalfCarryFlag((HLVal & 0xFFF) + (addedVal & 0xFFF) > 0xFFF);//set if carried from bit 11
+	F.setHalfCarryFlag((HLVal & 0xFFF) + (addedVal & 0xFFF) > 0x0FFF);//set if carried from bit 11
 	F.setCarryFlag(toSet > 0xFFFF);//set if carried from bit 15
 
 	setClockPrevious(8);
@@ -225,6 +227,7 @@ void CPU::opcodeSBCAux(uint8_t subbedVal) {
 	F.setAddSubFlag(1);
 	F.setHalfCarryFlag((a & 0xF) - (subbedVal & 0xF) - c < 0);
 	F.setCarryFlag(a < subbedVal + c);
+	//F.setCarryFlag(toSet < 0);
 }
 
 void CPU::opcodeSBC() {

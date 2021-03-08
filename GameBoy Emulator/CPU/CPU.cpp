@@ -11,10 +11,12 @@ void CPU::executeOperations() {//69905
 		uint16_t PCValue = PC.getValue();
 		uint8_t opcode = PCFetchByte();
 		int ticksToExecute = executeOpcode(opcode, PCValue);
-		ticks += ticksToExecute;
+		//ticks += ticksToExecute;
+
 		//std::cout << unsigned(opcode) << endl;
-		//std::cout << unsigned(mm.readAddress(0xFF01)) << endl;
-		std::cout << ticks << endl;
+		//std::cout << (char)unsigned(mm.readAddress(0xFF01)) << endl;
+		//std::cout << ticks << endl;
+
 		checkInterruptRequests();//CPU checks interrupts at the end of each instruction
 
 	}
@@ -74,10 +76,10 @@ bool CPU::checkCondition(Flag fl) {
 
 int CPU::executeOpcode(const uint8_t opcode, uint16_t PCValue) {
 	if (opcode == 0xCB) {
-		cout << tracePrefixedOpcode(opcode) << endl;
+		//cout << tracePrefixedOpcode(opcode) << endl;
 		return executePrefixedOpcode(PCFetchByte(), PCValue);
 	}
-	cout << traceOpcode(opcode) << endl;
+	//cout << traceOpcode(opcode) << endl;
 
 	//perform action according to the opcode
 	switch (opcode) {
@@ -321,7 +323,7 @@ int CPU::executeOpcode(const uint8_t opcode, uint16_t PCValue) {
 		case 0xEE: opcodeXOR(); break;
 		case 0xEF: opcodeRST(0x28); break;
 		case 0xF0: opcodeLoadMemoryToA(); break;
-		case 0xF1: opcodeStackPop(AF); break;
+		case 0xF1: opcodeStackPop(AF, true); break;
 		case 0xF2: opcodeLoadMemoryToA(BC.getLowRegister()); break;
 		case 0xF3: opcodeDI(); break;
 		case 0xF4: break; //no operation

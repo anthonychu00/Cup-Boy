@@ -41,8 +41,8 @@ private:
 	FullRegister SP;
 	FullRegister PC;
 
-	//separate FlagRegister object for ease of access
-	FlagRegister F;
+	//separate FlagRegister reference for ease of access
+	FlagRegister& F;
 
 	Clock clock = { 0, 0 };
 
@@ -67,7 +67,7 @@ private:
 	void opcodeNOP();//0x00
 
 	//stack operations
-	void opcodeStackPop(Word& r);
+	void opcodeStackPop(Word& r, bool flagInvolved = false);
 	void opcodeStackPush(const Word& r);
 
 	//load bytes

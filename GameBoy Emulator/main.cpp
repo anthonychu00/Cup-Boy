@@ -5,7 +5,10 @@ using namespace std;
 
 int main() {
 
-	string path = "../../../../gb-test-roms/cpu_instrs/individual/01-special.gb";//get filepath
+	//string path = "../../../../gb-test-roms/cpu_instrs/individual/01-special.gb";//get filepath
+	//string path = "../../../../gb-test-roms/cpu_instrs/individual/02-interrupts.gb";
+	string path = "../../../../gb-test-roms/cpu_instrs/individual/03-op sp,hl.gb";
+	//string path = "../../../../gb-test-roms/cpu_instrs/daa.gb";
 	//string path = "../../..";
 	unique_ptr<System> gb = make_unique<System>(path);
 	gb->start();

@@ -53,14 +53,22 @@ void CPU::opcodeLoadSPToMemory() {
 	setClockPrevious(20);
 }
 
-void CPU::opcodeLoadHLSP() {
-	int8_t addedVal = static_cast<int8_t>(PCFetchByte());
-	HL.set(SP.getValue() + static_cast<uint16_t>(addedVal));
+void CPU::opcodeLoadHLSP() { //0xF8
+	int8_t addedVal = PCFetchSignedByte();
+	uint16_t sval = SP.getValue();
+	uint16_t result = sval + addedVal;
+
+	HL.set(result);
+
 
 	F.setZeroFlag(0);
 	F.setAddSubFlag(0);
 	F.setHalfCarryFlag((SP.getValue() & 0x0F) + (addedVal & 0x0F) > 0x0F);
 	F.setCarryFlag((SP.getValue() & 0xFF) + (addedVal & 0xFF) > 0xFF);
+	//F.setHalfCarryFlag(((sval ^ addedVal ^ result) & 0x10) == 0x10);
+	//F.setCarryFlag(((sval ^ addedVal ^ result) & 0x100) == 0x100);
+	
+
 
 	setClockPrevious(12);
 }
@@ -165,11 +173,15 @@ void CPU::opcodeLoadMemoryToADec(const uint16_t address) {
 }
 
 //pop 2 bytes from SP and load into 2 registers
-void CPU::opcodeStackPop(Word& r) {
+void CPU::opcodeStackPop(Word& r, bool flagInvolved) {
 	uint8_t low = mm.readAddress(SP.getValue());
 	SP.increment();
 	uint8_t high = mm.readAddress(SP.getValue());
 	SP.increment();
+
+	if (flagInvolved) {
+		low = low & 0xF0;
+	}
 
 	uint16_t word = ((uint16_t)high << 8) | low;
 	r.set(word);
