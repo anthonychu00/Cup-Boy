@@ -61,7 +61,7 @@ void CPU::opcodeDecrement(uint16_t address) {
 
 //Decimal adjust register A
 void CPU::opcodeDAA() {
-	uint8_t a = AF.getHighRegister().getByte();
+	uint8_t a = AF.getHigh();
 	if (!F.getAddSubFlag()) { //addition was performed (AddSubFlag = 0)
 		if (F.getCarryFlag() || a > 0x99) {
 			a += 0x60;
@@ -79,7 +79,7 @@ void CPU::opcodeDAA() {
 	F.setZeroFlag(a == 0);//see if A is 0
 	F.setHalfCarryFlag(0);//we reset half carry flag always
 
-	AF.getHighRegister().set(static_cast<uint8_t>(a));//set A to adjusted value
+	AF.setHigh(static_cast<uint8_t>(a));//set A to adjusted value
 	setClockPrevious(4);
 	
 }
@@ -108,12 +108,12 @@ void CPU::opcodeAddSP() {//0xE8
 
 //add
 void CPU::opcodeAddAAux(uint8_t addedVal) {
-	uint8_t a = AF.getHighRegister().getByte();
+	uint8_t a = AF.getHigh();
 	uint16_t toSet = static_cast<uint16_t>(a + addedVal);//uint16_t in case the bytes added together >255
 
-	AF.getHighRegister().set(static_cast<uint8_t>(toSet));//recast to uint8_t for truncation
+	AF.setHigh(static_cast<uint8_t>(toSet));//recast to uint8_t for truncation
 
-	F.setZeroFlag(AF.getHighRegister().getByte() == 0);
+	F.setZeroFlag(AF.getHigh() == 0);
 	F.setAddSubFlag(0);
 	F.setHalfCarryFlag((a & 0xF) + (addedVal & 0xF) > 0xF);//check first 4 bits only
 	F.setCarryFlag(toSet > 0xFF);// added value > 255
@@ -136,14 +136,14 @@ void CPU::opcodeAddA(const uint16_t address) {
 }
 
 void CPU::opcodeADCAux(uint8_t addedVal) {
-	uint8_t a = AF.getHighRegister().getByte();
+	uint8_t a = AF.getHigh();
 	uint8_t c = static_cast<uint8_t>(F.getCarryFlag());//********casting bool to uint8_t?
 
 	uint16_t toSet = static_cast<uint16_t>(a + addedVal + c);
 
-	AF.getHighRegister().set(static_cast<uint8_t>(toSet));//recasting to uint8 to truncate 9th bit
+	AF.setHigh(static_cast<uint8_t>(toSet));//recasting to uint8 to truncate 9th bit
 
-	F.setZeroFlag(AF.getHighRegister().getByte() == 0);
+	F.setZeroFlag(AF.getHigh() == 0);
 	F.setAddSubFlag(0);
 	F.setHalfCarryFlag((a & 0xF) + (addedVal & 0xF) + c > 0xF);//check first 4 bits
 	F.setCarryFlag(toSet > 0xFF);
@@ -171,6 +171,8 @@ void CPU::opcodeAddHLAux(uint16_t addedVal) {
 	uint32_t toSet = static_cast<uint32_t>(HLVal + addedVal);
 	HL.set(static_cast<uint16_t>(toSet));
 
+	//printf("%d \n", unsigned(static_cast<uint16_t>(toSet)));
+
 	F.setAddSubFlag(0);
 	F.setHalfCarryFlag((HLVal & 0xFFF) + (addedVal & 0xFFF) > 0x0FFF);//set if carried from bit 11
 	F.setCarryFlag(toSet > 0xFFFF);//set if carried from bit 15
@@ -188,12 +190,12 @@ void CPU::opcodeAddHL(const FullRegister& addedVal) {
 
 //sub
 void CPU::opcodeSubAAux(uint8_t subbedVal) {
-	uint8_t a = AF.getHighRegister().getByte();
+	uint8_t a = AF.getHigh();
 	uint8_t toSet = static_cast<uint8_t>(a - subbedVal);//operations between 2 uint8_t result in an int, have to recast
 
-	AF.getHighRegister().set(toSet);
+	AF.setHigh(toSet);
 
-	F.setZeroFlag(AF.getHighRegister().getByte() == 0);
+	F.setZeroFlag(AF.getHigh() == 0);
 	F.setAddSubFlag(1);
 	F.setHalfCarryFlag((a & 0xF) - (subbedVal & 0xF) < 0);//check first 4 bits, set if borrow from bit 4
 	F.setCarryFlag(a < subbedVal);//negative value, borrowing from
@@ -216,12 +218,12 @@ void CPU::opcodeSubA(const uint16_t address) {
 }
 
 void CPU::opcodeSBCAux(uint8_t subbedVal) {
-	uint8_t a = AF.getHighRegister().getByte();
+	uint8_t a = AF.getHigh();
 	uint8_t c = static_cast<uint8_t>(F.getCarryFlag());
 
 	uint8_t toSet = static_cast<uint8_t>(a - subbedVal - c);
 
-	AF.getHighRegister().set(toSet);
+	AF.setHigh(toSet);
 
 	F.setZeroFlag(toSet == 0);
 	F.setAddSubFlag(1);
@@ -248,10 +250,10 @@ void CPU::opcodeSBC(const uint16_t address) {
 
 //and
 void CPU::opcodeAndAux(uint8_t val) {
-	uint8_t a = AF.getHighRegister().getByte();
+	uint8_t a = AF.getHigh();
 	uint8_t result = a & val;
 
-	AF.getHighRegister().set(result);
+	AF.setHigh(result);
 
 	F.setZeroFlag(result == 0);
 	F.setAddSubFlag(0);
@@ -276,10 +278,10 @@ void CPU::opcodeAnd(const uint16_t address) {
 }
 
 void CPU::opcodeXORAux(uint8_t val) {
-	uint8_t a = AF.getHighRegister().getByte();
+	uint8_t a = AF.getHigh();
 	uint8_t result = a ^ val;
 
-	AF.getHighRegister().set(result);
+	AF.setHigh(result);
 
 	F.setZeroFlag(result == 0);
 	F.setAddSubFlag(0);
@@ -304,10 +306,10 @@ void CPU::opcodeXOR(const uint16_t address) {
 }
 
 void CPU::opcodeOrAux(uint8_t val) {
-	uint8_t a = AF.getHighRegister().getByte();
+	uint8_t a = AF.getHigh();
 	uint8_t result = a | val;
 
-	AF.getHighRegister().set(result);
+	AF.setHigh(result);
 
 	F.setZeroFlag(result == 0);
 	F.setAddSubFlag(0);
@@ -332,7 +334,7 @@ void CPU::opcodeOr(const uint16_t address) {
 }
 
 void CPU::opcodeCPAux(uint8_t val) {
-	uint8_t a = AF.getHighRegister().getByte();
+	uint8_t a = AF.getHigh();
 
 	F.setZeroFlag(a == val);
 	F.setAddSubFlag(1);
@@ -358,9 +360,9 @@ void CPU::opcodeCP(const uint16_t address) {
 
 //complement A (Flip its bits)
 void CPU::opcodeCPL() {
-	uint8_t temp = AF.getHighRegister().getByte();
+	uint8_t temp = AF.getHigh();
 	temp = ~temp;//~ negates the bits and flips them
-	AF.getHighRegister().set(temp);
+	AF.setHigh(temp);
 
 	F.setAddSubFlag(1);
 	F.setHalfCarryFlag(1);

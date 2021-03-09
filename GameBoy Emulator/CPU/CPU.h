@@ -22,14 +22,10 @@ public:
 	};//conditions for flag register in jump operations
 
 private:
-	
-	MemoryMap& mm;
+	SingleRegister A, B, C, D, E, H, L; //accumulator
+	FlagRegister F;
 
-	struct Clock {
-		//figure out best representation of time units for CPU
-		int p;	//time to execute previous operation (need to time how long each operation takes)
-		int t;  //total time CPU has run
-	};
+	//"wrapper classese to treat our single registers as pairs or 16 bit ones
 
 	//SplitRegisters can be used as a 16 bit address or 2 separate 8 bit ones
 	SplitRegister AF;//A = high, F = low
@@ -41,8 +37,13 @@ private:
 	FullRegister SP;
 	FullRegister PC;
 
-	//separate FlagRegister reference for ease of access
-	FlagRegister& F;
+	MemoryMap& mm;
+
+	struct Clock {
+		//figure out best representation of time units for CPU
+		int p;	//time to execute previous operation (need to time how long each operation takes)
+		int t;  //total time CPU has run
+	};
 
 	Clock clock = { 0, 0 };
 
@@ -60,8 +61,6 @@ private:
 	void interruptExecute();
 
 	bool checkCondition(Flag fl);
-
-	
 
 	//opcodes
 	void opcodeNOP();//0x00
@@ -226,5 +225,4 @@ private:
 	void opcodeDI();
 
 	void opcodeStop();
-
 };

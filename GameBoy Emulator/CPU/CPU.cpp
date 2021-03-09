@@ -1,6 +1,12 @@
 #include "CPU.h"
 #include <iostream>
-CPU::CPU(MemoryMap& newMM): mm(newMM) {
+CPU::CPU(MemoryMap& newMM): 
+	mm(newMM),
+	AF(A, F),
+	BC(B, C),
+	DE(D, E),
+	HL(H, L)
+{
 	PC.set(0x0100);//first instruction for roms, otherwise start at 0x0000
 }
 

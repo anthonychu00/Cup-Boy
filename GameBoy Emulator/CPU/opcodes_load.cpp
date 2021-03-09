@@ -82,7 +82,7 @@ void CPU::opcodeLoadSPHL() {
 void CPU::opcodeLoadAToMemory16() {
 	uint16_t address = PCFetchWord();
 	//put value of A into address pointed to by uint16_t address
-	mm.writeAddress(address, AF.getHighRegister().getByte());
+	mm.writeAddress(address, AF.getHigh());
 	setClockPrevious(16);
 }
 
@@ -91,7 +91,7 @@ void CPU::opcodeLoadAToMemory() {
 	uint16_t address = static_cast<uint16_t>(0xFF00 + static_cast<uint16_t>(location));
 
 	//load A into 16 bit memory address specified above
-	mm.writeAddress(address, AF.getHighRegister().getByte());
+	mm.writeAddress(address, AF.getHigh());
 	setClockPrevious(12);
 }
 
@@ -100,13 +100,13 @@ void CPU::opcodeLoadAToMemory(const SingleRegister& r) {
 	uint16_t address = static_cast<uint16_t>(0xFF00 + static_cast<uint16_t>(location));
 
 	//load A into memory address above
-	mm.writeAddress(address, AF.getHighRegister().getByte());
+	mm.writeAddress(address, AF.getHigh());
 	setClockPrevious(8);
 }
 
 void CPU::opcodeLoadAToMemory(const uint16_t address) {
 	//loads memory address specified by SplitRegister value with accumulator value
-	mm.writeAddress(address, AF.getHighRegister().getByte());
+	mm.writeAddress(address, AF.getHigh());
 
 	setClockPrevious(8);
 }
@@ -127,7 +127,7 @@ void CPU::opcodeLoadMemoryToA16() {
 	uint16_t address = PCFetchWord();
 	//put 8-bit value of uint16_t memory address into A
 	uint8_t toWrite = mm.readAddress(address);
-	AF.getHighRegister().set(toWrite);
+	AF.setHigh(toWrite);
 
 	setClockPrevious(16);
 }
@@ -137,7 +137,7 @@ void CPU::opcodeLoadMemoryToA() {
 	uint16_t address = static_cast<uint16_t>(0xFF00 + static_cast<uint16_t>(location));
 	
 	uint8_t toWrite = mm.readAddress(address);
-	AF.getHighRegister().set(toWrite);
+	AF.setHigh(toWrite);
 
 	//load 16 bit address's value into A
 	setClockPrevious(12);
@@ -148,7 +148,7 @@ void CPU::opcodeLoadMemoryToA(const SingleRegister& r) {
 	uint16_t address = static_cast<uint16_t>(0xFF00 + static_cast<uint16_t>(location));
 
 	uint8_t toWrite = mm.readAddress(address);
-	AF.getHighRegister().set(toWrite);
+	AF.setHigh(toWrite);
 
 	//load 16 bit address value in memory to A
 	setClockPrevious(8);
@@ -157,7 +157,7 @@ void CPU::opcodeLoadMemoryToA(const SingleRegister& r) {
 //load byte in memory to accumulator (0x0A)
 void CPU::opcodeLoadMemoryToA(const uint16_t address) {
 	uint8_t toWrite = mm.readAddress(address);
-	AF.getHighRegister().set(toWrite);
+	AF.setHigh(toWrite);
 
 	setClockPrevious(8);
 }
@@ -181,10 +181,12 @@ void CPU::opcodeStackPop(Word& r, bool flagInvolved) {
 
 	if (flagInvolved) {
 		low = low & 0xF0;
+		//printf("AF Low: %d, Flag: %d \n", unsigned(low), unsigned(F.getByte()));
 	}
 
 	uint16_t word = ((uint16_t)high << 8) | low;
 	r.set(word);
+	
 }
 
 void CPU::opcodeStackPush(const Word& r) {

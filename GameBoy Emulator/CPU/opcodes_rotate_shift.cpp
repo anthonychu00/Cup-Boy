@@ -15,8 +15,8 @@ uint8_t CPU::opcodeRLCAux(uint8_t val) {
 }
 
 void CPU::opcodeRLCA() {
-	uint8_t toSet = opcodeRLCAux(AF.getHighRegister().getByte());
-	AF.getHighRegister().set(toSet);
+	uint8_t toSet = opcodeRLCAux(AF.getHigh());
+	AF.setHigh(toSet);
 	F.setZeroFlag(0);//RLCA  sets the zero flag to 0 instead
 	setClockPrevious(4);
 }
@@ -51,8 +51,8 @@ uint8_t CPU::opcodeRLAux(uint8_t val) {
 }
 
 void CPU::opcodeRLA() {
-	uint8_t toSet = opcodeRLAux(AF.getHighRegister().getByte());
-	AF.getHighRegister().set(toSet);
+	uint8_t toSet = opcodeRLAux(AF.getHigh());
+	AF.setHigh(toSet);
 	F.setZeroFlag(0);
 	setClockPrevious(4);
 }
@@ -85,8 +85,8 @@ uint8_t CPU::opcodeRRCAux(uint8_t val) {
 
 
 void CPU::opcodeRRCA() {
-	uint8_t toSet = opcodeRRCAux(AF.getHighRegister().getByte());
-	AF.getHighRegister().set(toSet);
+	uint8_t toSet = opcodeRRCAux(AF.getHigh());
+	AF.setHigh(toSet);
 	F.setZeroFlag(0);
 	setClockPrevious(4);
 }
@@ -120,8 +120,8 @@ uint8_t CPU::opcodeRRAux(uint8_t val) {
 }
 
 void CPU::opcodeRRA() {
-	uint8_t toSet = opcodeRRAux(AF.getHighRegister().getByte());
-	AF.getHighRegister().set(toSet);
+	uint8_t toSet = opcodeRRAux(AF.getHigh());
+	AF.setHigh(toSet);
 	F.setZeroFlag(0);
 	setClockPrevious(4);
 }
