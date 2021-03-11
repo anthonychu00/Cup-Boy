@@ -45,6 +45,9 @@
     <ClInclude Include="Cartridge\cartridge.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="utils\utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="registers\split_register.cpp">
@@ -93,6 +96,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CPU\opcode_trace.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

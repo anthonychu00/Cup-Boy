@@ -29,11 +29,28 @@ void CPU::executeOperations() {//69905
 }
 
 void CPU::checkInterruptRequests() {
+	if (IME) {
+		uint8_t interruptFlag = mm.readAddress(IFRegister);
+		uint8_t interruptEnable = mm.readAddress(IERegister);
 
+		for (int position = 0; position < 5; position++) {
+			if (getBit(interruptFlag, position) == getBit(interruptEnable, position)) {
+				setBit(interruptFlag, position, 0);
+				mm.writeAddress(IFRegister, interruptFlag);//corresponding bit is reset
+
+				IME = false;//IME flag reset
+
+				interruptExecute(position);//interrupt vector is called and executed
+				return;
+			}
+		}
+
+	}
 }
 
-void CPU::interruptExecute() {
+void CPU::interruptExecute(int vectorPosition) {
 
+	//call interrupt vector
 }
 
 uint8_t CPU::PCFetchByte() {

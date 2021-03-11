@@ -3,6 +3,7 @@
 #include "../registers/split_register.h"
 #include "../registers/full_register.h"
 #include "../memory/memory_map.h"
+#include "../utils/utils.h"
 
 class CPU {
 public:
@@ -25,8 +26,7 @@ private:
 	SingleRegister A, B, C, D, E, H, L; //accumulator
 	FlagRegister F;
 
-	//"wrapper classese to treat our single registers as pairs or 16 bit ones
-
+	//wrapper classese to treat our single registers as pairs or 16 bit ones
 	//SplitRegisters can be used as a 16 bit address or 2 separate 8 bit ones
 	SplitRegister AF;//A = high, F = low
 	SplitRegister BC;
@@ -36,6 +36,11 @@ private:
 	//FullRegisters can only be used as a 16 bit address
 	FullRegister SP;
 	FullRegister PC;
+
+	bool halt = false;
+	bool IME = false;//interrupt master enable flag
+	const uint16_t IERegister = 0xFFFF;//needs to be enabled with IME
+	const uint16_t IFRegister = 0xFF0F;
 
 	MemoryMap& mm;
 
@@ -47,18 +52,12 @@ private:
 
 	Clock clock = { 0, 0 };
 
-	bool halt = false;
-
-	bool IME = false;//interrupt master enable flag
-	const uint16_t IERegister = 0xFFFF;//needs to be enabled with IME
-	const uint16_t IFRegister = 0xFF0F;
-
 	uint8_t PCFetchByte();
 	int8_t PCFetchSignedByte();
 	uint16_t PCFetchWord();
 
 	void checkInterruptRequests();
-	void interruptExecute();
+	void interruptExecute(int vectorPosition);
 
 	bool checkCondition(Flag fl);
 
