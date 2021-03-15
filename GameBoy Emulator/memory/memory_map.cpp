@@ -49,7 +49,7 @@ void MemoryMap::writeAddress(const uint16_t address, const uint8_t byte) {
 	//serial? FF01 & FF02
 	else if (address == 0xFF04) {
 		memory.at(address) = 0x0000;
-		//reset diver register in timer in CPU?
+		//reset divider register in timer in CPU?
 	}
 	//ff07
 	else if (address == 0xFF07) {

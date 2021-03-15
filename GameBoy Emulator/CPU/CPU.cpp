@@ -23,7 +23,8 @@ void CPU::executeOperations() {//69905
 		//std::cout << (char)unsigned(mm.readAddress(0xFF01)) << endl;
 		//std::cout << ticks << endl;
 
-		checkInterruptRequests();//CPU checks interrupts at the end of each instruction
+		updateTimer();
+		checkInterruptRequests();//CPU checks interrupts at the end of each instruction, updates accordingly
 
 	}
 }
@@ -49,8 +50,25 @@ void CPU::checkInterruptRequests() {
 }
 
 void CPU::interruptExecute(int vectorPosition) {
-
 	//call interrupt vector
+	switch (vectorPosition) {
+	case 0: PC.set(0x40); break; //v blank
+	case 1:	PC.set(0x48); break; //LCD STAT
+	case 2: PC.set(0x50); break; //Timer
+	case 3: PC.set(0x58); break; //Serial
+	case 4: PC.set(0x60); break; //Joypad/input
+	}
+	
+}
+
+void CPU::updateTimer() {
+	divTime += clock.p;
+	if (divTime >= 256) {
+		uint8_t currentDivTime = mm.readAddress(dividerRegister);
+		mm.writeAddress(dividerRegister, currentDivTime + 1);
+		divTime -= 256;
+	}
+
 }
 
 uint8_t CPU::PCFetchByte() {

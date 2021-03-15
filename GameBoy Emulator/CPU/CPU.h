@@ -42,6 +42,13 @@ private:
 	const uint16_t IERegister = 0xFFFF;//needs to be enabled with IME
 	const uint16_t IFRegister = 0xFF0F;
 
+	//timer register locations
+	int divTime = 0;
+	const uint16_t dividerRegister = 0xFF04;
+	const uint16_t timerCounter = 0xFF05;
+	const uint16_t timerModulo = 0xFF06;
+	const uint16_t timerControl = 0xFF07;
+
 	MemoryMap& mm;
 
 	struct Clock {
@@ -58,6 +65,8 @@ private:
 
 	void checkInterruptRequests();
 	void interruptExecute(int vectorPosition);
+
+	void updateTimer();
 
 	bool checkCondition(Flag fl);
 
