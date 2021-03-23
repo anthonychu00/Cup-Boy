@@ -1,5 +1,7 @@
 #include "memory_map.h"
+#include "../CPU/CPU.h"
 #include <iostream>
+
 MemoryMap::MemoryMap(CPU& newCpu, Cartridge& newCartridge) : 
 	cpu(newCpu), 
 	cartridge(newCartridge) {//Add audio, controller, video, and CPU objects as params (and timer?)
@@ -51,13 +53,15 @@ void MemoryMap::writeAddress(const uint16_t address, const uint8_t byte) {
 		memory.at(address) = 0x0000;
 		//reset divider register in timer in CPU?
 	}
-	//ff07
 	else if (address == 0xFF07) {
 		memory.at(address) = byte;
-		//change timer control
-	}
-	else if (address == 0xFF0F) {
-		//interrupt flag
+
+		switch (byte & 0x03) {
+		case(0): cpu.setClockSpeed(1024); break;
+		case(1): cpu.setClockSpeed(16); break;
+		case(2): cpu.setClockSpeed(64); break;
+		case(3): cpu.setClockSpeed(256); break;
+		}
 	}
 	//sound at FF10 - FF3F?
 	//{ }
@@ -73,7 +77,7 @@ void MemoryMap::writeAddress(const uint16_t address, const uint8_t byte) {
 		//DMA transfer
 	}
 	else if (address >= 0xFEA0 && address <= 0xFEFF) {
-		//acess prohibiterd
+		//acess prohibited
 	}
 	else {
 		if (address == 0xFF01) {

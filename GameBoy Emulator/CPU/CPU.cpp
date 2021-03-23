@@ -8,6 +8,9 @@ CPU::CPU(MemoryMap& newMM):
 	HL(H, L)
 {
 	PC.set(0x0100);//first instruction for roms, otherwise start at 0x0000
+	divTime = 0;
+	tima = 0;
+	clockSpeed = 1024;
 }
 
 void CPU::executeOperations() {//69905
@@ -34,9 +37,16 @@ void CPU::checkInterruptRequests() {
 		uint8_t interruptFlag = mm.readAddress(IFRegister);
 		uint8_t interruptEnable = mm.readAddress(IERegister);
 
+		
+
+
 		for (int position = 0; position < 5; position++) {
 			if (getBit(interruptFlag, position) == getBit(interruptEnable, position)) {
-				setBit(interruptFlag, position, 0);
+
+				halt = false; //Interrupt vector found, don't halt
+				opcodeStackPush(PC);//save PC address to jump back to after interrupt is done
+
+				setBit(interruptFlag, position, 0); //reset bit in IF
 				mm.writeAddress(IFRegister, interruptFlag);//corresponding bit is reset
 
 				IME = false;//IME flag reset
@@ -61,14 +71,47 @@ void CPU::interruptExecute(int vectorPosition) {
 	
 }
 
+void CPU::setInterruptFlag(int position) {
+	uint8_t IFValue = mm.readAddress(IFRegister);
+	setBit(IFValue, position, 1);
+	mm.writeAddress(IFRegister, IFValue);
+}
+
 void CPU::updateTimer() {
+	bool timerEnable = getBit(mm.readAddress(timerControl), 2);
+
+	//0xFF04
 	divTime += clock.p;
-	if (divTime >= 256) {
+	if (divTime >= 256) { //divider increments every 256 CPU ticks
 		uint8_t currentDivTime = mm.readAddress(dividerRegister);
 		mm.writeAddress(dividerRegister, currentDivTime + 1);
 		divTime -= 256;
 	}
 
+	//0xFF05 & 0xFF06
+	if (timerEnable) {
+		tima += clock.p;
+		
+		if (tima >= clockSpeed) { //tima increments every clockSpeed CPU ticks
+			uint8_t currentTimerCounter = mm.readAddress(timerCounter);
+			if (currentTimerCounter == 0xFF) { //timer overflow
+				mm.writeAddress(timerCounter, mm.readAddress(timerModulo));
+				setInterruptFlag(2);
+			}
+			else {
+				mm.writeAddress(timerCounter, currentTimerCounter + 1);
+			}
+
+			tima -= clockSpeed;		
+		}
+	}
+}
+
+void CPU::setClockSpeed(int newSpeed) {
+	clockSpeed = newSpeed;
+}
+int CPU::getClockSpeed() {
+	return clockSpeed;
 }
 
 uint8_t CPU::PCFetchByte() {

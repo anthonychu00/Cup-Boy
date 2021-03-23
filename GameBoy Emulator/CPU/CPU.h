@@ -17,6 +17,8 @@ public:
 	string traceOpcode(const uint8_t opcode);
 	string tracePrefixedOpcode(const uint8_t opcode);
 	void setClockPrevious(int ticks);
+	void setClockSpeed(int newSpeed);
+	int getClockSpeed();
 	
 	enum class Flag {
 		NZ, Z, NC, C
@@ -43,7 +45,9 @@ private:
 	const uint16_t IFRegister = 0xFF0F;
 
 	//timer register locations
-	int divTime = 0;
+	int divTime;// "ticks" of the divider register
+	int tima;
+	int clockSpeed;
 	const uint16_t dividerRegister = 0xFF04;
 	const uint16_t timerCounter = 0xFF05;
 	const uint16_t timerModulo = 0xFF06;
@@ -65,10 +69,13 @@ private:
 
 	void checkInterruptRequests();
 	void interruptExecute(int vectorPosition);
+	void setInterruptFlag(int position);
 
 	void updateTimer();
+	
 
 	bool checkCondition(Flag fl);
+
 
 	//opcodes
 	void opcodeNOP();//0x00
