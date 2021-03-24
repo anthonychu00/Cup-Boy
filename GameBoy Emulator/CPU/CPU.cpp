@@ -43,13 +43,10 @@ void CPU::checkInterruptRequests() {
 
 		halt = false;
 		opcodeStackPush(PC);
-		printf("Interrupts found\n");
-		printf("%d\n", halt);
 		//exit(1);
 		
 		for (int position = 0; position < 5; position++) {
 			if (getBit(interruptFlag, position) && getBit(interruptEnable, position)) {
-				printf("%d\n", position);
 				setBit(interruptFlag, position, 0); //reset bit in IF
 				mm.writeAddress(IFRegister, interruptFlag);//corresponding bit is reset
 
@@ -62,8 +59,9 @@ void CPU::checkInterruptRequests() {
 		}
 		
 	}
-	//printf("Other stuff");
-	//halt = false;
+	else if (mm.readAddress(IFRegister)) {
+		halt = false;
+	}
 
 }
 
@@ -99,10 +97,10 @@ void CPU::updateTimer(int previousTicks) {
 
 	//0xFF05 & 0xFF06
 	if (timerEnable) {
-		//printf("Tima enabled");
+		//printf("Previous ticks: %d\n", previousTicks);
 		tima += previousTicks;
 		
-		while (tima >= clockSpeed) { //tima increments every clockSpeed CPU ticks
+		while (tima >= clockSpeed) { //tima increments every clockSpeed CPU ticks, can increment multiple times
 			uint8_t currentTimerCounter = mm.readAddress(timerCounter);
 			if (currentTimerCounter == 0xFF) { //timer overflow
 				//printf("Overflow");

@@ -132,6 +132,7 @@ int CPU::opcodeLoadMemoryToA16() {
 	return 16;
 }
 
+//0xF0
 int CPU::opcodeLoadMemoryToA() {
 	uint8_t location = PCFetchByte();
 	uint16_t address = static_cast<uint16_t>(0xFF00 + static_cast<uint16_t>(location));

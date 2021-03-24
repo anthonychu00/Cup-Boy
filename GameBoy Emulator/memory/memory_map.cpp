@@ -55,7 +55,7 @@ void MemoryMap::writeAddress(const uint16_t address, const uint8_t byte) {
 	}
 	else if (address == 0xFF07) {
 		memory.at(address) = byte;
-
+		//printf("Clock speed changed: %d\n", byte & 0x03);
 		switch (byte & 0x03) {
 		case(0): cpu.setClockSpeed(1024); break;
 		case(1): cpu.setClockSpeed(16); break;
@@ -83,6 +83,7 @@ void MemoryMap::writeAddress(const uint16_t address, const uint8_t byte) {
 		if (address == 0xFF01) {
 			printf("%c", byte);
 		}
+		
 		//std::cout << "writing to " << unsigned(address) << endl;
 		memory.at(address) = byte;
 	}
