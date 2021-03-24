@@ -9,5 +9,9 @@ System::System(string path) :
 }
 
 void System::start() {
-		cpu.executeOperations();
+	while (true) {
+		int previousTicks = cpu.executeOperations();
+		cpu.updateTimer(previousTicks);
+		cpu.checkInterruptRequests();
+	}
 }

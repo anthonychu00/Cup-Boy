@@ -11,7 +11,7 @@ public:
 	CPU(MemoryMap& newMM);//registers default to 0x00 value
 	~CPU() = default;
 
-	void executeOperations();
+	int executeOperations();
 	int executeOpcode(const uint8_t opcode, uint16_t PCValue);
 	int executePrefixedOpcode(const uint8_t opcode, uint16_t PCValue);
 	string traceOpcode(const uint8_t opcode);
@@ -19,7 +19,7 @@ public:
 	void setClockPrevious(int ticks);
 	void setClockSpeed(int newSpeed);
 	int getClockSpeed();
-	void updateTimer();
+	void updateTimer(int previousTicks);
 	void checkInterruptRequests();
 	
 	enum class Flag {
@@ -77,166 +77,164 @@ private:
 
 
 	//opcodes
-	void opcodeNOP();//0x00
+	int opcodeNOP();//0x00
 
 	//stack operations
-	void opcodeStackPop(Word& r, bool flagInvolved = false);
-	void opcodeStackPush(const Word& r);
+	int opcodeStackPop(Word& r, bool flagInvolved = false);
+	int opcodeStackPush(const Word& r);
 
 	//load bytes
-	void opcodeLoadByte(SingleRegister& r);//get byte from PC
-	void opcodeLoadByte(SingleRegister& r, const SingleRegister& newReg);//get byte from other register
-	void opcodeLoadByte(const uint16_t address);
-	void opcodeLoadByte(SingleRegister& r, const uint16_t address); //address is HL's word value
-	void opcodeLoadByte(const uint16_t address, const SingleRegister& r);
+	int opcodeLoadByte(SingleRegister& r);//get byte from PC
+	int opcodeLoadByte(SingleRegister& r, const SingleRegister& newReg);//get byte from other register
+	int opcodeLoadByte(const uint16_t address);
+	int opcodeLoadByte(SingleRegister& r, const uint16_t address); //address is HL's word value
+	int opcodeLoadByte(const uint16_t address, const SingleRegister& r);
 	
 	//Load words
-	void opcodeLoadSPToMemory();
-	void opcodeLoadWord(Word& r);
+	int opcodeLoadSPToMemory();
+	int opcodeLoadWord(Word& r);
 
-	void opcodeLoadHLSP();
-	void opcodeLoadSPHL();
+	int opcodeLoadHLSP();
+	int opcodeLoadSPHL();
 
 	//load accumulator to memory
-	void opcodeLoadAToMemory16();
-	void opcodeLoadAToMemory();
-	void opcodeLoadAToMemory(const SingleRegister& r);
-	void opcodeLoadAToMemory(const uint16_t address);//0x02, 0x12, 0x22, 0x32
-	void opcodeLoadAToMemoryInc(const uint16_t address);//for HL
-	void opcodeLoadAToMemoryDec(const uint16_t address);
+	int opcodeLoadAToMemory16();
+	int opcodeLoadAToMemory();
+	int opcodeLoadAToMemory(const SingleRegister& r);
+	int opcodeLoadAToMemory(const uint16_t address);//0x02, 0x12, 0x22, 0x32
+	int opcodeLoadAToMemoryInc(const uint16_t address);//for HL
+	int opcodeLoadAToMemoryDec(const uint16_t address);
 	
-	void opcodeLoadMemoryToA16();
-	void opcodeLoadMemoryToA();
-	void opcodeLoadMemoryToA(const SingleRegister& r);
-	void opcodeLoadMemoryToA(const uint16_t address);
-	void opcodeLoadMemoryToAInc(const uint16_t address);
-	void opcodeLoadMemoryToADec(const uint16_t address);
+	int opcodeLoadMemoryToA16();
+	int opcodeLoadMemoryToA();
+	int opcodeLoadMemoryToA(const SingleRegister& r);
+	int opcodeLoadMemoryToA(const uint16_t address);
+	int opcodeLoadMemoryToAInc(const uint16_t address);
+	int opcodeLoadMemoryToADec(const uint16_t address);
 
-	void opcodeIncrement(Word& r);
-	void opcodeIncrement(SingleRegister& r);
-	void opcodeIncrement(uint16_t address);
+	int opcodeIncrement(Word& r);
+	int opcodeIncrement(SingleRegister& r);
+	int opcodeIncrement(uint16_t address);
 
-	void opcodeDecrement(Word& r);
-	void opcodeDecrement(SingleRegister& r);
-	void opcodeDecrement(uint16_t address);
+	int opcodeDecrement(Word& r);
+	int opcodeDecrement(SingleRegister& r);
+	int opcodeDecrement(uint16_t address);
 
 	uint8_t opcodeRLCAux(uint8_t val);
-	void opcodeRLCA();
-	void opcodeRLC(SingleRegister& r);
-	void opcodeRLC(uint16_t address);
+	int opcodeRLCA();
+	int opcodeRLC(SingleRegister& r);
+	int opcodeRLC(uint16_t address);
 
 	uint8_t opcodeRLAux(uint8_t val);
-	void opcodeRLA();
-	void opcodeRL(SingleRegister& r);
-	void opcodeRL(uint16_t address);
+	int opcodeRLA();
+	int opcodeRL(SingleRegister& r);
+	int opcodeRL(uint16_t address);
 
 	uint8_t opcodeRRCAux(uint8_t val);
-	void opcodeRRCA();
-	void opcodeRRC(SingleRegister& r);
-	void opcodeRRC(uint16_t address);
+	int opcodeRRCA();
+	int opcodeRRC(SingleRegister& r);
+	int opcodeRRC(uint16_t address);
 
 	uint8_t opcodeRRAux(uint8_t val);
-	void opcodeRRA();
-	void opcodeRR(SingleRegister& r);
-	void opcodeRR(uint16_t address);
+	int opcodeRRA();
+	int opcodeRR(SingleRegister& r);
+	int opcodeRR(uint16_t address);
 
 	uint8_t opcodeSLAAux(uint8_t val);
-	void opcodeSLA(SingleRegister& r);
-	void opcodeSLA(uint16_t address);
+	int opcodeSLA(SingleRegister& r);
+	int opcodeSLA(uint16_t address);
 
 	uint8_t opcodeSRAAux(uint8_t val);
-	void opcodeSRA(SingleRegister& r);
-	void opcodeSRA(uint16_t address);
+	int opcodeSRA(SingleRegister& r);
+	int opcodeSRA(uint16_t address);
 
 	uint8_t opcodeSRLAux(uint8_t val);
-	void opcodeSRL(SingleRegister& r);
-	void opcodeSRL(uint16_t address);
+	int opcodeSRL(SingleRegister& r);
+	int opcodeSRL(uint16_t address);
 
 	uint8_t opcodeSwapAux(uint8_t val);
-	void opcodeSwap(SingleRegister& r);
-	void opcodeSwap(uint16_t address);
+	int opcodeSwap(SingleRegister& r);
+	int opcodeSwap(uint16_t address);
 
-	void opcodeBit(const int position, SingleRegister& r);
-	void opcodeBit(const int position, uint16_t address);
+	int opcodeBit(const int position, SingleRegister& r);
+	int opcodeBit(const int position, uint16_t address);
 
-	void opcodeReset(const int position, SingleRegister& r);
-	void opcodeReset(const int position, uint16_t address);
+	int opcodeReset(const int position, SingleRegister& r);
+	int opcodeReset(const int position, uint16_t address);
 
-	void opcodeSet(const int position, SingleRegister& r);
-	void opcodeSet(const int position, uint16_t address);
+	int opcodeSet(const int position, SingleRegister& r);
+	int opcodeSet(const int position, uint16_t address);
 
-	void opcodeDAA();
-	void opcodeSCF();
+	int opcodeDAA();
+	int opcodeSCF();
 
-	void opcodeJP();
-	void opcodeJP(Flag fl);
-	void opcodeJPHL();
+	int opcodeJP();
+	int opcodeJP(Flag fl);
+	int opcodeJPHL();
 
-	void opcodeJR();
-	void opcodeJR(Flag fl);
+	int opcodeJR();
+	int opcodeJR(Flag fl);
 
-	void opcodeAddSP();
+	int opcodeAddSP();
 
 	void opcodeAddAAux(uint8_t addedVal);
-	void opcodeAddA();//get value from program counter
-	void opcodeAddA(const SingleRegister& r);
-	void opcodeAddA(const uint16_t address);
+	int opcodeAddA();//get value from program counter
+	int opcodeAddA(const SingleRegister& r);
+	int opcodeAddA(const uint16_t address);
 
 	void opcodeADCAux(uint8_t addedVal);
-	void opcodeADC();
-	void opcodeADC(const SingleRegister& r);
-	void opcodeADC(const uint16_t address);
+	int opcodeADC();
+	int opcodeADC(const SingleRegister& r);
+	int opcodeADC(const uint16_t address);
 
-	void opcodeAddHLAux(uint16_t addedVal);
-	void opcodeAddHL(const SplitRegister& addedVal);
-	void opcodeAddHL(const FullRegister& addedVal);
-
+	int opcodeAddHL(uint16_t addedVal);
+	
 	void opcodeSubAAux(uint8_t subbedVal);
-	void opcodeSubA();
-	void opcodeSubA(const SingleRegister& r);
-	void opcodeSubA(const uint16_t address);
+	int opcodeSubA();
+	int opcodeSubA(const SingleRegister& r);
+	int opcodeSubA(const uint16_t address);
 
 	void opcodeSBCAux(uint8_t subbedVal);
-	void opcodeSBC();
-	void opcodeSBC(const SingleRegister& r);
-	void opcodeSBC(const uint16_t address);
+	int opcodeSBC();
+	int opcodeSBC(const SingleRegister& r);
+	int opcodeSBC(const uint16_t address);
 
 	void opcodeAndAux(uint8_t val);
-	void opcodeAnd();
-	void opcodeAnd(const SingleRegister& r);
-	void opcodeAnd(const uint16_t address);
+	int opcodeAnd();
+	int opcodeAnd(const SingleRegister& r);
+	int opcodeAnd(const uint16_t address);
 
 	void opcodeXORAux(uint8_t val);
-	void opcodeXOR();
-	void opcodeXOR(const SingleRegister& r);
-	void opcodeXOR(const uint16_t address);
+	int opcodeXOR();
+	int opcodeXOR(const SingleRegister& r);
+	int opcodeXOR(const uint16_t address);
 
 	void opcodeOrAux(uint8_t val);
-	void opcodeOr();
-	void opcodeOr(const SingleRegister& r);
-	void opcodeOr(const uint16_t address);
+	int opcodeOr();
+	int opcodeOr(const SingleRegister& r);
+	int opcodeOr(const uint16_t address);
 
 	void opcodeCPAux(uint8_t val);
-	void opcodeCP();
-	void opcodeCP(const SingleRegister& r);
-	void opcodeCP(const uint16_t address);
+	int opcodeCP();
+	int opcodeCP(const SingleRegister& r);
+	int opcodeCP(const uint16_t address);
 
-	void opcodeCPL();
-	void opcodeCCF();
+	int opcodeCPL();
+	int opcodeCCF();
 
-	void opcodeHalt();
+	int opcodeHalt();
 
-	void opcodeRet();
-	void opcodeRet(Flag fl);
-	void opcodeRetI();
+	int opcodeRet();
+	int opcodeRet(Flag fl);
+	int opcodeRetI();
 
-	void opcodeCall();
-	void opcodeCall(Flag fl);
+	int opcodeCall();
+	int opcodeCall(Flag fl);
 
-	void opcodeRST(uint8_t location);//recheck
+	int opcodeRST(uint8_t location);//recheck
 
-	void opcodeEI();
-	void opcodeDI();
+	int opcodeEI();
+	int opcodeDI();
 
-	void opcodeStop();
+	int opcodeStop();
 };

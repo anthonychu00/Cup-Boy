@@ -3,22 +3,22 @@
 #include "CPU.h"
 
 //0x00
-void CPU::opcodeNOP() {
+int CPU::opcodeNOP() {
 	//no operation
-	setClockPrevious(4);
+	return 4;
 }
 
-void CPU::opcodeHalt() {
+int CPU::opcodeHalt() {
 	halt = true;
-	setClockPrevious(4);
+	return 4;
 }
 
-void CPU::opcodeEI() {
+int CPU::opcodeEI() {
 	IME = true;
-	setClockPrevious(4);
+	return 4;
 }
 
-void CPU::opcodeDI() {
+int CPU::opcodeDI() {
 	IME = false;
-	setClockPrevious(4);
+	return 4;
 }

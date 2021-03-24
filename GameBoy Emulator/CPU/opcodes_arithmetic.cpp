@@ -3,22 +3,22 @@
 #include "CPU.h"
 
 //increment registers
-void CPU::opcodeIncrement(Word& r) {
+int CPU::opcodeIncrement(Word& r) {
 	r.increment();
-	setClockPrevious(8);
+	return 8;
 }
 
-void CPU::opcodeIncrement(SingleRegister& r) {
+int CPU::opcodeIncrement(SingleRegister& r) {
 	r.increment();
 
 	F.setZeroFlag(r.getByte() == 0);
 	F.setAddSubFlag(0);
 	F.setHalfCarryFlag((r.getByte() & 0x0F) == 0x00);//checks if bit 3 overflows (second hex is F)
 
-	setClockPrevious(4);
+	return 4;
 }
 
-void CPU::opcodeIncrement(uint16_t address) {
+int CPU::opcodeIncrement(uint16_t address) {
 	uint8_t data = mm.readAddress(address);
 	uint8_t toWrite = data++;
 	
@@ -27,26 +27,26 @@ void CPU::opcodeIncrement(uint16_t address) {
 	F.setHalfCarryFlag((toWrite & 0x0F) == 0x00);//checks if bit 3 overflows (second hex is F)
 
 	mm.writeAddress(address, toWrite);
-	setClockPrevious(12);
+	return 12;
 }
 
 //decrement registers
-void CPU::opcodeDecrement(Word& r) {
+int CPU::opcodeDecrement(Word& r) {
 	r.decrement();
-	setClockPrevious(8);
+	return 8;
 }
 
-void CPU::opcodeDecrement(SingleRegister& r) {
+int CPU::opcodeDecrement(SingleRegister& r) {
 	r.decrement();
 
 	F.setZeroFlag(r.getByte() == 0);
 	F.setAddSubFlag(1);
 	F.setHalfCarryFlag((r.getByte() & 0x0F) == 0x0F);//checks if bit 3 overflows (second hex is F)
 
-	setClockPrevious(4);
+	return 4;
 }
 
-void CPU::opcodeDecrement(uint16_t address) {
+int CPU::opcodeDecrement(uint16_t address) {
 	uint8_t data = mm.readAddress(address);
 	uint8_t toWrite = data--;
 
@@ -56,11 +56,11 @@ void CPU::opcodeDecrement(uint16_t address) {
 
 	mm.writeAddress(address, toWrite);
 
-	setClockPrevious(12);
+	return 12;
 }
 
 //Decimal adjust register A
-void CPU::opcodeDAA() {
+int CPU::opcodeDAA() {
 	uint8_t a = AF.getHigh();
 	if (!F.getAddSubFlag()) { //addition was performed (AddSubFlag = 0)
 		if (F.getCarryFlag() || a > 0x99) {
@@ -80,20 +80,20 @@ void CPU::opcodeDAA() {
 	F.setHalfCarryFlag(0);//we reset half carry flag always
 
 	AF.setHigh(static_cast<uint8_t>(a));//set A to adjusted value
-	setClockPrevious(4);
+	return 4;
 	
 }
 
 //set carry flag and reset other flags
-void CPU::opcodeSCF() {
+int CPU::opcodeSCF() {
 	F.setAddSubFlag(0);
 	F.setHalfCarryFlag(0);
 	F.setCarryFlag(1);
 
-	setClockPrevious(4);
+	return 4;
 }
 
-void CPU::opcodeAddSP() {//0xE8
+int CPU::opcodeAddSP() {//0xE8
 	int8_t addedVal = PCFetchSignedByte();
 	//SP value type is uint16_t
 	F.setZeroFlag(0);
@@ -103,7 +103,7 @@ void CPU::opcodeAddSP() {//0xE8
 
 	SP.set(SP.getValue() + static_cast<uint16_t>(addedVal));
 
-	setClockPrevious(16);
+	return 16;
 }
 
 //add
@@ -119,20 +119,20 @@ void CPU::opcodeAddAAux(uint8_t addedVal) {
 	F.setCarryFlag(toSet > 0xFF);// added value > 255
 }
 
-void CPU::opcodeAddA() {//getting value from program counter
+int CPU::opcodeAddA() {//getting value from program counter
 	opcodeAddAAux(PCFetchByte());
-	setClockPrevious(8);
+	return 8;
 }
 
-void CPU::opcodeAddA(const SingleRegister& r) {
+int CPU::opcodeAddA(const SingleRegister& r) {
 	opcodeAddAAux(r.getByte());
-	setClockPrevious(4);
+	return 4;
 }
 
-void CPU::opcodeAddA(const uint16_t address) {
+int CPU::opcodeAddA(const uint16_t address) {
 	uint8_t byte = mm.readAddress(address);
 	opcodeAddAAux(byte);
-	setClockPrevious(8);
+	return 8;
 }
 
 void CPU::opcodeADCAux(uint8_t addedVal) {
@@ -149,23 +149,23 @@ void CPU::opcodeADCAux(uint8_t addedVal) {
 	F.setCarryFlag(toSet > 0xFF);
 }
 
-void CPU::opcodeADC() {//get from PC
+int CPU::opcodeADC() {//get from PC
 	opcodeADCAux(PCFetchByte());
-	setClockPrevious(8);
+	return 8;
 }
 
-void CPU::opcodeADC(const SingleRegister& r) {
+int CPU::opcodeADC(const SingleRegister& r) {
 	opcodeADCAux(r.getByte());
-	setClockPrevious(4);
+	return 4;
 }
 
-void CPU::opcodeADC(const uint16_t address) {
+int CPU::opcodeADC(const uint16_t address) {
 	uint8_t byte = mm.readAddress(address);
 	opcodeADCAux(byte);
-	setClockPrevious(8);
+	return 8;
 }
 
-void CPU::opcodeAddHLAux(uint16_t addedVal) {
+int CPU::opcodeAddHL(uint16_t addedVal) {
 	uint16_t HLVal = HL.getValue();
 
 	uint32_t toSet = static_cast<uint32_t>(HLVal + addedVal);
@@ -177,15 +177,7 @@ void CPU::opcodeAddHLAux(uint16_t addedVal) {
 	F.setHalfCarryFlag((HLVal & 0xFFF) + (addedVal & 0xFFF) > 0x0FFF);//set if carried from bit 11
 	F.setCarryFlag(toSet > 0xFFFF);//set if carried from bit 15
 
-	setClockPrevious(8);
-}
-
-void CPU::opcodeAddHL(const SplitRegister& addedVal) {
-	opcodeAddHLAux(addedVal.getValue());
-}
-
-void CPU::opcodeAddHL(const FullRegister& addedVal) {
-	opcodeAddHLAux(addedVal.getValue());
+	return 8;
 }
 
 //sub
@@ -201,20 +193,20 @@ void CPU::opcodeSubAAux(uint8_t subbedVal) {
 	F.setCarryFlag(a < subbedVal);//negative value, borrowing from
 }
 
-void CPU::opcodeSubA() {
+int CPU::opcodeSubA() {
 	opcodeSubAAux(PCFetchByte());
-	setClockPrevious(8);
+	return 8;
 }
 
-void CPU::opcodeSubA(const SingleRegister& r) {
+int CPU::opcodeSubA(const SingleRegister& r) {
 	opcodeSubAAux(r.getByte());
-	setClockPrevious(4);
+	return 4;
 }
 
-void CPU::opcodeSubA(const uint16_t address) {
+int CPU::opcodeSubA(const uint16_t address) {
 	uint8_t byte = mm.readAddress(address);
 	opcodeSubAAux(byte);
-	setClockPrevious(8);
+	return 8;
 }
 
 void CPU::opcodeSBCAux(uint8_t subbedVal) {
@@ -232,20 +224,20 @@ void CPU::opcodeSBCAux(uint8_t subbedVal) {
 	//F.setCarryFlag(toSet < 0);
 }
 
-void CPU::opcodeSBC() {
+int CPU::opcodeSBC() {
 	opcodeSBCAux(PCFetchByte());
-	setClockPrevious(8);
+	return 8;
 }
 
-void CPU::opcodeSBC(const SingleRegister& r) {
+int CPU::opcodeSBC(const SingleRegister& r) {
 	opcodeSBCAux(r.getByte());
-	setClockPrevious(4);
+	return 4;
 }
 
-void CPU::opcodeSBC(const uint16_t address) {
+int CPU::opcodeSBC(const uint16_t address) {
 	uint8_t byte = mm.readAddress(address);
 	opcodeSBCAux(byte);
-	setClockPrevious(8);
+	return 8;
 }
 
 //and
@@ -261,20 +253,20 @@ void CPU::opcodeAndAux(uint8_t val) {
 	F.setCarryFlag(0);
 }
 
-void CPU::opcodeAnd() {
+int CPU::opcodeAnd() {
 	opcodeAndAux(PCFetchByte());
-	setClockPrevious(8);
+	return 8;
 }
 
-void CPU::opcodeAnd(const SingleRegister& r) {
+int CPU::opcodeAnd(const SingleRegister& r) {
 	opcodeAndAux(r.getByte());
-	setClockPrevious(4);
+	return 4;
 }
 
-void CPU::opcodeAnd(const uint16_t address) {
+int CPU::opcodeAnd(const uint16_t address) {
 	uint8_t byte = mm.readAddress(address);
 	opcodeAndAux(byte);
-	setClockPrevious(8);
+	return 8;
 }
 
 void CPU::opcodeXORAux(uint8_t val) {
@@ -289,20 +281,20 @@ void CPU::opcodeXORAux(uint8_t val) {
 	F.setCarryFlag(0);
 }
 
-void CPU::opcodeXOR() {
+int CPU::opcodeXOR() {
 	opcodeXORAux(PCFetchByte());
-	setClockPrevious(8);
+	return 8;
 }
 
-void CPU::opcodeXOR(const SingleRegister& r) {
+int CPU::opcodeXOR(const SingleRegister& r) {
 	opcodeXORAux(r.getByte());
-	setClockPrevious(4);
+	return 4;
 }
 
-void CPU::opcodeXOR(const uint16_t address) {
+int CPU::opcodeXOR(const uint16_t address) {
 	uint8_t byte = mm.readAddress(address);
 	opcodeXORAux(byte);
-	setClockPrevious(8);
+	return 8;
 }
 
 void CPU::opcodeOrAux(uint8_t val) {
@@ -317,20 +309,20 @@ void CPU::opcodeOrAux(uint8_t val) {
 	F.setCarryFlag(0);
 }
 
-void CPU::opcodeOr() {
+int CPU::opcodeOr() {
 	opcodeOrAux(PCFetchByte());
-	setClockPrevious(8);
+	return 8;
 }
 
-void CPU::opcodeOr(const SingleRegister& r) {
+int CPU::opcodeOr(const SingleRegister& r) {
 	opcodeOrAux(r.getByte());
-	setClockPrevious(4);
+	return 4;
 }
 
-void CPU::opcodeOr(const uint16_t address) {
+int CPU::opcodeOr(const uint16_t address) {
 	uint8_t byte = mm.readAddress(address);
 	opcodeOrAux(byte);
-	setClockPrevious(8);
+	return 8;
 }
 
 void CPU::opcodeCPAux(uint8_t val) {
@@ -342,37 +334,37 @@ void CPU::opcodeCPAux(uint8_t val) {
 	F.setCarryFlag(a < val);//set if borrow
 }
 
-void CPU::opcodeCP() {
+int CPU::opcodeCP() {
 	opcodeCPAux(PCFetchByte());
-	setClockPrevious(8);
+	return 8;
 }
 
-void CPU::opcodeCP(const SingleRegister& r) {
+int CPU::opcodeCP(const SingleRegister& r) {
 	opcodeCPAux(r.getByte());
-	setClockPrevious(4);
+	return 4;
 }
 
-void CPU::opcodeCP(const uint16_t address) {
+int CPU::opcodeCP(const uint16_t address) {
 	uint8_t byte = mm.readAddress(address);
 	opcodeCPAux(byte);
-	setClockPrevious(8);
+	return 8;
 }
 
 //complement A (Flip its bits)
-void CPU::opcodeCPL() {
+int CPU::opcodeCPL() {
 	uint8_t temp = AF.getHigh();
 	temp = ~temp;//~ negates the bits and flips them
 	AF.setHigh(temp);
 
 	F.setAddSubFlag(1);
 	F.setHalfCarryFlag(1);
-	setClockPrevious(4);
+	return 4;
 }
 
 //complement carry flag
-void CPU::opcodeCCF() {
+int CPU::opcodeCCF() {
 	F.setCarryFlag(!F.getCarryFlag());
 	F.setAddSubFlag(0);
 	F.setHalfCarryFlag(0);
-	setClockPrevious(4);
+	return 4;
 }
