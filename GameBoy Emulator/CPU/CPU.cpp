@@ -15,7 +15,7 @@ CPU::CPU(MemoryMap& newMM):
 
 void CPU::executeOperations() {//69905
 	for (int ticks = 0; ticks < 69905;) {
-
+		
 		
 		uint16_t PCValue = PC.getValue();
 		uint8_t opcode = PCFetchByte();
@@ -28,7 +28,7 @@ void CPU::executeOperations() {//69905
 
 		updateTimer();
 		checkInterruptRequests();//CPU checks interrupts at the end of each instruction, updates accordingly
-
+	
 	}
 }
 
@@ -37,26 +37,25 @@ void CPU::checkInterruptRequests() {
 		uint8_t interruptFlag = mm.readAddress(IFRegister);
 		uint8_t interruptEnable = mm.readAddress(IERegister);
 
-		
-
-
 		for (int position = 0; position < 5; position++) {
-			if (getBit(interruptFlag, position) == getBit(interruptEnable, position)) {
-
-				halt = false; //Interrupt vector found, don't halt
+			if (getBit(interruptFlag, position) && getBit(interruptEnable, position)) {
+		
 				opcodeStackPush(PC);//save PC address to jump back to after interrupt is done
+				halt = false;
+
+				interruptExecute(position);//interrupt vector is called and executed
 
 				setBit(interruptFlag, position, 0); //reset bit in IF
 				mm.writeAddress(IFRegister, interruptFlag);//corresponding bit is reset
 
 				IME = false;//IME flag reset
 
-				interruptExecute(position);//interrupt vector is called and executed
 				return;
 			}
 		}
-
 	}
+	//halt = false;
+	
 }
 
 void CPU::interruptExecute(int vectorPosition) {

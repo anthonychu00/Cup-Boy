@@ -9,5 +9,5 @@ System::System(string path) :
 }
 
 void System::start() {
-	cpu.executeOperations();
+		cpu.executeOperations();
 }
