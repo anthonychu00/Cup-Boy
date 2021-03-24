@@ -102,7 +102,7 @@ void CPU::updateTimer(int previousTicks) {
 		//printf("Tima enabled");
 		tima += previousTicks;
 		
-		if (tima >= clockSpeed) { //tima increments every clockSpeed CPU ticks
+		while (tima >= clockSpeed) { //tima increments every clockSpeed CPU ticks
 			uint8_t currentTimerCounter = mm.readAddress(timerCounter);
 			if (currentTimerCounter == 0xFF) { //timer overflow
 				//printf("Overflow");
