@@ -259,10 +259,12 @@ int CPU::opcodeBit(const int position, uint16_t address) {
 	uint8_t val = mm.readAddress(address);
 	bool test = (val >> position) & 0x1;
 
+	
 	F.setZeroFlag(test == 0);
 	F.setAddSubFlag(0);
 	F.setHalfCarryFlag(1);
 	//carry flag not affected*/
+
 	return 12;
 }
 

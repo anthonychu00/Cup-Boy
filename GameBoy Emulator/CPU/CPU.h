@@ -42,6 +42,7 @@ private:
 	FullRegister PC;
 
 	bool halt = false;
+	bool executeTwice = false;
 	bool IME = false;//interrupt master enable flag
 	const uint16_t IERegister = 0xFFFF;//needs to be enabled with IME
 	const uint16_t IFRegister = 0xFF0F;
@@ -182,13 +183,13 @@ private:
 	int opcodeAddA(const SingleRegister& r);
 	int opcodeAddA(const uint16_t address);
 
+	int opcodeAddHL(uint16_t addedVal);
+
 	void opcodeADCAux(uint8_t addedVal);
 	int opcodeADC();
 	int opcodeADC(const SingleRegister& r);
 	int opcodeADC(const uint16_t address);
 
-	int opcodeAddHL(uint16_t addedVal);
-	
 	void opcodeSubAAux(uint8_t subbedVal);
 	int opcodeSubA();
 	int opcodeSubA(const SingleRegister& r);

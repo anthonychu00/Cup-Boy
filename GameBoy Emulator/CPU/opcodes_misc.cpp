@@ -10,6 +10,19 @@ int CPU::opcodeNOP() {
 
 int CPU::opcodeHalt() {
 	halt = true;
+
+	uint8_t interruptFlag = mm.readAddress(IFRegister);
+	uint8_t interruptEnable = mm.readAddress(IERegister);
+	uint8_t serviceableInterrupts = interruptFlag & interruptEnable;
+
+	if (!IME) {
+		if (serviceableInterrupts) {
+			printf("Clock me\n");
+			halt = false;
+			executeTwice = true;
+		}
+	}
+
 	return 4;
 }
 

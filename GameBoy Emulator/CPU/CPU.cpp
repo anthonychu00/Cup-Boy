@@ -16,12 +16,21 @@ CPU::CPU(MemoryMap& newMM):
 int CPU::executeOperations() {//69905
 	
 	if (halt) {
-		//printf("Halt");
+		//printf("Halt %d %d %d %d %d %d\n", PC.getValue(), IME, mm.readAddress(IERegister), mm.readAddress(IFRegister), mm.readAddress(timerCounter), getBit(mm.readAddress(timerControl), 2));
+		if (IME == 0 && mm.readAddress(IERegister) == 0 && mm.readAddress(IFRegister) == 0 && getBit(mm.readAddress(timerControl), 2) == 0) {
+			halt = false;
+		}
 		return 4;
 	}
 
 	uint16_t PCValue = PC.getValue();
 	uint8_t opcode = PCFetchByte();
+
+	if (executeTwice) {
+		PC.decrement();
+		executeTwice = false;
+	}
+
 	int ticksToExecute = executeOpcode(opcode, PCValue);
 
 	//std::cout << unsigned(opcode) << endl;
@@ -40,10 +49,10 @@ void CPU::checkInterruptRequests() {
 		if (!executableInterrupts) {
 			return;
 		}
-
+		//printf("Interrupts\n");
 		halt = false;
 		opcodeStackPush(PC);
-		//exit(1);
+		
 		
 		for (int position = 0; position < 5; position++) {
 			if (getBit(interruptFlag, position) && getBit(interruptEnable, position)) {
@@ -59,10 +68,12 @@ void CPU::checkInterruptRequests() {
 		}
 		
 	}
-	else if (mm.readAddress(IFRegister)) {
-		halt = false;
+	else if ((mm.readAddress(IFRegister) & mm.readAddress(IERegister)) && halt) { //CPU will still halt if there are no pending interrupts while ime = 0
+		halt = false; //there are still pending interrupts, so we don't halt
+		executeTwice = true;
 	}
-
+	
+	
 }
 
 void CPU::interruptExecute(int vectorPosition) {
@@ -174,7 +185,7 @@ int CPU::executeOpcode(const uint8_t opcode, uint16_t PCValue) {
 		return executePrefixedOpcode(PCFetchByte(), PCValue);
 	}
 	//cout << traceOpcode(opcode) << endl;
-
+	
 	int ticks = 0;
 
 	//perform action according to the opcode

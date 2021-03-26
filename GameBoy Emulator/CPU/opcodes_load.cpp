@@ -123,8 +123,11 @@ int CPU::opcodeLoadAToMemoryDec(const uint16_t address) {
 	return toReturn;
 }
 
+//0xFA
 int CPU::opcodeLoadMemoryToA16() {
 	uint16_t address = PCFetchWord();
+
+	
 	//put 8-bit value of uint16_t memory address into A
 	uint8_t toWrite = mm.readAddress(address);
 	AF.setHigh(toWrite);
@@ -138,10 +141,11 @@ int CPU::opcodeLoadMemoryToA() {
 	uint16_t address = static_cast<uint16_t>(0xFF00 + static_cast<uint16_t>(location));
 	
 	uint8_t toWrite = mm.readAddress(address);
+	
 	AF.setHigh(toWrite);
-
+	
 	//load 16 bit address's value into A
-	return 12;
+	return 12;// 4 + 8 = 12
 }
 
 int CPU::opcodeLoadMemoryToA(const SingleRegister& r) {
