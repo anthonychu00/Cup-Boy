@@ -75,6 +75,15 @@ void MemoryMap::writeAddress(const uint16_t address, const uint8_t byte) {
 	}
 	else if (address == 0xFF46) {
 		//DMA transfer
+		memory.at(address) = byte;
+		uint16_t source = static_cast<uint16_t>(byte);
+
+		source = source << 8;
+		//copy source RAM/ROM to OAM (object attribute memory)
+		for (int i = 0; i < 0x9F; i++) {
+			memory.at(0xFE00 + i) = memory.at(source + i);
+		}
+			
 	}
 	else if (address >= 0xFEA0 && address <= 0xFEFF) {
 		//acess prohibited

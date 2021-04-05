@@ -15,9 +15,11 @@ int main() {
 
 	//string path = "../../../../gb-test-roms/instr_timing/instr_timing.gb";
 
-	string path = "../../../../gb-test-roms/mem_timing/mem_timing.gb";
-	//string path = "../../../../gb-test-roms/mem_timing/individual/01-read_timing.gb";
+	//string path = "../../../../gb-test-roms/mem_timing/mem_timing.gb"; //mem timings aren't strictly needed by many games
+	string path = "../../../../gb-test-roms/mem_timing/individual/01-read_timing.gb";
+
 	//string path = "../../..";
+
 	unique_ptr<System> gb = make_unique<System>(path);
 	gb->start();
 	return 0;
