@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
 #include <array>
+#include <queue>
+#include <utility>
 #include "../CPU/CPU.h"
 #include "../memory/memory_map.h"
 #include "../utils/utils.h"
@@ -13,14 +15,22 @@ public:
 	~Video() = default;
 private:
 	CPU& cpu;
-	MemoryMap& mm;
+	MemoryMap& mm; 
+
+	const int screenWidth = 160;
+	const int screenHeight = 144;
+
+	array<int, 160> currentScanLine = {};
+	queue<int> backgroundPixelFIFO;
+	queue<int> spritePixelFIFO;
+
 
 	const uint16_t LCDControl = 0xFF40;//PPU never locks it
 	const uint16_t LCDStatus = 0xFF41;
 
 	//window and background information
-	const uint16_t ScrollY = 0xFF42;//with FF43, specifies top left pixel area
-	const uint16_t ScrollX = 0xFF43;
+	const uint16_t scrollY = 0xFF42;//with FF43, specifies top left pixel area
+	const uint16_t scrollX = 0xFF43;
 	const uint16_t LY = 0xFF44;//current horizontal line of screen being drawn
 	const uint16_t LYC = 0xFF45;//compare LYC to LY, if equal, can request STAT interrupt
 	const uint16_t WY = 0xFF4A;//window Y position
@@ -43,16 +53,24 @@ private:
 	bool isLCDEnabled();
 	bool currentWindowTilemap();//0 = $9800 tilemap, 1 = $9C00 tilemap
 	bool isWindowEnabled();
-	bool currentAddressMode();
+	bool currentAddressMode();//0 = $8000 addressing, 1 = $8800 addressing
 	bool currentBGTilemap();//0 = $9800 tilemap, 1 = $9C00 tilemap
-	bool currentOBJSize();
+	bool currentOBJSize();//0 = 8 x 8
 	bool isOBJEnabled();//are sprites enabled, set to 0 for sprites on textboxes
 	bool currentWindowPriority();
 
 	//LCDStatus bits (FF41)
 	uint8_t currentPPUMode();
 
-	void readTileRow(uint16_t tileRow, array<int, 8>& pixelValues);
+	void renderScreen();
+	void renderScanline(uint8_t currentLY);
+	queue<pair<int, int>> findScanlineSprites(uint8_t currentLY);
+	void getSpritePixels(uint8_t yIndex, uint8_t xIndex);
+	int getPixel(uint8_t vramIndex, uint8_t yIndex, uint8_t xIndex);
 
+	//void renderBackgroundLine();
+	//void renderTile(int tileIndex);
+	void readTileRow(uint8_t firstByte, uint8_t secondByte, array<int, 8>& pixelValues);
+	
 	
 };
