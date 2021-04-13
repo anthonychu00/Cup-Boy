@@ -3,9 +3,14 @@
 #include <array>
 #include <queue>
 #include <utility>
+#define SDL_MAIN_HANDLED
+#include <SDL.h>
+#include <stdio.h>
 #include "../CPU/CPU.h"
 #include "../memory/memory_map.h"
 #include "../utils/utils.h"
+
+
 //class controlling the video of the GameBoy
 
 using namespace std;
@@ -14,16 +19,45 @@ public:
 	Video(CPU& cpu, MemoryMap& mm);
 	~Video() = default;
 private:
+	class Fetcher {
+	public:
+		Fetcher(Video& v):ppu(v){}
+		~Fetcher() = default;
+		void tick(uint8_t currentLY);
+		void setX(int n);
+		void setY(int n);
+		void setWindow(bool status);
+	private:
+		Video& ppu;//reference to access variables of enclosing class
+		int currentState = 1;
+		int fetcherX = 0;
+		int fetcherY = 0;
+
+		uint16_t nextTileAddress = 0;
+		uint8_t nextTileRow = 0;
+		uint8_t tileLow = 0;
+		uint8_t tileHigh = 0;
+
+		array<int, 8> nextPixels = {};
+
+		bool windowEnabled = false;
+
+		bool attemptFIFOPush();
+	};
+
 	CPU& cpu;
 	MemoryMap& mm; 
+	Fetcher fetcher;//default constructor called
+	SDL_Window* gbWindow;
+	SDL_Surface* gbSurface;
 
 	const int screenWidth = 160;
 	const int screenHeight = 144;
 
-	array<int, 160> currentScanLine = {};
+	int nextLCDPosition = 0;
+	array<int, 160 * 144> currentScanline = {};
 	queue<int> backgroundPixelFIFO;
 	queue<int> spritePixelFIFO;
-
 
 	const uint16_t LCDControl = 0xFF40;//PPU never locks it
 	const uint16_t LCDStatus = 0xFF41;
@@ -62,15 +96,11 @@ private:
 	//LCDStatus bits (FF41)
 	uint8_t currentPPUMode();
 
+	void createSDLWindow();
 	void renderScreen();
 	void renderScanline(uint8_t currentLY);
+	void pushPixelToLCD(int discardedPixels);
 	queue<pair<int, int>> findScanlineSprites(uint8_t currentLY);
 	void getSpritePixels(uint8_t yIndex, uint8_t xIndex);
-	int getPixel(uint8_t vramIndex, uint8_t yIndex, uint8_t xIndex);
-
-	//void renderBackgroundLine();
-	//void renderTile(int tileIndex);
-	void readTileRow(uint8_t firstByte, uint8_t secondByte, array<int, 8>& pixelValues);
-	
-	
+	array<int, 8> getPixels(uint8_t vramIndex, uint8_t yIndex);
 };
