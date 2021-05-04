@@ -57,6 +57,15 @@ private:
 	SDL_Renderer* renderer;
 	SDL_Texture* gbTexture;
 
+	//testing tilemap
+	bool tileViewerPresent = false;
+	SDL_Window* tileWindow;
+	SDL_Renderer* tileRenderer;
+	SDL_Texture* tileTexture;
+	array<int, 128 * 128> tileBuffer = {}; //16 tiles in each row/column
+											//8 by 8 pixels in each tile
+
+
 	const int screenWidth = 160;
 	const int screenHeight = 144;
 
@@ -103,6 +112,10 @@ private:
 	const uint16_t OCPD = 0xFF6B;//object color palette data
 
 	const uint16_t DMA = 0xFF46;
+
+	//testing tilemap
+	void viewTileData();
+	void drawTile(int x, int y, uint32_t* newPixels, uint16_t address);
 
 	//LCDControl bits (FF40)
 	bool isLCDEnabled();

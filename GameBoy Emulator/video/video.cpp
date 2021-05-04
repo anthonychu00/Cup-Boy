@@ -31,10 +31,69 @@ void Video::initializeSDL() {
 	SDL_RenderCopy(renderer, gbTexture, NULL, NULL);
 
 }
+
+void Video::viewTileData() {
+
+	tileWindow = SDL_CreateWindow(
+		"Tiles",
+		SDL_WINDOWPOS_UNDEFINED,
+		300,
+		128,
+		128,
+		SDL_WINDOW_SHOWN
+	);
+	tileRenderer = SDL_CreateRenderer(tileWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	tileTexture = SDL_CreateTexture(
+		tileRenderer,
+		SDL_PIXELFORMAT_ARGB8888,
+		SDL_TEXTUREACCESS_STREAMING,
+		128,
+		128);
+
+	SDL_UpdateWindowSurface(tileWindow);
+
+	SDL_RenderCopy(tileRenderer, tileTexture, NULL, NULL);
+
+	void* lockedPixels;
+	int pitch;
+	SDL_LockTexture(tileTexture, NULL, &lockedPixels, &pitch);
+	uint32_t* newPixels = static_cast<uint32_t*>(lockedPixels);
+
+	uint16_t vramBaseAddress = 0x8000;
+	uint16_t vramIndex = 0;
+	for (int y = 0; y < 16; y++) {
+		for (int x = 0; x < 16; x++) {
+			drawTile(x, y, newPixels, vramBaseAddress + vramIndex);
+			vramIndex += 16;
+		}
+	}
+
+	SDL_UnlockTexture(tileTexture);
+	SDL_RenderCopy(tileRenderer, tileTexture, NULL, NULL);
+	SDL_RenderPresent(tileRenderer);
+}
+
+void Video::drawTile(int x, int y, uint32_t* newPixels, uint16_t address) {
+	uint8_t tileLow, tileHigh;
+
+	for (int i = 0; i < 8; i++) {
+		tileLow = mm.readAddress(address + 2 * i);
+		tileHigh = mm.readAddress(address + 2 * i + 1);
+		
+		for (int j = 0; j < 8; j++) {
+			bool lowerBit = getBit(tileLow, j);
+			bool upperBit = getBit(tileHigh, j);
+			int pixelValue = 2 * upperBit + lowerBit;
+			//printf("%d ", pixelValue);
+			int xCoord = x * 8 + (7 - j);
+			int yCoord = y * 1024 + i * 128;
+			newPixels[yCoord + xCoord] = decipherPixelColor(pixelValue);
+		}
+		//printf("\n");
+	}
+}
+
 bool Video::isLCDEnabled() {
-	uint8_t result = mm.readAddress(LCDControl);
-	bool result2 = getBit(result, 7);
-	//printf("%d\n", unsigned(mm.readAddress(LCDControl)));
 	return getBit(mm.readAddress(LCDControl), 7);
 }
 
@@ -71,6 +130,11 @@ uint8_t Video::currentPPUMode() {
 }
 
 void Video::tick(int cpuCycles) {
+	if (isLCDEnabled() && !tileViewerPresent) {
+		viewTileData();
+		tileViewerPresent = true;
+	}
+
 	uint8_t currentLY = mm.readAddress(LY);
 	uint8_t currentStatus = mm.readAddress(LCDStatus);
 	cycles += cpuCycles;
@@ -311,7 +375,7 @@ void Video::clearFIFO(queue<int>& FIFO) {
 }
 
 void Video::Fetcher::tick(uint8_t currentLY) {
-	uint8_t baseTilemapAddress = 0, vramIndex, vramBaseAddress;
+	uint16_t baseTilemapAddress = 0, vramIndex, vramBaseAddress;
 	int tilePos;
 	bool pixelsPushed = false;
 	//3 reads, idle
@@ -325,11 +389,16 @@ void Video::Fetcher::tick(uint8_t currentLY) {
 		}
 		tilePos = (fetcherY / 8) * 32 + fetcherX;
 		vramIndex = ppu.mm.readAddress(baseTilemapAddress + tilePos);
-
-		//printf("%d\n", ppu.currentAddressMode());
+		
 		vramBaseAddress = ppu.currentAddressMode() ? 0x8000 : 0x8800;//change 9000 to 8800?
 		nextTileAddress = vramBaseAddress + vramIndex * 16;
 		nextTileRow = fetcherY % 8;
+		/*if (nextTileAddress != 0x8800 && nextTileAddress != 0x8000) {
+			printf("%d \n", nextTileAddress);
+		}*/
+		//printf("base: %d ", vramBaseAddress);
+		//printf("index: %d ", vramIndex);
+		//printf("next: %d \n", nextTileAddress);
 		//printf("FetcherX: %d\n", fetcherX);
 		//printf("FetcherY: %d\n", fetcherY);
 		fetcherX = (fetcherX + 1) & 0x1F;//increment fetcher
