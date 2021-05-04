@@ -65,14 +65,6 @@ void MemoryMap::writeAddress(const uint16_t address, const uint8_t byte) {
 	}
 	//sound at FF10 - FF3F?
 	//{ }
-	//LCD control
-	else if (address == 0xFF40) {
-
-	}
-	//LCD Status
-	else if (address == 0xFF41) {
-
-	}
 	else if (address == 0xFF46) {
 		//DMA transfer
 		memory.at(address) = byte;

@@ -18,6 +18,7 @@ class Video {
 public:
 	Video(CPU& cpu, MemoryMap& mm);
 	~Video() = default;
+	void tick(int cpuCycles);
 private:
 	class Fetcher {
 	public:
@@ -27,8 +28,9 @@ private:
 		void setX(int n);
 		void setY(int n);
 		void setWindow(bool status);
+		bool isFetchingWindow();
 	private:
-		Video& ppu;//reference to access variables of enclosing class
+		Video& ppu;// reference to access variables of enclosing class
 		int currentState = 1;
 		int fetcherX = 0;
 		int fetcherY = 0;
@@ -40,24 +42,43 @@ private:
 
 		array<int, 8> nextPixels = {};
 
-		bool windowEnabled = false;
+		bool fetchingWindow = false;
 
 		bool attemptFIFOPush();
 	};
 
+	enum class Mode {
+		HBLANK, VBLANK, OAM_SCAN, DRAW_LCD
+	};
 	CPU& cpu;
 	MemoryMap& mm; 
 	Fetcher fetcher;//default constructor called
 	SDL_Window* gbWindow;
-	SDL_Surface* gbSurface;
+	SDL_Renderer* renderer;
+	SDL_Texture* gbTexture;
 
 	const int screenWidth = 160;
 	const int screenHeight = 144;
 
+	Mode mode = Mode::OAM_SCAN;
+	int cycles = 0;
+	int drawCycles = 0;
+	int HBlankCycles = 0;
+	
 	int nextLCDPosition = 0;
-	array<int, 160 * 144> currentScanline = {};
+	int pixelShift = 0;
+	bool windowInLine = false;
+	bool currentFrameBlank = false;
+
+	array<int, 160 * 144> frameBuffer = {};
 	queue<int> backgroundPixelFIFO;
 	queue<int> spritePixelFIFO;
+
+	const int totalScanlineCycles = 456;
+	const int OAMCycles = 80;//mode 2
+	//const int LCDCycles = 172;//mode 3
+	//const int HBlankCycles = 204;//mode 0
+	
 
 	const uint16_t LCDControl = 0xFF40;//PPU never locks it
 	const uint16_t LCDStatus = 0xFF41;
@@ -90,17 +111,25 @@ private:
 	bool currentAddressMode();//0 = $8000 addressing, 1 = $8800 addressing
 	bool currentBGTilemap();//0 = $9800 tilemap, 1 = $9C00 tilemap
 	bool currentOBJSize();//0 = 8 x 8
-	bool isOBJEnabled();//are sprites enabled, set to 0 for sprites on textboxes
+	bool isSpritesEnabled();//are sprites enabled, set to 0 for sprites on textboxes
 	bool currentWindowPriority();
 
 	//LCDStatus bits (FF41)
 	uint8_t currentPPUMode();
 
-	void createSDLWindow();
-	void renderScreen();
+	void initializeSDL();
+	void advanceMode3(uint8_t currentLY, int drawCycles);
+	void pushPixelToLCD(uint8_t currentLY);
+	void renderFrameBuffer();
+	void writeFrameBufferData(uint32_t* newPixels);
+	uint32_t decipherPixelColor(int pixel);
+	void clearFIFO(queue<int>& FIFO);
+
 	void renderScanline(uint8_t currentLY);
-	void pushPixelToLCD(int discardedPixels);
+
 	queue<pair<int, int>> findScanlineSprites(uint8_t currentLY);
 	void getSpritePixels(uint8_t yIndex, uint8_t xIndex);
+
 	array<int, 8> getPixels(uint8_t vramIndex, uint8_t yIndex);
+	
 };

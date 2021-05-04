@@ -21,6 +21,7 @@ public:
 	int getClockSpeed();
 	void updateTimer(int previousTicks);
 	void checkInterruptRequests();
+	void setInterruptFlag(int position);
 	
 	enum class Flag {
 		NZ, Z, NC, C
@@ -71,7 +72,7 @@ private:
 	uint16_t PCFetchWord();
 
 	void interruptExecute(int vectorPosition);
-	void setInterruptFlag(int position);
+	
 	
 
 	bool checkCondition(Flag fl);

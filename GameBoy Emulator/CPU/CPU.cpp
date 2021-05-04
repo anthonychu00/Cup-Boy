@@ -73,11 +73,13 @@ void CPU::checkInterruptRequests() {
 		executeTwice = true;
 	}
 	
-	
 }
 
 void CPU::interruptExecute(int vectorPosition) {
 	//call interrupt vector
+	if (vectorPosition == 0) {
+		//printf("v-interrupt\n");
+	}
 	switch (vectorPosition) {
 	case 0: PC.set(0x40); break; //v blank
 	case 1:	PC.set(0x48); break; //LCD STAT
