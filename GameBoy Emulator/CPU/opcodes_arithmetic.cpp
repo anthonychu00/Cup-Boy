@@ -20,7 +20,9 @@ int CPU::opcodeIncrement(SingleRegister& r) {
 
 int CPU::opcodeIncrement(uint16_t address) {
 	uint8_t data = mm.readAddress(address);
-	uint8_t toWrite = data++;
+	//printf("Data: %d\n ", data);
+	uint8_t toWrite = data + 1;
+	//printf("After: %d\n ", toWrite);
 	
 	F.setZeroFlag(toWrite == 0);
 	F.setAddSubFlag(0);
@@ -48,7 +50,9 @@ int CPU::opcodeDecrement(SingleRegister& r) {
 
 int CPU::opcodeDecrement(uint16_t address) {
 	uint8_t data = mm.readAddress(address);
-	uint8_t toWrite = data--;
+	//printf("Data: %d\n ", data);
+	uint8_t toWrite = data - 1;
+	//printf("After: %d\n ", toWrite);
 
 	F.setZeroFlag(toWrite == 0);
 	F.setAddSubFlag(1);
@@ -138,7 +142,6 @@ int CPU::opcodeAddA(const uint16_t address) {
 void CPU::opcodeADCAux(uint8_t addedVal) {
 	uint8_t a = AF.getHigh();
 	uint8_t c = static_cast<uint8_t>(F.getCarryFlag());//********casting bool to uint8_t?
-
 	uint16_t toSet = static_cast<uint16_t>(a + addedVal + c);
 
 	AF.setHigh(static_cast<uint8_t>(toSet));//recasting to uint8 to truncate 9th bit
@@ -167,8 +170,11 @@ int CPU::opcodeADC(const uint16_t address) {
 
 int CPU::opcodeAddHL(uint16_t addedVal) {
 	uint16_t HLVal = HL.getValue();
-
+	//printf("before: %d\n", HLVal);
+	//printf("added: %d\n", addedVal);
 	uint32_t toSet = static_cast<uint32_t>(HLVal + addedVal);
+	//printf("after: %d\n", toSet);
+	//printf("actual: %d\n", static_cast<uint16_t>(toSet));
 	HL.set(static_cast<uint16_t>(toSet));
 
 	//printf("%d \n", unsigned(static_cast<uint16_t>(toSet)));

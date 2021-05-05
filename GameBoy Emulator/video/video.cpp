@@ -35,7 +35,7 @@ void Video::initializeSDL() {
 void Video::viewTileData() {
 
 	tileWindow = SDL_CreateWindow(
-		"Tiles",
+		"Tile Data",
 		SDL_WINDOWPOS_UNDEFINED,
 		300,
 		128,
@@ -71,6 +71,15 @@ void Video::viewTileData() {
 	SDL_UnlockTexture(tileTexture);
 	SDL_RenderCopy(tileRenderer, tileTexture, NULL, NULL);
 	SDL_RenderPresent(tileRenderer);
+
+	/*int counter = 0;
+	for (int i = 0; i < 32; i++) {
+		for (int j = 0; j < 32; j++) {
+			printf("%d ", mm.readAddress(0x9800 + counter));
+			counter++;
+		}
+		printf("\n");
+	}*/
 }
 
 void Video::drawTile(int x, int y, uint32_t* newPixels, uint16_t address) {
@@ -245,6 +254,20 @@ void Video::tick(int cpuCycles) {
 				renderFrameBuffer();
 				//printf("New frame\n");
 				frameBuffer.fill(0);
+
+				/*int counter = 0;
+				for (int i = 0; i < 32; i++) {
+					for (int j = 0; j < 32; j++) {
+						uint8_t value = mm.readAddress(0x9800 + counter);
+						if (value == 0x50 || value == 0x61 || value == 0x73) {
+							printf("%d ", value);
+						}
+						printf("%d ", value);
+						counter++;
+					}
+					printf("\n");
+				}
+				printf("\n");*/
 			}
 			else {
 				mm.writeAddress(LY, currentLY + 1);
@@ -382,20 +405,18 @@ void Video::Fetcher::tick(uint8_t currentLY) {
 	switch (currentState) {
 	case 1: //get tile index
 		if (!fetchingWindow) {		
-			baseTilemapAddress = ppu.currentBGTilemap() ? 0x9800 : 0x9C00;		
+			baseTilemapAddress = ppu.currentBGTilemap() ? 0x9C00 : 0x9800;		
 		}
 		else {//access from window tilemap
-			baseTilemapAddress = ppu.currentWindowTilemap() ? 0x9800 : 0x9C00;
+			baseTilemapAddress = ppu.currentWindowTilemap() ? 0x9C00 : 0x9800;
 		}
 		tilePos = (fetcherY / 8) * 32 + fetcherX;
 		vramIndex = ppu.mm.readAddress(baseTilemapAddress + tilePos);
 		
+		//reverse 8000 and 8800?
 		vramBaseAddress = ppu.currentAddressMode() ? 0x8000 : 0x8800;//change 9000 to 8800?
 		nextTileAddress = vramBaseAddress + vramIndex * 16;
 		nextTileRow = fetcherY % 8;
-		/*if (nextTileAddress != 0x8800 && nextTileAddress != 0x8000) {
-			printf("%d \n", nextTileAddress);
-		}*/
 		//printf("base: %d ", vramBaseAddress);
 		//printf("index: %d ", vramIndex);
 		//printf("next: %d \n", nextTileAddress);

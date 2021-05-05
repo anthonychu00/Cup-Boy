@@ -83,7 +83,6 @@ void MemoryMap::writeAddress(const uint16_t address, const uint8_t byte) {
 	else {
 		if (address == 0xFF01) {
 			printf("%c", byte);
-			
 		}
 		
 		//std::cout << "writing to " << unsigned(address) << endl;

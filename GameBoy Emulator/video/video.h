@@ -19,6 +19,7 @@ public:
 	Video(CPU& cpu, MemoryMap& mm);
 	~Video() = default;
 	void tick(int cpuCycles);
+	void viewTileData();
 private:
 	class Fetcher {
 	public:
@@ -114,7 +115,6 @@ private:
 	const uint16_t DMA = 0xFF46;
 
 	//testing tilemap
-	void viewTileData();
 	void drawTile(int x, int y, uint32_t* newPixels, uint16_t address);
 
 	//LCDControl bits (FF40)
