@@ -277,8 +277,8 @@ int CPU::opcodeAnd(const uint16_t address) {
 
 void CPU::opcodeXORAux(uint8_t val) {
 	uint8_t a = AF.getHigh();
+	//printf("a: %d\n", a);
 	uint8_t result = a ^ val;
-
 	AF.setHigh(result);
 
 	F.setZeroFlag(result == 0);

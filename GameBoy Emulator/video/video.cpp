@@ -130,7 +130,7 @@ bool Video::isSpritesEnabled() {
 	return getBit(mm.readAddress(LCDControl), 1);
 }
 
-bool Video::currentWindowPriority() {
+bool Video::BGWindowEnabled() {
 	return getBit(mm.readAddress(LCDControl), 0);
 }
 
@@ -165,11 +165,18 @@ void Video::tick(int cpuCycles) {
 			uint8_t SCY = mm.readAddress(scrollY);
 			uint8_t windowY = mm.readAddress(WY);
 
+			if (currentLY == 0x82) {
+				printf("%d\n", SCX);
+			}
+
 			pixelShift = SCX % 8;
 			windowInLine = currentLY >= windowY;
 
-			fetcher.setX(SCX / 8);
+			fetcher.setX((SCX / 8));
 			fetcher.setY(currentLY + SCY & 255);
+			if (fetcher.isFetchingWindow()) {
+				fetcher.incrementWindowLine();
+			}
 			fetcher.setWindow(0);
 			
 			clearFIFO(backgroundPixelFIFO);
@@ -184,14 +191,10 @@ void Video::tick(int cpuCycles) {
 	case Mode::DRAW_LCD:
 		//printf("2\n");
 		while (drawCycles < cycles) {
-			//printf("Draw: %d\n", drawCycles);
-			//printf("CPU: %d\n", cycles);
-			//printf("Next LCD: %d\n", nextLCDPosition);
 			drawCycles++;
 			advanceMode3(currentLY, drawCycles);
 			
 			if (nextLCDPosition >= 160) {
-				//printf("Trigger\n");
 				nextLCDPosition = 0;
 				HBlankCycles = totalScanlineCycles - OAMCycles - drawCycles;
 				cycles -= drawCycles;
@@ -244,6 +247,8 @@ void Video::tick(int cpuCycles) {
 				setBit(currentStatus, 0, 0);
 				setBit(currentStatus, 1, 1);
 				mm.writeAddress(LCDStatus, currentStatus);
+
+				fetcher.resetWindowLine();//reset internal window line counter
 				mode = Mode::OAM_SCAN;
 
 				//render
@@ -252,22 +257,8 @@ void Video::tick(int cpuCycles) {
 					currentFrameBlank = false;
 				}
 				renderFrameBuffer();
-				//printf("New frame\n");
 				frameBuffer.fill(0);
 
-				/*int counter = 0;
-				for (int i = 0; i < 32; i++) {
-					for (int j = 0; j < 32; j++) {
-						uint8_t value = mm.readAddress(0x9800 + counter);
-						if (value == 0x50 || value == 0x61 || value == 0x73) {
-							printf("%d ", value);
-						}
-						printf("%d ", value);
-						counter++;
-					}
-					printf("\n");
-				}
-				printf("\n");*/
 			}
 			else {
 				mm.writeAddress(LY, currentLY + 1);
@@ -279,17 +270,18 @@ void Video::tick(int cpuCycles) {
 
 void Video::advanceMode3(uint8_t currentLY, int drawCycles) {
 
-	/*if (!currentWindowPriority()) {//background and window are blank, sprites still ok
-		return;//sprite mixing
-	}*/
 	if (backgroundPixelFIFO.size() > 8) {
 		pushPixelToLCD(currentLY);
 	}
 	//start fetching from window instead, if enabled
 	if (isWindowEnabled() && !fetcher.isFetchingWindow() && windowInLine && nextLCDPosition + 7 == mm.readAddress(WX)) {//check if current x coordinate is within window
+		/*printf("current LY: %d ", currentLY);
+		printf("WX: %d ", mm.readAddress(WX));
+		printf("nextLCD: %d \n", nextLCDPosition);*/
 		fetcher.setX(0);
-		fetcher.setY(currentLY - mm.readAddress(WY));
+		fetcher.setY(fetcher.getWindowLine());
 		fetcher.setWindow(1);
+		fetcher.resetState();
 		clearFIFO(backgroundPixelFIFO);
 		pixelShift = 0;
 	}
@@ -353,54 +345,17 @@ uint32_t Video::decipherPixelColor(int pixel) {
 	return (r << 16) | (g << 8) | b;
 }
 
-void Video::renderScanline(uint8_t currentLY) {
-	uint8_t SCX = mm.readAddress(scrollX);
-	uint8_t SCY = mm.readAddress(scrollY);
-	uint8_t windowX = mm.readAddress(WX);
-	uint8_t windowY = mm.readAddress(WY);
-	bool windowInRow = false;
-	bool windowTriggered = false;//short circuit boolean to ensure window conditions aren't checked every iteration
-	
-	if (windowY <= currentLY) {
-		windowInRow = true;
-	}
-	fetcher.setX(SCX / 8);
-	fetcher.setY(currentLY + SCY & 255);
-
-	int cycleNumber = 0;
-	int pixelsToDiscard = SCX % 8;
-	//infinite loop until current  scanline is done
-	while (nextLCDPosition < 160) {
-		if (backgroundPixelFIFO.size() > 8) {
-			pushPixelToLCD(currentLY);
-		}
-
-		if (!windowTriggered && windowInRow && nextLCDPosition + 7 == windowX) {//check if current x coordinate is within window
-			windowTriggered = true;
-			fetcher.setX(0);
-			fetcher.setY(currentLY - windowY);
-			fetcher.setWindow(1);
-			clearFIFO(backgroundPixelFIFO);
-		}
-
-		if (cycleNumber % 2 == 1) {//fetcher steps take 2 cycles
-			fetcher.tick(currentLY);
-		}
-		
-		cycleNumber++;
-	}
-	fetcher.setWindow(0);//disable window for fetcher
-}
-
 void Video::clearFIFO(queue<int>& FIFO) {
 	queue<int> empty;
 	swap(FIFO, empty);
+	//FIFO = {};
 }
 
 void Video::Fetcher::tick(uint8_t currentLY) {
 	uint16_t baseTilemapAddress = 0, vramIndex, vramBaseAddress;
 	int tilePos;
 	bool pixelsPushed = false;
+	bool bgWindowOn;
 	//3 reads, idle
 	switch (currentState) {
 	case 1: //get tile index
@@ -413,15 +368,20 @@ void Video::Fetcher::tick(uint8_t currentLY) {
 		tilePos = (fetcherY / 8) * 32 + fetcherX;
 		vramIndex = ppu.mm.readAddress(baseTilemapAddress + tilePos);
 		
-		//reverse 8000 and 8800?
-		vramBaseAddress = ppu.currentAddressMode() ? 0x8000 : 0x8800;//change 9000 to 8800?
+		vramBaseAddress = ppu.currentAddressMode() ? 0x8000 : 0x8800;
+
+		//handles signed addressing in 0x8800 mode
+		if (vramBaseAddress == 0x8800) {
+			if (vramIndex <= 127) {
+				vramIndex += 128;
+			}
+			else if (vramIndex >= 128) {
+				vramIndex -= 128;
+			}
+		}
+
 		nextTileAddress = vramBaseAddress + vramIndex * 16;
 		nextTileRow = fetcherY % 8;
-		//printf("base: %d ", vramBaseAddress);
-		//printf("index: %d ", vramIndex);
-		//printf("next: %d \n", nextTileAddress);
-		//printf("FetcherX: %d\n", fetcherX);
-		//printf("FetcherY: %d\n", fetcherY);
 		fetcherX = (fetcherX + 1) & 0x1F;//increment fetcher
 
 		break;
@@ -430,15 +390,16 @@ void Video::Fetcher::tick(uint8_t currentLY) {
 		break;
 	case 3: //get second byte of tile data, and push if possible
 		tileHigh = ppu.mm.readAddress(nextTileAddress + 2 * nextTileRow + 1);
-		//printf("Lower: %d\n", tileLow);
-		//printf("Upper: %d\n", tileHigh);
+		bgWindowOn = ppu.BGWindowEnabled();//******************does window internal counter still go up?
 		for (int i = 0; i < 8; i++) {
 			bool lowerBit = getBit(tileLow, i);
 			bool upperBit = getBit(tileHigh, i);
-			//printf("Lower: %d\n", lowerBit);
-			//printf("Upper: %d\n", upperBit);
-			//printf("Pixel color: %d\n", 2 * upperBit + lowerBit);
-			nextPixels.at(7 - i) = 2 * upperBit + lowerBit;
+			if (!bgWindowOn) {
+				nextPixels.at(7 - i) = 0;
+			}
+			else {
+				nextPixels.at(7 - i) = 2 * upperBit + lowerBit;
+			}
 		}
 
 		pixelsPushed = attemptFIFOPush();
@@ -458,6 +419,10 @@ void Video::Fetcher::tick(uint8_t currentLY) {
 	} 
 
 	currentState++;
+}
+
+void::Video::Fetcher::resetState() {
+	currentState = 1;
 }
 
 void Video::Fetcher::setX(int n) {
@@ -487,6 +452,18 @@ bool Video::Fetcher::attemptFIFOPush() {
 	return false;
 }
 
+int Video::Fetcher::getWindowLine() {
+	return internalWindowLine;
+}
+
+void Video::Fetcher::incrementWindowLine() {
+	internalWindowLine++;
+}
+
+void Video::Fetcher::resetWindowLine() {
+	internalWindowLine = 0;
+}
+
 queue<pair<int, int>> Video::findScanlineSprites(uint8_t currentLY) {
 	queue<pair<int, int>> locations;
 	int spriteSize = currentOBJSize() ? 8 : 16;
@@ -512,6 +489,46 @@ queue<pair<int, int>> Video::findScanlineSprites(uint8_t currentLY) {
 void Video::getSpritePixels(uint8_t yIndex, uint8_t xIndex) {
 
 }
+
+/*
+void Video::renderScanline(uint8_t currentLY) {
+	uint8_t SCX = mm.readAddress(scrollX);
+	uint8_t SCY = mm.readAddress(scrollY);
+	uint8_t windowX = mm.readAddress(WX);
+	uint8_t windowY = mm.readAddress(WY);
+	bool windowInRow = false;
+	bool windowTriggered = false;//short circuit boolean to ensure window conditions aren't checked every iteration
+
+	if (windowY <= currentLY) {
+		windowInRow = true;
+	}
+	fetcher.setX(SCX / 8);
+	fetcher.setY(currentLY + SCY & 255);
+
+	int cycleNumber = 0;
+	int pixelsToDiscard = SCX % 8;
+	//infinite loop until current  scanline is done
+	while (nextLCDPosition < 160) {
+		if (backgroundPixelFIFO.size() > 8) {
+			pushPixelToLCD(currentLY);
+		}
+
+		if (!windowTriggered && windowInRow && nextLCDPosition + 7 == windowX) {//check if current x coordinate is within window
+			windowTriggered = true;
+			fetcher.setX(0);
+			fetcher.setY(currentLY - windowY);
+			fetcher.setWindow(1);
+			clearFIFO(backgroundPixelFIFO);
+		}
+
+		if (cycleNumber % 2 == 1) {//fetcher steps take 2 cycles
+			fetcher.tick(currentLY);
+		}
+
+		cycleNumber++;
+	}
+	fetcher.setWindow(0);//disable window for fetcher
+}*/
 /*
 array<int, 8> Video::getPixels(uint8_t vramIndex, uint8_t yIndex) {
 	array<int, 8> pixelValues;

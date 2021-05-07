@@ -26,15 +26,21 @@ private:
 		Fetcher(Video& v):ppu(v){}
 		~Fetcher() = default;
 		void tick(uint8_t currentLY);
+		void resetState();
 		void setX(int n);
 		void setY(int n);
 		void setWindow(bool status);
 		bool isFetchingWindow();
+		int getWindowLine();
+		void incrementWindowLine();
+		void resetWindowLine();
 	private:
 		Video& ppu;// reference to access variables of enclosing class
 		int currentState = 1;
 		int fetcherX = 0;
 		int fetcherY = 0;
+
+		int internalWindowLine = 0;
 
 		uint16_t nextTileAddress = 0;
 		uint8_t nextTileRow = 0;
@@ -125,7 +131,7 @@ private:
 	bool currentBGTilemap();//0 = $9800 tilemap, 1 = $9C00 tilemap
 	bool currentOBJSize();//0 = 8 x 8
 	bool isSpritesEnabled();//are sprites enabled, set to 0 for sprites on textboxes
-	bool currentWindowPriority();
+	bool BGWindowEnabled();
 
 	//LCDStatus bits (FF41)
 	uint8_t currentPPUMode();
