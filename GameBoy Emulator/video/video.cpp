@@ -182,6 +182,13 @@ void Video::tick(int cpuCycles) {
 			clearFIFO(backgroundPixelFIFO);
 			clearFIFO(spritePixelFIFO);
 
+			//fire lyc=ly interrupt, if applicable
+			bool LYCEqualsLY = mm.readAddress(LYC) == currentLY;
+			if (getBit(mm.readAddress(LCDStatus), 6) && LYCEqualsLY) {
+				cpu.setInterruptFlag(1);
+			}
+			setBit(currentStatus, 2, LYCEqualsLY);//LYC = LY
+
 			setBit(currentStatus, 0, 1);
 			setBit(currentStatus, 1, 1);
 			mm.writeAddress(LCDStatus, currentStatus);
@@ -200,18 +207,13 @@ void Video::tick(int cpuCycles) {
 				cycles -= drawCycles;
 				drawCycles = 0;
 				
-				//hblank and ly = lyc interrupt
+				//hblank interrupt
 				if (getBit(mm.readAddress(LCDStatus), 3)) {
-					cpu.setInterruptFlag(1);
-				}
-				bool LYCEqualsLY = mm.readAddress(LYC) == currentLY;
-				if (getBit(mm.readAddress(LCDStatus), 6) && LYCEqualsLY) {
 					cpu.setInterruptFlag(1);
 				}
 
 				setBit(currentStatus, 0, 0);
 				setBit(currentStatus, 1, 0);
-				setBit(currentStatus, 2, LYCEqualsLY);//LYC = LY
 				mm.writeAddress(LCDStatus, currentStatus);
 				mode = Mode::HBLANK;
 				break;
@@ -222,7 +224,8 @@ void Video::tick(int cpuCycles) {
 		//printf("HBLANK\n");
 		if (cycles >= HBlankCycles) {
 			cycles -= HBlankCycles;
-			mm.writeAddress(LY, currentLY + 1);//increment LY
+			mm.writeAddress(LY, currentLY + 1);//increment LY /////probably put the interrupt here
+
 			if (currentLY + 1 == 144) {
 				setBit(currentStatus, 0, 1);
 				setBit(currentStatus, 1, 0);
