@@ -153,8 +153,11 @@ void Video::tick(int cpuCycles) {
 		if (cycles >= OAMCycles) {
 			cycles -= OAMCycles;
 			//scan for sprites
+			spritesInLine = {};
 			if (isSpritesEnabled()) {
-				//do oam scan
+				//printf("sprite line: %d ", currentLY);
+				findScanlineSprites(currentLY);//add locations to spritesInLine queue
+				//printf("sprite queue size: %d\n", spritesInLine.size());
 			}
 
 			if (!isLCDEnabled()) {
@@ -166,7 +169,7 @@ void Video::tick(int cpuCycles) {
 			uint8_t windowY = mm.readAddress(WY);
 
 			if (currentLY == 0x82) {
-				printf("%d\n", SCX);
+				printf("%d ********************************************\n", SCX);
 			}
 
 			pixelShift = SCX % 8;
@@ -178,10 +181,11 @@ void Video::tick(int cpuCycles) {
 				fetcher.incrementWindowLine();
 			}
 			fetcher.setWindow(0);
+			fetcher.resetState();
 			
 			clearFIFO(backgroundPixelFIFO);
 			clearFIFO(spritePixelFIFO);
-
+			
 			//fire lyc=ly interrupt, if applicable
 			bool LYCEqualsLY = mm.readAddress(LYC) == currentLY;
 			if (getBit(mm.readAddress(LCDStatus), 6) && LYCEqualsLY) {
@@ -196,9 +200,22 @@ void Video::tick(int cpuCycles) {
 		}
 		break;
 	case Mode::DRAW_LCD:
-		//printf("2\n");
+
 		while (drawCycles < cycles) {
 			drawCycles++;
+
+			if (spritePixelFIFO.empty() && !spritesInLine.empty()) {
+				//printf("current sprite queue size: %d\n", spritesInLine.size());
+				tuple<int, int, int> nextSprite = spritesInLine.front();
+				int spriteXPos = get<0>(nextSprite) - 8;
+				int spriteScroll = nextLCDPosition - spriteXPos;//starting location in row for pixels
+				
+				//if two sprites completely overlap, need to get rid of the second one and look at thrid sprite instead
+				if (spriteScroll >= 0 && spriteScroll < 8) {
+					printf("Sprite found at line %d, x-position %d \n", currentLY, nextLCDPosition);
+					getSpritePixels(spriteScroll, get<1>(nextSprite), get<2>(nextSprite));
+				}
+			}
 			advanceMode3(currentLY, drawCycles);
 			
 			if (nextLCDPosition >= 160) {
@@ -224,7 +241,7 @@ void Video::tick(int cpuCycles) {
 		//printf("HBLANK\n");
 		if (cycles >= HBlankCycles) {
 			cycles -= HBlankCycles;
-			mm.writeAddress(LY, currentLY + 1);//increment LY /////probably put the interrupt here
+			mm.writeAddress(LY, currentLY + 1);//increment LY
 
 			if (currentLY + 1 == 144) {
 				setBit(currentStatus, 0, 1);
@@ -278,9 +295,6 @@ void Video::advanceMode3(uint8_t currentLY, int drawCycles) {
 	}
 	//start fetching from window instead, if enabled
 	if (isWindowEnabled() && !fetcher.isFetchingWindow() && windowInLine && nextLCDPosition + 7 == mm.readAddress(WX)) {//check if current x coordinate is within window
-		/*printf("current LY: %d ", currentLY);
-		printf("WX: %d ", mm.readAddress(WX));
-		printf("nextLCD: %d \n", nextLCDPosition);*/
 		fetcher.setX(0);
 		fetcher.setY(fetcher.getWindowLine());
 		fetcher.setWindow(1);
@@ -300,14 +314,33 @@ void Video::pushPixelToLCD(uint8_t currentLY) {
 		backgroundPixelFIFO.pop();
 		return;
 	}
+
 	frameBuffer.at(currentLY * 160 + nextLCDPosition) = backgroundPixelFIFO.front();
+	if (!spritePixelFIFO.empty()) {
+		tuple<int, int, int> nextSprite = spritesInLine.front();
+		uint8_t spriteAttr = mm.readAddress(0xFE00 + 4 * get<2>(nextSprite)  + 3);
+		bool bgWindowCovered = getBit(spriteAttr, 7);
+
+		//background and window cover sprite if not transparent
+		if (bgWindowCovered && backgroundPixelFIFO.front() == 0) {
+			frameBuffer.at(currentLY * 160 + nextLCDPosition) = spritePixelFIFO.front();
+		}
+		else if (!bgWindowCovered) {
+			frameBuffer.at(currentLY * 160 + nextLCDPosition) = spritePixelFIFO.front();
+		}
+		spritePixelFIFO.pop();
+
+		if (spritePixelFIFO.empty()) {
+			//printf("Decrementing\n");
+			spritesInLine.pop();
+		}
+	}
 	backgroundPixelFIFO.pop();
 	nextLCDPosition++;
 }
 
 void Video::renderFrameBuffer() {
 	//process other window events first?
-	//printf("New frame getting rendered?\n");
 	SDL_RenderClear(renderer);
 
 	void* lockedPixels;
@@ -467,9 +500,8 @@ void Video::Fetcher::resetWindowLine() {
 	internalWindowLine = 0;
 }
 
-queue<pair<int, int>> Video::findScanlineSprites(uint8_t currentLY) {
-	queue<pair<int, int>> locations;
-	int spriteSize = currentOBJSize() ? 8 : 16;
+void Video::findScanlineSprites(uint8_t currentLY) {
+	int spriteSize = currentOBJSize() ? 16 : 8;
 
 	//add support for 8 x 16 later
 	for (int i = 0; i < 40; i++) {
@@ -478,168 +510,49 @@ queue<pair<int, int>> Video::findScanlineSprites(uint8_t currentLY) {
 
 		if (spriteRow >= 0 && spriteRow < spriteSize) {
 			uint8_t spriteXPos = mm.readAddress(0xFE00 + 4 * i + 1);
-			pair<int, int> spriteCoords(spriteXPos, spriteRow);
-			locations.push(spriteCoords);
+			printf("Sprite scanned at line %d, x-position %d\n", currentLY, spriteXPos);
+			tuple<int, int, int> spriteCoords = make_tuple(spriteXPos, spriteRow, i);//last arg is index of sprite in memory
+			spritesInLine.push(spriteCoords);
 		}
 
-		if (locations.size() >= 10) {
+		if (spritesInLine.size() >= 10) {
 			break;
 		}
 	}
-	return locations;//copy ellision
 }
 
-void Video::getSpritePixels(uint8_t yIndex, uint8_t xIndex) {
+void Video::getSpritePixels(int xIndex, int yIndex, int OAMIndex) {
+	//xIndex, starting location of pixel row (7 = last pixel only)
+	//yIndex, which row in tile at index to get
+	//OAMIndex, where to get sprite info in OAM, mm.readAddress(0xFE00 + 4 * OAMIndex)
+	int spriteSize = currentOBJSize() ? 15 : 7;
+	uint8_t tileIndex = mm.readAddress(0xFE00 + 4 * OAMIndex + 2);
+	uint8_t spriteAttr = mm.readAddress(0xFE00 + 4 * OAMIndex + 3);
 
-}
+	uint16_t tileAddress = 0x8000 + tileIndex * 16;
 
-/*
-void Video::renderScanline(uint8_t currentLY) {
-	uint8_t SCX = mm.readAddress(scrollX);
-	uint8_t SCY = mm.readAddress(scrollY);
-	uint8_t windowX = mm.readAddress(WX);
-	uint8_t windowY = mm.readAddress(WY);
-	bool windowInRow = false;
-	bool windowTriggered = false;//short circuit boolean to ensure window conditions aren't checked every iteration
-
-	if (windowY <= currentLY) {
-		windowInRow = true;
+	if (getBit(spriteAttr, 6)) { //is sprite mirrored vertically
+		yIndex = spriteSize - yIndex;
 	}
-	fetcher.setX(SCX / 8);
-	fetcher.setY(currentLY + SCY & 255);
+	uint8_t tileLow = mm.readAddress(tileAddress + 2 * yIndex);
+	uint8_t tileHigh = mm.readAddress(tileAddress + 2 * yIndex + 1);
 
-	int cycleNumber = 0;
-	int pixelsToDiscard = SCX % 8;
-	//infinite loop until current  scanline is done
-	while (nextLCDPosition < 160) {
-		if (backgroundPixelFIFO.size() > 8) {
-			pushPixelToLCD(currentLY);
+	
+	for (int i = xIndex; i < 8; i++) {
+		bool lowerBit = 0, upperBit = 0;
+
+		if (getBit(spriteAttr, 5)) {//is sprite mirrored horizontally
+			lowerBit = getBit(tileLow, i);
+			upperBit = getBit(tileHigh, i);
 		}
-
-		if (!windowTriggered && windowInRow && nextLCDPosition + 7 == windowX) {//check if current x coordinate is within window
-			windowTriggered = true;
-			fetcher.setX(0);
-			fetcher.setY(currentLY - windowY);
-			fetcher.setWindow(1);
-			clearFIFO(backgroundPixelFIFO);
+		else {
+			lowerBit = getBit(tileLow, 7 - i);
+			upperBit = getBit(tileHigh, 7 - i);
 		}
-
-		if (cycleNumber % 2 == 1) {//fetcher steps take 2 cycles
-			fetcher.tick(currentLY);
-		}
-
-		cycleNumber++;
-	}
-	fetcher.setWindow(0);//disable window for fetcher
-}*/
-/*
-array<int, 8> Video::getPixels(uint8_t vramIndex, uint8_t yIndex) {
-	array<int, 8> pixelValues;
-	uint16_t vramBaseAddress = currentAddressMode() ? 0x8000 : 0x9000;
-	uint16_t tileStartingAddress = vramBaseAddress + vramIndex * 16;
-
-	uint8_t firstByte = mm.readAddress(tileStartingAddress + 2 * yIndex);
-	//push pixels
-	uint8_t secondByte = mm.readAddress(tileStartingAddress + 2 * yIndex + 1);
-	//push pixels
-
-	for (int i = 0; i < 8; i++) {
-		bool lowerBit = getBit(firstByte, i);
-		bool upperBit = getBit(secondByte, i);
-
-		pixelValues.at(7 - i) = 2 * upperBit + lowerBit;
-	}
-	
-	return pixelValues;
-}*/
-
-/*
-void Video::renderBackgroundLine() {
-	uint16_t bgTileMapAddress = currentBGTilemap() ? 0x9800 : 0x9C00;
-	uint8_t yOrigin = mm.readAddress(scrollY);
-	for (int i = 0; i < screenWidth; i++) {//160
-	}
-}*/
-
-/*
-void Video::renderTile(int tileIndex) {
-	array<int, 8> pixelValues;
-	uint16_t vramBaseAddress = currentAddressMode() ? 0x8000 : 0x9000;
-	
-	
-	for (int i = 0; i < 16; i += 2) {
-		uint8_t firstByte = mm.readAddress(vramBaseAddress + (16 * tileIndex) + i);
-		uint8_t secondByte = mm.readAddress(vramBaseAddress + (16 * tileIndex) + i + 1);
-		readTileRow(firstByte, secondByte, pixelValues);
-	}
-	
-}
-*/
-
-/*
-void Video::readTileRow(uint8_t firstByte, uint8_t secondByte, array<int, 8>& pixelValues) {
-	//bit 0 is rightmost pixel, bit 7 leftmost
-	for (int i = 0; i < 8; i++) {
-		bool lowerBit = getBit(firstByte, i);
-		bool upperBit = getBit(secondByte, i);
 		
-		//pixel values arranged from left to right
-		pixelValues.at(7 - i) = 2 * static_cast<int>(upperBit) + 1 * static_cast<int>(lowerBit);
+		//do palette stuff here?
+		printf("next pixel value: %d\n", 2 * upperBit + lowerBit);
+		spritePixelFIFO.push(2 * upperBit + lowerBit);
 	}
 
-}*/
-
-/*void Video::renderScanline(uint8_t currentLY) {
-	queue<pair<int, int>> spriteLocations = findScanlineSprites(currentLY);
-	pair<int, int> nextSpritePos = spriteLocations.front();
-	if (nextSpritePos.first == 0) { //sprite is hidden, but still affects scanline
-		spriteLocations.pop();
-		nextSpritePos = spriteLocations.front();
-	}
-	bool windowTriggered = false;
-
-	uint8_t fetcherY = currentLY + mm.readAddress(scrollY) & 255;
-	uint8_t SCX = mm.readAddress(scrollX);
-
-	uint16_t baseTilemapAddress = currentBGTilemap() ? 0x9800 : 0x9C00;
-	uint8_t windowY = mm.readAddress(WY);
-	uint8_t windowX = mm.readAddress(WX);
-
-	for (int i = 0; i < screenWidth; i++) {
-		/*if (nextSpritePos.first == i) {
-			getSpritePixels(nextSpritePos.second, nextSpritePos.first);//always 8
-		}*/
-
-		/*uint8_t fetcherX = SCX / 8 + i & 0x1F;
-		uint8_t tilePos = (fetcherY / 8) * 32 + fetcherX;
-
-		/*if (!windowTriggered && windowY <= currentLY && windowX <= i + 7) {
-			baseTilemapAddress = currentWindowTilemap() ? 0x9800 : 0x9C00;
-			windowTriggered = true;
-		}*/
-
-		/*if (backgroundPixelFIFO.size() >= 8) {
-			pushPixelToLCD();
-			pushPixelToLCD();
-		}*/
-		//background/window tile to fetch pixels from
-		/*uint8_t vramIndex = mm.readAddress(baseTilemapAddress + tilePos);
-
-		int yIndex = fetcherY % 8;
-		array<int, 8> pixels = getPixels(vramIndex, yIndex);
-
-		if (backgroundPixelFIFO.size() <= 8) {
-			for (int pixel : pixels) {
-				backgroundPixelFIFO.push(pixel);
-			}
-		}
-
-		//discard first few pixels depending on scroll X
-		if (i == 0) {
-			for (int j = 0; j < SCX % 8; j++) {
-				backgroundPixelFIFO.pop();
-			}
-		}
-
-	}
-}*/
+}

@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <array>
 #include <queue>
+#include <tuple>
 #include <utility>
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
@@ -89,6 +90,7 @@ private:
 	array<int, 160 * 144> frameBuffer = {};
 	queue<int> backgroundPixelFIFO;
 	queue<int> spritePixelFIFO;
+	queue<tuple<int, int, int>> spritesInLine;
 
 	const int totalScanlineCycles = 456;
 	const int OAMCycles = 80;//mode 2
@@ -144,11 +146,7 @@ private:
 	uint32_t decipherPixelColor(int pixel);
 	void clearFIFO(queue<int>& FIFO);
 
-	void renderScanline(uint8_t currentLY);
-
-	queue<pair<int, int>> findScanlineSprites(uint8_t currentLY);
-	void getSpritePixels(uint8_t yIndex, uint8_t xIndex);
-
-	array<int, 8> getPixels(uint8_t vramIndex, uint8_t yIndex);
+	void findScanlineSprites(uint8_t currentLY);
+	void getSpritePixels(int xIndex, int yIndex, int OAMIndex);
 	
 };
