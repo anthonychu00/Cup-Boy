@@ -148,5 +148,6 @@ private:
 
 	void findScanlineSprites(uint8_t currentLY);
 	void getSpritePixels(int xIndex, int yIndex, int OAMIndex);
+	int applyPalette(int pixelIndex, uint8_t paletteValues);
 	
 };

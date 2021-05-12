@@ -154,6 +154,9 @@ void Video::tick(int cpuCycles) {
 			cycles -= OAMCycles;
 			//scan for sprites
 			spritesInLine = {};
+			if (!isSpritesEnabled()) {
+				printf("sprites disabled on line %d\n", currentLY);
+			}
 			if (isSpritesEnabled()) {
 				//printf("sprite line: %d ", currentLY);
 				findScanlineSprites(currentLY);//add locations to spritesInLine queue
@@ -254,6 +257,9 @@ void Video::tick(int cpuCycles) {
 				setBit(currentStatus, 0, 0);
 				setBit(currentStatus, 1, 1);
 				mm.writeAddress(LCDStatus, currentStatus);
+				if (currentLY == 103) {
+					//printf("LCDC : %d\n", mm.readAddress(LCDControl));
+				}
 				mode = Mode::OAM_SCAN;
 			}
 		}
@@ -325,7 +331,7 @@ void Video::pushPixelToLCD(uint8_t currentLY) {
 		if (bgWindowCovered && backgroundPixelFIFO.front() == 0) {
 			frameBuffer.at(currentLY * 160 + nextLCDPosition) = spritePixelFIFO.front();
 		}
-		else if (!bgWindowCovered) {
+		else if (!bgWindowCovered && spritePixelFIFO.front() != 0) {
 			frameBuffer.at(currentLY * 160 + nextLCDPosition) = spritePixelFIFO.front();
 		}
 		spritePixelFIFO.pop();
@@ -528,12 +534,25 @@ void Video::getSpritePixels(int xIndex, int yIndex, int OAMIndex) {
 	int spriteSize = currentOBJSize() ? 15 : 7;
 	uint8_t tileIndex = mm.readAddress(0xFE00 + 4 * OAMIndex + 2);
 	uint8_t spriteAttr = mm.readAddress(0xFE00 + 4 * OAMIndex + 3);
+	uint8_t paletteValues = 0;
+
+	if (currentOBJSize()) {//if sprites are 8 by 16, ignore bit 0 of tile index
+		tileIndex = tileIndex & 0xFE;
+	}
 
 	uint16_t tileAddress = 0x8000 + tileIndex * 16;
 
 	if (getBit(spriteAttr, 6)) { //is sprite mirrored vertically
 		yIndex = spriteSize - yIndex;
 	}
+
+	if (getBit(spriteAttr, 4)) { //use OBJ palette 1
+		paletteValues = mm.readAddress(0xFF49);
+	}
+	else {
+		paletteValues = mm.readAddress(0xFF48);
+	}
+
 	uint8_t tileLow = mm.readAddress(tileAddress + 2 * yIndex);
 	uint8_t tileHigh = mm.readAddress(tileAddress + 2 * yIndex + 1);
 
@@ -551,8 +570,24 @@ void Video::getSpritePixels(int xIndex, int yIndex, int OAMIndex) {
 		}
 		
 		//do palette stuff here?
-		printf("next pixel value: %d\n", 2 * upperBit + lowerBit);
-		spritePixelFIFO.push(2 * upperBit + lowerBit);
+		int pixelIndex = 2 * upperBit + lowerBit;
+		
+		//printf("next pixel value: %d\n", pixelIndex);
+		//spritePixelFIFO.push(2 * upperBit + lowerBit);
+		spritePixelFIFO.push(applyPalette(pixelIndex, paletteValues));
 	}
 
+}
+
+int Video::applyPalette(int pixelIndex, uint8_t paletteValues) {
+	int paletteColor = 0;
+
+	switch (pixelIndex) {
+	case 0: paletteColor = paletteValues & 0x3; break;
+	case 1: paletteColor = (paletteValues >> 2) & 0x3; break;
+	case 2: paletteColor = (paletteValues >> 4) & 0x3; break;
+	case 3: paletteColor = (paletteValues >> 6) & 0x3; break;
+	}
+
+	return paletteColor;
 }
