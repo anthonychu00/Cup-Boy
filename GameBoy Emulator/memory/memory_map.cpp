@@ -7,6 +7,7 @@ MemoryMap::MemoryMap(CPU& newCpu, Cartridge& newCartridge) :
 	cartridge(newCartridge) {//Add audio, controller, video, and CPU objects as params (and timer?)
 
 	memory = std::vector<uint8_t>(0x10000);//preinitialize memory to initial size of 0xFFFF
+	memory.at(0xFF50) = 0x1;//disable boot rom
 }
 
 uint8_t MemoryMap::readAddress(const uint16_t address) {

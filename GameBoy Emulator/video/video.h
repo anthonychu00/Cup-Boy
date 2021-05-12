@@ -13,8 +13,8 @@
 
 
 //class controlling the video of the GameBoy
-
 using namespace std;
+
 class Video {
 public:
 	Video(CPU& cpu, MemoryMap& mm);
@@ -40,8 +40,8 @@ private:
 		int currentState = 1;
 		int fetcherX = 0;
 		int fetcherY = 0;
-
 		int internalWindowLine = 0;
+		bool fetchingWindow = false;
 
 		uint16_t nextTileAddress = 0;
 		uint8_t nextTileRow = 0;
@@ -50,17 +50,17 @@ private:
 
 		array<int, 8> nextPixels = {};
 
-		bool fetchingWindow = false;
-
 		bool attemptFIFOPush();
 	};
 
 	enum class Mode {
 		HBLANK, VBLANK, OAM_SCAN, DRAW_LCD
 	};
+
 	CPU& cpu;
 	MemoryMap& mm; 
 	Fetcher fetcher;//default constructor called
+
 	SDL_Window* gbWindow;
 	SDL_Renderer* renderer;
 	SDL_Texture* gbTexture;
@@ -72,8 +72,6 @@ private:
 	SDL_Texture* tileTexture;
 	array<int, 128 * 128> tileBuffer = {}; //16 tiles in each row/column
 											//8 by 8 pixels in each tile
-
-
 	const int screenWidth = 160;
 	const int screenHeight = 144;
 
@@ -90,7 +88,7 @@ private:
 	array<int, 160 * 144> frameBuffer = {};
 	queue<int> backgroundPixelFIFO;
 	queue<int> spritePixelFIFO;
-	queue<tuple<int, int, int>> spritesInLine;
+	vector<tuple<int, int, int>> spritesInLine;
 
 	const int totalScanlineCycles = 456;
 	const int OAMCycles = 80;//mode 2
@@ -149,5 +147,4 @@ private:
 	void findScanlineSprites(uint8_t currentLY);
 	void getSpritePixels(int xIndex, int yIndex, int OAMIndex);
 	int applyPalette(int pixelIndex, uint8_t paletteValues);
-	
 };

@@ -21,6 +21,8 @@ int main() {
 	//string path = "../../..";
 
 	string path = "../../../../gb-test-roms/dmg-acid2.gb";
+	//string path = "../../../../gb-test-roms/Tetris.gb";
+	//string path = "../../../../gb-test-roms/boot.gb";
 
 	unique_ptr<System> gb = make_unique<System>(path);
 	gb->start();

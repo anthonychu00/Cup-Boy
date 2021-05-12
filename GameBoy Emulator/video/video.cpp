@@ -27,13 +27,10 @@ void Video::initializeSDL() {
 		144);
 
 	SDL_UpdateWindowSurface(gbWindow);
-
 	SDL_RenderCopy(renderer, gbTexture, NULL, NULL);
-
 }
 
 void Video::viewTileData() {
-
 	tileWindow = SDL_CreateWindow(
 		"Tile Data",
 		SDL_WINDOWPOS_UNDEFINED,
@@ -51,7 +48,6 @@ void Video::viewTileData() {
 		128);
 
 	SDL_UpdateWindowSurface(tileWindow);
-
 	SDL_RenderCopy(tileRenderer, tileTexture, NULL, NULL);
 
 	void* lockedPixels;
@@ -71,15 +67,6 @@ void Video::viewTileData() {
 	SDL_UnlockTexture(tileTexture);
 	SDL_RenderCopy(tileRenderer, tileTexture, NULL, NULL);
 	SDL_RenderPresent(tileRenderer);
-
-	/*int counter = 0;
-	for (int i = 0; i < 32; i++) {
-		for (int j = 0; j < 32; j++) {
-			printf("%d ", mm.readAddress(0x9800 + counter));
-			counter++;
-		}
-		printf("\n");
-	}*/
 }
 
 void Video::drawTile(int x, int y, uint32_t* newPixels, uint16_t address) {
@@ -93,12 +80,10 @@ void Video::drawTile(int x, int y, uint32_t* newPixels, uint16_t address) {
 			bool lowerBit = getBit(tileLow, j);
 			bool upperBit = getBit(tileHigh, j);
 			int pixelValue = 2 * upperBit + lowerBit;
-			//printf("%d ", pixelValue);
 			int xCoord = x * 8 + (7 - j);
 			int yCoord = y * 1024 + i * 128;
 			newPixels[yCoord + xCoord] = decipherPixelColor(pixelValue);
 		}
-		//printf("\n");
 	}
 }
 
@@ -147,20 +132,14 @@ void Video::tick(int cpuCycles) {
 	uint8_t currentLY = mm.readAddress(LY);
 	uint8_t currentStatus = mm.readAddress(LCDStatus);
 	cycles += cpuCycles;
-	//printf("New ticks: %d\n", cpuCycles);
 	switch (mode) {
 	case Mode::OAM_SCAN:
 		if (cycles >= OAMCycles) {
 			cycles -= OAMCycles;
 			//scan for sprites
-			spritesInLine = {};
-			if (!isSpritesEnabled()) {
-				printf("sprites disabled on line %d\n", currentLY);
-			}
+			spritesInLine = {};//use swap() trick?
 			if (isSpritesEnabled()) {
-				//printf("sprite line: %d ", currentLY);
 				findScanlineSprites(currentLY);//add locations to spritesInLine queue
-				//printf("sprite queue size: %d\n", spritesInLine.size());
 			}
 
 			if (!isLCDEnabled()) {
@@ -172,7 +151,7 @@ void Video::tick(int cpuCycles) {
 			uint8_t windowY = mm.readAddress(WY);
 
 			if (currentLY == 0x82) {
-				printf("%d ********************************************\n", SCX);
+				//printf("%d ********************************************\n", SCX);
 			}
 
 			pixelShift = SCX % 8;
@@ -203,22 +182,21 @@ void Video::tick(int cpuCycles) {
 		}
 		break;
 	case Mode::DRAW_LCD:
-
 		while (drawCycles < cycles) {
 			drawCycles++;
 
-			if (spritePixelFIFO.empty() && !spritesInLine.empty()) {
-				//printf("current sprite queue size: %d\n", spritesInLine.size());
-				tuple<int, int, int> nextSprite = spritesInLine.front();
+			if (spritePixelFIFO.empty() && !spritesInLine.empty() && isSpritesEnabled()) {
+				//if two sprites completely overlap the one that's first in OAM gets priority
+				tuple<int, int, int> nextSprite = spritesInLine.back();
+
 				int spriteXPos = get<0>(nextSprite) - 8;
 				int spriteScroll = nextLCDPosition - spriteXPos;//starting location in row for pixels
 				
-				//if two sprites completely overlap, need to get rid of the second one and look at thrid sprite instead
 				if (spriteScroll >= 0 && spriteScroll < 8) {
-					printf("Sprite found at line %d, x-position %d \n", currentLY, nextLCDPosition);
 					getSpritePixels(spriteScroll, get<1>(nextSprite), get<2>(nextSprite));
 				}
 			}
+
 			advanceMode3(currentLY, drawCycles);
 			
 			if (nextLCDPosition >= 160) {
@@ -241,7 +219,6 @@ void Video::tick(int cpuCycles) {
 		}
 		break;
 	case Mode::HBLANK:
-		//printf("HBLANK\n");
 		if (cycles >= HBlankCycles) {
 			cycles -= HBlankCycles;
 			mm.writeAddress(LY, currentLY + 1);//increment LY
@@ -257,15 +234,11 @@ void Video::tick(int cpuCycles) {
 				setBit(currentStatus, 0, 0);
 				setBit(currentStatus, 1, 1);
 				mm.writeAddress(LCDStatus, currentStatus);
-				if (currentLY == 103) {
-					//printf("LCDC : %d\n", mm.readAddress(LCDControl));
-				}
 				mode = Mode::OAM_SCAN;
 			}
 		}
 		break;
 	case Mode::VBLANK:
-		//printf("VBLANK\n");
 		if (cycles >= totalScanlineCycles) {
 			cycles -= totalScanlineCycles;
 			if (currentLY + 1 == 154) {
@@ -283,8 +256,7 @@ void Video::tick(int cpuCycles) {
 					currentFrameBlank = false;
 				}
 				renderFrameBuffer();
-				frameBuffer.fill(0);
-
+				//frameBuffer.fill(0);
 			}
 			else {
 				mm.writeAddress(LY, currentLY + 1);
@@ -295,7 +267,6 @@ void Video::tick(int cpuCycles) {
 }
 
 void Video::advanceMode3(uint8_t currentLY, int drawCycles) {
-
 	if (backgroundPixelFIFO.size() > 8) {
 		pushPixelToLCD(currentLY);
 	}
@@ -323,7 +294,7 @@ void Video::pushPixelToLCD(uint8_t currentLY) {
 
 	frameBuffer.at(currentLY * 160 + nextLCDPosition) = backgroundPixelFIFO.front();
 	if (!spritePixelFIFO.empty()) {
-		tuple<int, int, int> nextSprite = spritesInLine.front();
+		tuple<int, int, int> nextSprite = spritesInLine.back();
 		uint8_t spriteAttr = mm.readAddress(0xFE00 + 4 * get<2>(nextSprite)  + 3);
 		bool bgWindowCovered = getBit(spriteAttr, 7);
 
@@ -337,10 +308,10 @@ void Video::pushPixelToLCD(uint8_t currentLY) {
 		spritePixelFIFO.pop();
 
 		if (spritePixelFIFO.empty()) {
-			//printf("Decrementing\n");
-			spritesInLine.pop();
+			spritesInLine.pop_back();
 		}
 	}
+
 	backgroundPixelFIFO.pop();
 	nextLCDPosition++;
 }
@@ -364,17 +335,13 @@ void Video::renderFrameBuffer() {
 void Video::writeFrameBufferData(uint32_t* newPixels) {
 	for (int y = 0; y < 144; y++) {
 		for (int x = 0; x < 160; x++) {
-			//printf("%d ", frameBuffer.at(160 * y + x));
 			newPixels[160 * y + x] = decipherPixelColor(frameBuffer.at(160 * y + x));
 		}
-		//printf("\n");
 	}
 }
 
 uint32_t Video::decipherPixelColor(int pixel) {
-	uint8_t r = 0;
-	uint8_t g = 0;
-	uint8_t b = 0;
+	uint8_t r = 0, g = 0, b = 0;
 	
 	uint32_t color = -1;
 	switch (pixel) {
@@ -390,14 +357,12 @@ uint32_t Video::decipherPixelColor(int pixel) {
 void Video::clearFIFO(queue<int>& FIFO) {
 	queue<int> empty;
 	swap(FIFO, empty);
-	//FIFO = {};
 }
 
 void Video::Fetcher::tick(uint8_t currentLY) {
 	uint16_t baseTilemapAddress = 0, vramIndex, vramBaseAddress;
 	int tilePos;
-	bool pixelsPushed = false;
-	bool bgWindowOn;
+	bool pixelsPushed = false, bgWindowOn;
 	//3 reads, idle
 	switch (currentState) {
 	case 1: //get tile index
@@ -509,22 +474,22 @@ void Video::Fetcher::resetWindowLine() {
 void Video::findScanlineSprites(uint8_t currentLY) {
 	int spriteSize = currentOBJSize() ? 16 : 8;
 
-	//add support for 8 x 16 later
 	for (int i = 0; i < 40; i++) {
 		int spriteYPos = static_cast<int>(mm.readAddress(0xFE00 + 4 * i)) - 16;
 		int spriteRow = currentLY - spriteYPos;
 
 		if (spriteRow >= 0 && spriteRow < spriteSize) {
 			uint8_t spriteXPos = mm.readAddress(0xFE00 + 4 * i + 1);
-			printf("Sprite scanned at line %d, x-position %d\n", currentLY, spriteXPos);
+			//printf("Sprite scanned at line %d, x-position %d\n", currentLY, spriteXPos);
 			tuple<int, int, int> spriteCoords = make_tuple(spriteXPos, spriteRow, i);//last arg is index of sprite in memory
-			spritesInLine.push(spriteCoords);
+			spritesInLine.push_back(spriteCoords);
 		}
 
 		if (spritesInLine.size() >= 10) {
 			break;
 		}
 	}
+	sort(spritesInLine.rbegin(), spritesInLine.rend());
 }
 
 void Video::getSpritePixels(int xIndex, int yIndex, int OAMIndex) {
@@ -549,14 +514,13 @@ void Video::getSpritePixels(int xIndex, int yIndex, int OAMIndex) {
 	if (getBit(spriteAttr, 4)) { //use OBJ palette 1
 		paletteValues = mm.readAddress(0xFF49);
 	}
-	else {
+	else { //use OBJ palette 0
 		paletteValues = mm.readAddress(0xFF48);
 	}
 
 	uint8_t tileLow = mm.readAddress(tileAddress + 2 * yIndex);
 	uint8_t tileHigh = mm.readAddress(tileAddress + 2 * yIndex + 1);
 
-	
 	for (int i = xIndex; i < 8; i++) {
 		bool lowerBit = 0, upperBit = 0;
 
@@ -569,14 +533,9 @@ void Video::getSpritePixels(int xIndex, int yIndex, int OAMIndex) {
 			upperBit = getBit(tileHigh, 7 - i);
 		}
 		
-		//do palette stuff here?
 		int pixelIndex = 2 * upperBit + lowerBit;
-		
-		//printf("next pixel value: %d\n", pixelIndex);
-		//spritePixelFIFO.push(2 * upperBit + lowerBit);
 		spritePixelFIFO.push(applyPalette(pixelIndex, paletteValues));
 	}
-
 }
 
 int Video::applyPalette(int pixelIndex, uint8_t paletteValues) {
