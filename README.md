@@ -6,7 +6,8 @@ To do list:
 
 - Finish writing opcodes for the CPU (done)
 - Write the memory unit for the CPU to interact with other components (done except for some special routines for some registers)
-- Use SDL2 to emulate the GPU components (researching)
-- Figure out a model for timing and synchronization (in progress)
+- Use SDL2 to emulate the GPU components (done)
+- Figure out a model for timing and synchronization (done)
+- Implement joypad (in progress)
 - Make sure everything runs against test roms (in progress)
 - Implement sound
