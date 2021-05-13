@@ -13,22 +13,23 @@ System::System(string path) :
 void System::start() {
 	SDL_Event e;
 	bool quit = false;
-
+	int cycles  = 0;
 	while (!quit) {
 		while (SDL_PollEvent(&e) != 0) {
 			if (e.type == SDL_QUIT) {
 				quit = true;
 			}
 		}
-		int previousTicks = cpu.executeOperations();
-		cpu.updateTimer(previousTicks);
-		cpu.checkInterruptRequests();
-		video.tick(previousTicks);
+
+		while (cycles < CYCLE_REFRESH) {
+			int previousTicks = cpu.executeOperations();
+			cpu.updateTimer(previousTicks);
+			video.tick(previousTicks);
+			cpu.checkInterruptRequests();
+			cycles += previousTicks;
+		}
+		//video.renderFrameBuffer();
+		cycles = 0;
 	}
 
-	/*while (true) {
-		int previousTicks = cpu.executeOperations();
-		cpu.updateTimer(previousTicks);
-		cpu.checkInterruptRequests();
-	}*/
 }

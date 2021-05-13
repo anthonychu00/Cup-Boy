@@ -67,6 +67,11 @@ void Video::viewTileData() {
 	SDL_UnlockTexture(tileTexture);
 	SDL_RenderCopy(tileRenderer, tileTexture, NULL, NULL);
 	SDL_RenderPresent(tileRenderer);
+
+	/*if (isLCDEnabled() && !tileViewerPresent) {
+		viewTileData();
+		tileViewerPresent = true;
+	}*/
 }
 
 void Video::drawTile(int x, int y, uint32_t* newPixels, uint16_t address) {
@@ -124,11 +129,7 @@ uint8_t Video::currentPPUMode() {
 }
 
 void Video::tick(int cpuCycles) {
-	if (isLCDEnabled() && !tileViewerPresent) {
-		viewTileData();
-		tileViewerPresent = true;
-	}
-
+	//printf("cycles in ppu : %d\n", cpuCycles);
 	uint8_t currentLY = mm.readAddress(LY);
 	uint8_t currentStatus = mm.readAddress(LCDStatus);
 	cycles += cpuCycles;
@@ -151,7 +152,7 @@ void Video::tick(int cpuCycles) {
 			uint8_t windowY = mm.readAddress(WY);
 
 			if (currentLY == 0x82) {
-				//printf("%d ********************************************\n", SCX);
+				printf("%d ********************************************\n", SCX);
 			}
 
 			pixelShift = SCX % 8;
@@ -186,15 +187,7 @@ void Video::tick(int cpuCycles) {
 			drawCycles++;
 
 			if (spritePixelFIFO.empty() && !spritesInLine.empty() && isSpritesEnabled()) {
-				//if two sprites completely overlap the one that's first in OAM gets priority
-				tuple<int, int, int> nextSprite = spritesInLine.back();
-
-				int spriteXPos = get<0>(nextSprite) - 8;
-				int spriteScroll = nextLCDPosition - spriteXPos;//starting location in row for pixels
-				
-				if (spriteScroll >= 0 && spriteScroll < 8) {
-					getSpritePixels(spriteScroll, get<1>(nextSprite), get<2>(nextSprite));
-				}
+				checkForSprites();
 			}
 
 			advanceMode3(currentLY, drawCycles);
@@ -263,6 +256,37 @@ void Video::tick(int cpuCycles) {
 			}
 		}
 		break;
+	}
+}
+
+void Video::checkForSprites() {
+	while (nextLCDPosition - get<0>(spritesInLine.back()) >= 0) {//case where we have a completely overlapped sprite remaining
+		spritesInLine.pop_back();
+	}
+
+	tuple<int, int, int> nextSprite = spritesInLine.back();
+
+	if (spritesInLine.size() > 1) {
+		int offset = 2;
+		tuple<int, int, int> comparedSprite = spritesInLine.at(spritesInLine.size() - offset);
+		while (get<0>(comparedSprite) == get<0>(nextSprite)) {//if two sprites completely overlap the one that's first in OAM gets priority
+
+			if (get<2>(comparedSprite) < get<2>(nextSprite)) {
+				nextSprite = comparedSprite;
+			}
+			offset++;
+			if (offset > spritesInLine.size()) {
+				break;
+			}
+			comparedSprite = spritesInLine.at(spritesInLine.size() - offset);
+		}
+	}
+
+	int spriteXPos = get<0>(nextSprite) - 8;
+	int spriteScroll = nextLCDPosition - spriteXPos;//starting location in row for pixels
+
+	if (spriteScroll >= 0 && spriteScroll < 8) {
+		getSpritePixels(spriteScroll, get<1>(nextSprite), get<2>(nextSprite));
 	}
 }
 

@@ -11,6 +11,8 @@ public:
 
 	void start();
 private:
+	//const int CYCLE_REFRESH = 69905;
+	const int CYCLE_REFRESH = 69905;
 	Cartridge cartridge;
 	CPU cpu;
 	MemoryMap mm;

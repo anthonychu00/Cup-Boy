@@ -21,6 +21,7 @@ public:
 	~Video() = default;
 	void tick(int cpuCycles);
 	void viewTileData();
+	void renderFrameBuffer();
 private:
 	class Fetcher {
 	public:
@@ -138,8 +139,8 @@ private:
 
 	void initializeSDL();
 	void advanceMode3(uint8_t currentLY, int drawCycles);
+	void checkForSprites();
 	void pushPixelToLCD(uint8_t currentLY);
-	void renderFrameBuffer();
 	void writeFrameBufferData(uint32_t* newPixels);
 	uint32_t decipherPixelColor(int pixel);
 	void clearFIFO(queue<int>& FIFO);

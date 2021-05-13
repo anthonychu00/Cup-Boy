@@ -27,7 +27,7 @@ uint8_t MemoryMap::readAddress(const uint16_t address) {
 		return 0x00;//access prohibited
 	}
 	else if (address == 0xFF00) {
-		return 0x00;
+		return 0xFF;
 		//replace with getting input byte from controller
 	}
 	else {
@@ -83,7 +83,7 @@ void MemoryMap::writeAddress(const uint16_t address, const uint8_t byte) {
 	}
 	else {
 		if (address == 0xFF01) {
-			printf("%c", byte);
+			//printf("%c", byte);
 		}
 		
 		//std::cout << "writing to " << unsigned(address) << endl;

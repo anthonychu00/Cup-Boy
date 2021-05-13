@@ -48,6 +48,9 @@
     <ClInclude Include="utils\utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="joypad\joypad.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="registers\split_register.cpp">
@@ -99,6 +102,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="utils\utils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="joypad\joypad.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

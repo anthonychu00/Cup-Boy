@@ -83,6 +83,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>C:\Users\antho\VClib\SDL2-2.0.12\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\antho\VClib\SDL2-2.0.12\lib\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -139,11 +141,13 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Cartridge\cartridge.h" />
     <ClInclude Include="CPU\CPU.h" />
+    <ClInclude Include="joypad\joypad.h" />
     <ClInclude Include="system.h" />
     <ClInclude Include="memory\memory_map.h" />
     <ClInclude Include="utils\utils.h" />
@@ -163,6 +167,7 @@
     <ClCompile Include="CPU\opcodes_load.cpp" />
     <ClCompile Include="CPU\opcodes_rotate_shift.cpp" />
     <ClCompile Include="CPU\opcode_trace.cpp" />
+    <ClCompile Include="joypad\joypad.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="memory\memory_map.cpp" />
     <ClCompile Include="system.cpp" />
