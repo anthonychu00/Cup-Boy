@@ -11,7 +11,7 @@ int main() {
 	//string path = "../../../../gb-test-roms/cpu_instrs/individual/07-jr,jp,call,ret,rst.gb";
 	//string path = "../../../../gb-test-roms/cpu_instrs/individual/06-ld r,r.gb";
 	//string path = "../../../../gb-test-roms/cpu_instrs/individual/10-bit ops.gb";
-	string path = "../../../../gb-test-roms/cpu_instrs/cpu_instrs.gb";
+	//string path = "../../../../gb-test-roms/cpu_instrs/cpu_instrs.gb";
 	
 	//string path = "../../../../gb-test-roms/instr_timing/instr_timing.gb";
 
@@ -21,7 +21,7 @@ int main() {
 	//string path = "../../..";
 
 	//string path = "../../../../gb-test-roms/dmg-acid2.gb";
-	//string path = "../../../../gb-test-roms/Tetris.gb";
+	string path = "../../../../gb-test-roms/Tetris.gb";
 	//string path = "../../../../gb-test-roms/boot.gb";
 
 	unique_ptr<System> gb = make_unique<System>(path);

@@ -20,9 +20,7 @@ int CPU::opcodeIncrement(SingleRegister& r) {
 
 int CPU::opcodeIncrement(uint16_t address) {
 	uint8_t data = mm.readAddress(address);
-	//printf("Data: %d\n ", data);
 	uint8_t toWrite = data + 1;
-	//printf("After: %d\n ", toWrite);
 	
 	F.setZeroFlag(toWrite == 0);
 	F.setAddSubFlag(0);

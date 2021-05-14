@@ -6,8 +6,9 @@
 System::System(string path) : 
 	cartridge(path), 
 	cpu(mm),
-	mm(cpu, cartridge),
-	video(cpu, mm){
+	mm(cpu, cartridge, joypad),
+	video(cpu, mm),
+	joypad(cpu, mm){
 }
 
 void System::start() {
@@ -23,7 +24,6 @@ void System::start() {
 
 		while (cycles < CYCLE_REFRESH) {
 			int previousTicks = cpu.executeOperations();
-			//printf("Previous ticks: %d\n", previousTicks);
 			cpu.updateTimer(previousTicks);
 			video.tick(previousTicks);
 			cpu.checkInterruptRequests();
