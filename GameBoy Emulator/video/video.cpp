@@ -152,7 +152,7 @@ void Video::tick(int cpuCycles) {
 			uint8_t windowY = mm.readAddress(WY);
 
 			if (currentLY == 0x82) {
-				printf("%d ********************************************\n", SCX);
+				//printf("%d ********************************************\n", SCX);
 			}
 
 			pixelShift = SCX % 8;
@@ -260,13 +260,13 @@ void Video::tick(int cpuCycles) {
 }
 
 void Video::checkForSprites() {
-	while (nextLCDPosition - get<0>(spritesInLine.back()) >= 0) {//case where we have a completely overlapped sprite remaining
+	/*while (nextLCDPosition - get<0>(spritesInLine.back()) >= 0) {//case where we have a completely overlapped sprite remaining
 		spritesInLine.pop_back();
-	}
+	}*/
 
 	tuple<int, int, int> nextSprite = spritesInLine.back();
 
-	if (spritesInLine.size() > 1) {
+	/*if (spritesInLine.size() > 1) {
 		int offset = 2;
 		tuple<int, int, int> comparedSprite = spritesInLine.at(spritesInLine.size() - offset);
 		while (get<0>(comparedSprite) == get<0>(nextSprite)) {//if two sprites completely overlap the one that's first in OAM gets priority
@@ -280,7 +280,7 @@ void Video::checkForSprites() {
 			}
 			comparedSprite = spritesInLine.at(spritesInLine.size() - offset);
 		}
-	}
+	}*/
 
 	int spriteXPos = get<0>(nextSprite) - 8;
 	int spriteScroll = nextLCDPosition - spriteXPos;//starting location in row for pixels

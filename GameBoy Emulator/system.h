@@ -3,6 +3,7 @@
 #include "memory/memory_map.h"
 #include "video/video.h"
 #include "Cartridge/cartridge.h"
+#include "joypad/joypad.h"
 
 class System {
 public:

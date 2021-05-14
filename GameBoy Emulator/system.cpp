@@ -23,6 +23,7 @@ void System::start() {
 
 		while (cycles < CYCLE_REFRESH) {
 			int previousTicks = cpu.executeOperations();
+			//printf("Previous ticks: %d\n", previousTicks);
 			cpu.updateTimer(previousTicks);
 			video.tick(previousTicks);
 			cpu.checkInterruptRequests();
@@ -30,6 +31,7 @@ void System::start() {
 		}
 		//video.renderFrameBuffer();
 		cycles = 0;
+
 	}
 
 }

@@ -171,8 +171,9 @@ private:
 	int opcodeSCF();
 
 	int opcodeJP();
-	int opcodeJP(Flag fl);
 	int opcodeJPHL();
+	int opcodeJP(Flag fl);
+	
 
 	int opcodeJR();
 	int opcodeJR(Flag fl);

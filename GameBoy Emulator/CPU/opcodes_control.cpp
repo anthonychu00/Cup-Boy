@@ -17,7 +17,7 @@ int CPU::opcodeJPHL() {
 int CPU::opcodeJP(Flag fl) {
 	bool result = checkCondition(fl);
 	if (result) {
-		opcodeJP();
+		return opcodeJP();
 	}
 	else {
 		uint16_t word = PCFetchWord();
@@ -37,7 +37,7 @@ int CPU::opcodeJR() {
 int CPU::opcodeJR(Flag fl) {
 	bool result = checkCondition(fl);
 	if (result) { //we do branch
-		opcodeJR();
+		return opcodeJR();
 	}
 	else {
 		PCFetchSignedByte();
@@ -77,7 +77,7 @@ int CPU::opcodeCall() {
 int CPU::opcodeCall(Flag fl) {
 	bool result = checkCondition(fl);
 	if (result) { //we do branch
-		opcodeCall();
+		return opcodeCall();
 	}
 	else {
 		uint16_t word = PCFetchWord();

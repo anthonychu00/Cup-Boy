@@ -2,9 +2,18 @@
 #include "../CPU/CPU.h"
 #include <iostream>
 
-MemoryMap::MemoryMap(CPU& newCpu, Cartridge& newCartridge) : 
+/*MemoryMap::MemoryMap(CPU& newCpu, Cartridge& newCartridge, Joypad& newJoypad) : 
 	cpu(newCpu), 
-	cartridge(newCartridge) {//Add audio, controller, video, and CPU objects as params (and timer?)
+	cartridge(newCartridge),
+	joypad(newJoypad){//Add audio, controller, video, and CPU objects as params (and timer?)
+
+	memory = std::vector<uint8_t>(0x10000);//preinitialize memory to initial size of 0xFFFF
+	memory.at(0xFF50) = 0x1;//disable boot rom
+}*/
+
+MemoryMap::MemoryMap(CPU& newCpu, Cartridge& newCartridge) :
+	cpu(newCpu),
+	cartridge(newCartridge){//Add audio, controller, video, and CPU objects as params (and timer?)
 
 	memory = std::vector<uint8_t>(0x10000);//preinitialize memory to initial size of 0xFFFF
 	memory.at(0xFF50) = 0x1;//disable boot rom
@@ -28,7 +37,7 @@ uint8_t MemoryMap::readAddress(const uint16_t address) {
 	}
 	else if (address == 0xFF00) {
 		return 0xFF;
-		//replace with getting input byte from controller
+		//return joypad.getInput();
 	}
 	else {
 		return memory.at(address);
@@ -83,7 +92,7 @@ void MemoryMap::writeAddress(const uint16_t address, const uint8_t byte) {
 	}
 	else {
 		if (address == 0xFF01) {
-			//printf("%c", byte);
+			printf("%c", byte);
 		}
 		
 		//std::cout << "writing to " << unsigned(address) << endl;
