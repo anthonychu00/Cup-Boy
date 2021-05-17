@@ -129,7 +129,6 @@ uint8_t Video::currentPPUMode() {
 }
 
 void Video::tick(int cpuCycles) {
-	//printf("cycles in ppu : %d\n", cpuCycles);
 	uint8_t currentLY = mm.readAddress(LY);
 	uint8_t currentStatus = mm.readAddress(LCDStatus);
 	cycles += cpuCycles;
@@ -138,7 +137,7 @@ void Video::tick(int cpuCycles) {
 		if (cycles >= OAMCycles) {
 			cycles -= OAMCycles;
 			//scan for sprites
-			spritesInLine = {};//use swap() trick?
+			spritesInLine.clear();//use swap() trick?
 			if (isSpritesEnabled()) {
 				findScanlineSprites(currentLY);//add locations to spritesInLine queue
 			}
@@ -152,7 +151,14 @@ void Video::tick(int cpuCycles) {
 			uint8_t windowY = mm.readAddress(WY);
 
 			if (currentLY == 0x82) {
+				printf("%d\n", counter++);
+				if (counter == 2903) {
+					printf("wtf wtf wtf\n");
+				}
 				//printf("%d ********************************************\n", SCX);
+				if (SCX == 47) {
+					printf("The actual fuck\n");
+				}
 			}
 
 			pixelShift = SCX % 8;
@@ -249,7 +255,6 @@ void Video::tick(int cpuCycles) {
 					currentFrameBlank = false;
 				}
 				renderFrameBuffer();
-				//frameBuffer.fill(0);
 			}
 			else {
 				mm.writeAddress(LY, currentLY + 1);
@@ -260,13 +265,15 @@ void Video::tick(int cpuCycles) {
 }
 
 void Video::checkForSprites() {
-	/*while (nextLCDPosition - get<0>(spritesInLine.back()) >= 0) {//case where we have a completely overlapped sprite remaining
+	while (nextLCDPosition - get<0>(spritesInLine.back()) >= 0) {//case where we have a completely overlapped sprite remaining
 		spritesInLine.pop_back();
-	}*/
-
+	}
+	if (spritesInLine.empty()) {
+		return;
+	}
 	tuple<int, int, int> nextSprite = spritesInLine.back();
 
-	/*if (spritesInLine.size() > 1) {
+	if (spritesInLine.size() > 1) {
 		int offset = 2;
 		tuple<int, int, int> comparedSprite = spritesInLine.at(spritesInLine.size() - offset);
 		while (get<0>(comparedSprite) == get<0>(nextSprite)) {//if two sprites completely overlap the one that's first in OAM gets priority
@@ -280,7 +287,7 @@ void Video::checkForSprites() {
 			}
 			comparedSprite = spritesInLine.at(spritesInLine.size() - offset);
 		}
-	}*/
+	}
 
 	int spriteXPos = get<0>(nextSprite) - 8;
 	int spriteScroll = nextLCDPosition - spriteXPos;//starting location in row for pixels
@@ -411,6 +418,9 @@ void Video::Fetcher::tick(uint8_t currentLY) {
 			}
 		}
 
+		/*if (vramBaseAddress + vramIndex * 16 == 37568) {
+			printf("Very absurd\n");
+		}*/
 		nextTileAddress = vramBaseAddress + vramIndex * 16;
 		nextTileRow = fetcherY % 8;
 		fetcherX = (fetcherX + 1) & 0x1F;//increment fetcher

@@ -11,7 +11,6 @@
 #include "../memory/memory_map.h"
 #include "../utils/utils.h"
 
-
 //class controlling the video of the GameBoy
 using namespace std;
 
@@ -57,6 +56,8 @@ private:
 	enum class Mode {
 		HBLANK, VBLANK, OAM_SCAN, DRAW_LCD
 	};
+
+	int counter = 0;
 
 	CPU& cpu;
 	MemoryMap& mm; 

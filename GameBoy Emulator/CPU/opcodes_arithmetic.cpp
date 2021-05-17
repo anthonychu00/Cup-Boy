@@ -168,14 +168,8 @@ int CPU::opcodeADC(const uint16_t address) {
 
 int CPU::opcodeAddHL(uint16_t addedVal) {
 	uint16_t HLVal = HL.getValue();
-	//printf("before: %d\n", HLVal);
-	//printf("added: %d\n", addedVal);
 	uint32_t toSet = static_cast<uint32_t>(HLVal + addedVal);
-	//printf("after: %d\n", toSet);
-	//printf("actual: %d\n", static_cast<uint16_t>(toSet));
 	HL.set(static_cast<uint16_t>(toSet));
-
-	//printf("%d \n", unsigned(static_cast<uint16_t>(toSet)));
 
 	F.setAddSubFlag(0);
 	F.setHalfCarryFlag((HLVal & 0xFFF) + (addedVal & 0xFFF) > 0x0FFF);//set if carried from bit 11

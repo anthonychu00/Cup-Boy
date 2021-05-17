@@ -29,7 +29,7 @@ uint8_t MemoryMap::readAddress(const uint16_t address) {
 		return 0x00;//access prohibited
 	}
 	else if (address == 0xFF00) {
-		return joypad.getInput();
+		return joypad.getState();
 	}
 	else {
 		return memory.at(address);

@@ -8,7 +8,7 @@ System::System(string path) :
 	cpu(mm),
 	mm(cpu, cartridge, joypad),
 	video(cpu, mm),
-	joypad(cpu, mm){
+	joypad(cpu){
 }
 
 void System::start() {
@@ -17,6 +17,9 @@ void System::start() {
 	int cycles  = 0;
 	while (!quit) {
 		while (SDL_PollEvent(&e) != 0) {
+			/*if (e.type == SDL_KEYDOWN || e.type == SDL_KEYUP) {
+				joypad.handleInput(e);
+			}*/
 			if (e.type == SDL_QUIT) {
 				quit = true;
 			}
@@ -29,8 +32,10 @@ void System::start() {
 			cpu.checkInterruptRequests();
 			cycles += previousTicks;
 		}
+		//printf("Break the cycle\n");
 		//video.renderFrameBuffer();
-		cycles = 0;
+		cycles -= CYCLE_REFRESH;
+		
 
 	}
 
