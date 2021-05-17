@@ -150,15 +150,8 @@ void Video::tick(int cpuCycles) {
 			uint8_t SCY = mm.readAddress(scrollY);
 			uint8_t windowY = mm.readAddress(WY);
 
-			if (currentLY == 0x82) {
-				printf("%d\n", counter++);
-				if (counter == 2903) {
-					printf("wtf wtf wtf\n");
-				}
+			if (currentLY == 0x82) {			
 				//printf("%d ********************************************\n", SCX);
-				if (SCX == 47) {
-					printf("The actual fuck\n");
-				}
 			}
 
 			pixelShift = SCX % 8;

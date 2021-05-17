@@ -17,9 +17,9 @@ void System::start() {
 	int cycles  = 0;
 	while (!quit) {
 		while (SDL_PollEvent(&e) != 0) {
-			/*if (e.type == SDL_KEYDOWN || e.type == SDL_KEYUP) {
+			if (e.type == SDL_KEYDOWN || e.type == SDL_KEYUP) {
 				joypad.handleInput(e);
-			}*/
+			}
 			if (e.type == SDL_QUIT) {
 				quit = true;
 			}

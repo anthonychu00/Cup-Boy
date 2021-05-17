@@ -57,8 +57,6 @@ private:
 		HBLANK, VBLANK, OAM_SCAN, DRAW_LCD
 	};
 
-	int counter = 0;
-
 	CPU& cpu;
 	MemoryMap& mm; 
 	Fetcher fetcher;//default constructor called

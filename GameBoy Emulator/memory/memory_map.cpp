@@ -8,7 +8,6 @@ MemoryMap::MemoryMap(CPU& newCpu, Cartridge& newCartridge, Joypad& newJoypad) :
 	cartridge(newCartridge),
 	joypad(newJoypad){//Add audio, controller, video, and CPU objects as params (and timer?)
 
-	memory = std::vector<uint8_t>(0x10000);//preinitialize memory to initial size of 0xFFFF
 	memory.at(0xFF50) = 0x1;//disable boot rom
 }
 
@@ -41,7 +40,8 @@ void MemoryMap::writeAddress(const uint16_t address, const uint8_t byte) {
 		memory.at(address) = byte;
 	}
 	else if (address <= 0xBFFF) {
-		cartridge.writeAddress(address, byte);
+		//block cartridge writes if no mbc present, implement mbc later
+		//cartridge.writeAddress(address, byte);
 	}
 	else if (address >= 0xE000 && address <= 0xFDFF) {
 		memory.at(address - 0x2000) = byte;
