@@ -33,7 +33,7 @@ void System::start() {
 			cycles += previousTicks;
 		}
 		//printf("Break the cycle\n");
-		//video.renderFrameBuffer();
+		video.renderFrameBuffer();
 		cycles -= CYCLE_REFRESH;
 		
 

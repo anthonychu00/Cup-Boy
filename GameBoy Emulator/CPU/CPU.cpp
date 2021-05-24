@@ -103,6 +103,7 @@ void CPU::updateTimer(int previousTicks) {
 	//0xFF04
 	divTime += previousTicks;
 	if (divTime >= 256) { //divider increments every 256 CPU ticks
+		//printf("div up\n");
 		uint8_t currentDivTime = mm.readAddress(dividerRegister);
 		mm.writeAddress(dividerRegister, currentDivTime + 1);
 		divTime -= 256;
@@ -135,6 +136,13 @@ void CPU::setClockSpeed(int newSpeed) {
 }
 int CPU::getClockSpeed() {
 	return clockSpeed;
+}
+
+int CPU::getDiv() {
+	return divTime;
+}
+void CPU::resetDiv() {
+	divTime = 0;
 }
 
 uint8_t CPU::PCFetchByte() {

@@ -30,6 +30,9 @@ uint8_t MemoryMap::readAddress(const uint16_t address) {
 	else if (address == 0xFF00) {
 		return joypad.getState();
 	}
+	else if (address == 0xFF04) {
+		return cpu.getDiv();
+	}
 	else {
 		return memory.at(address);
 	}
@@ -52,8 +55,8 @@ void MemoryMap::writeAddress(const uint16_t address, const uint8_t byte) {
 	}
 	//serial? FF01 & FF02
 	else if (address == 0xFF04) {
-		memory.at(address) = 0x0000;
-		//reset divider register in timer in CPU?
+		cpu.resetDiv();
+		//reset divider register in timer in CPU
 	}
 	else if (address == 0xFF07) {
 		memory.at(address) = byte;

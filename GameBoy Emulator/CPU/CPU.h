@@ -19,6 +19,8 @@ public:
 	void setClockPrevious(int ticks);
 	void setClockSpeed(int newSpeed);
 	int getClockSpeed();
+	int getDiv();
+	void resetDiv();
 	void updateTimer(int previousTicks);
 	void checkInterruptRequests();
 	void setInterruptFlag(int position);
@@ -49,7 +51,7 @@ private:
 	const uint16_t IFRegister = 0xFF0F;
 
 	//timer register locations
-	int divTime;// "ticks" of the divider register
+	int divTime = 0;// "ticks" of the divider register
 	int tima;
 	int clockSpeed;
 	const uint16_t dividerRegister = 0xFF04;
