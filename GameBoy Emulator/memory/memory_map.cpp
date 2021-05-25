@@ -9,6 +9,7 @@ MemoryMap::MemoryMap(CPU& newCpu, Cartridge& newCartridge, Joypad& newJoypad) :
 	joypad(newJoypad){//Add audio, controller, video, and CPU objects as params (and timer?)
 
 	memory.at(0xFF50) = 0x1;//disable boot rom
+	memory.at(0xFF00) = 0x30;
 }
 
 uint8_t MemoryMap::readAddress(const uint16_t address) {
@@ -28,6 +29,9 @@ uint8_t MemoryMap::readAddress(const uint16_t address) {
 		return 0x00;//access prohibited
 	}
 	else if (address == 0xFF00) {
+		if (joypad.getState() != 255) {
+			//printf("ff00 state: %d\n", memory.at(0xFF00));
+		}
 		return joypad.getState();
 	}
 	else if (address == 0xFF04) {
@@ -51,7 +55,7 @@ void MemoryMap::writeAddress(const uint16_t address, const uint8_t byte) {
 		//access prohibited, write to mirror instead
 	}
 	else if (address == 0xFF00) {
-		//write byte to controller
+		joypad.writeButtonMode(byte);
 	}
 	//serial? FF01 & FF02
 	else if (address == 0xFF04) {

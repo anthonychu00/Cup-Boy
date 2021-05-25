@@ -5,60 +5,27 @@ Joypad::Joypad(CPU& newCpu) :
 }
 
 uint8_t Joypad::getState() {
-	return currentState;
+	if (!getBit(currentState, 4)) {
+		return directionActionNibbles & 0xF;
+	}
+	else if (!getBit(currentState, 5)) {
+		return (directionActionNibbles >> 4) & 0xF;
+	}
+	return directionActionNibbles & 0xF;
 }
-//******************************change for nibble changing
+
+void Joypad::writeButtonMode(uint8_t byte) {
+	setBit(currentState, 4, getBit(byte, 4));
+	setBit(currentState, 5, getBit(byte, 5));
+}
+
 void Joypad::buttonPressed(int button) {
-	printf("Button pressed: %d\n", button);
-	//both action and direction being read at the same time, figure out why
-	setBit(directionActionNibbles, button, 0);//directional buttons
-	if (button < 4) {
-		setLowerNibble(currentState, directionActionNibbles);
-		setBit(currentState, 5, 1);
-		setBit(currentState, 4, 0);
-		directionsActive = true;
-	}
-	else if (button >= 4) {
-		setLowerNibble(currentState, (directionActionNibbles >> 4));
-		setBit(currentState, 4, 1);
-		setBit(currentState, 5, 0);
-		actionsActive = true;
-	}
-	printf("state: %d\n", currentState);
-	printf("nibbles: %d\n", directionActionNibbles);
-	cpu.setInterruptFlag(4);
+	setBit(directionActionNibbles, button, 0);
+	//cpu.setInterruptFlag(4);
 }
 
 void Joypad::buttonReleased(int button) {
-	printf("Button released: %d\n", button);
-	printf("pre-state: %d\n", currentState);
 	setBit(directionActionNibbles, button, 1);
-	if (button < 4) {
-		setLowerNibble(currentState, directionActionNibbles);
-	}
-	else if (button >= 4) {
-		setLowerNibble(currentState, (directionActionNibbles >> 4));
-	}
-
-	if ((directionActionNibbles & 0x0F) == 0x0F) {
-		setBit(currentState, 4, 1);
-		directionsActive = false;
-		if (actionsActive) {//if pressing other category key interrupts, necessary?
-			setBit(currentState, 5, 0);
-			setLowerNibble(currentState, (directionActionNibbles >> 4));
-		}
-	}
-	
-	if (((directionActionNibbles >> 4) & 0x0F) == 0x0F) {
-		setBit(currentState, 5, 1);
-		actionsActive = false;
-		if (directionsActive) {
-			setBit(currentState, 4, 0);
-			setLowerNibble(currentState, directionActionNibbles);
-		}
-	}
-	printf("state: %d\n", currentState);
-	printf("nibbles: %d\n", directionActionNibbles);
 }
 
 void Joypad::handleInput(SDL_Event& e) {

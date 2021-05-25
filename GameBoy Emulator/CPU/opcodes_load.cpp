@@ -136,7 +136,7 @@ int CPU::opcodeLoadMemoryToA16() {
 }
 
 //0xF0
-int CPU::opcodeLoadMemoryToA() {
+int CPU::opcodeLoadMemoryToA() {//joypad reads from here
 	uint8_t location = PCFetchByte();
 	uint16_t address = static_cast<uint16_t>(0xFF00 + static_cast<uint16_t>(location));
 	
