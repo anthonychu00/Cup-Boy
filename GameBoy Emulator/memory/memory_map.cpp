@@ -3,24 +3,21 @@
 #include "../joypad/joypad.h"
 #include <iostream>
 
-MemoryMap::MemoryMap(CPU& newCpu, Cartridge& newCartridge, Joypad& newJoypad) : 
-	cpu(newCpu), 
-	cartridge(newCartridge),
-	joypad(newJoypad){//Add audio, controller, video, and CPU objects as params (and timer?)
-
+MemoryMap::MemoryMap(CPU& newCpu, Joypad& newJoypad, unique_ptr<Cartridge> newCartridge) :
+cpu(newCpu), 
+joypad(newJoypad),
+cartridge(std::move(newCartridge)){
 	memory.at(0xFF50) = 0x1;//disable boot rom
-	memory.at(0xFF00) = 0x30;
 }
 
 uint8_t MemoryMap::readAddress(const uint16_t address) {
-
 	//VRAM in between cartridge memory
 	if (address >= 0x8000 && address <= 0x9FFF) {
 		return memory.at(address);
 	}
 	//Cartridge memory
 	else if (address <= 0xBFFF) {
-		return cartridge.readAddress(address);
+		return cartridge->readAddress(address);
 	}
 	else if (address >= 0xE000 && address <= 0xFDFF) {
 		return memory.at(address - 0x2000);//access prohibited, return mirror
@@ -47,8 +44,7 @@ void MemoryMap::writeAddress(const uint16_t address, const uint8_t byte) {
 		memory.at(address) = byte;
 	}
 	else if (address <= 0xBFFF) {
-		//block cartridge writes if no mbc present, implement mbc later
-		//cartridge.writeAddress(address, byte);
+		cartridge->writeAddress(address, byte);
 	}
 	else if (address >= 0xE000 && address <= 0xFDFF) {
 		memory.at(address - 0x2000) = byte;

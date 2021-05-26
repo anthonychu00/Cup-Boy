@@ -6,9 +6,11 @@
 System::System(string path) : 
 	cartridge(path), 
 	cpu(mm),
-	mm(cpu, cartridge, joypad),
+	mm(cpu, joypad, cartridge.MBCFactory()),
 	video(cpu, mm),
-	joypad(cpu){
+	joypad(cpu)
+{
+
 }
 
 void System::start() {

@@ -1,4 +1,5 @@
 #include "cartridge.h"
+#include "mbc0.h"
 #include <fstream>
 #include <iostream>
 #include <direct.h>
@@ -39,6 +40,13 @@ vector<uint8_t> Cartridge::readRom(string path) {
 	return vector<uint8_t>(charData.begin(), charData.end());
 }
 
+unique_ptr<Cartridge> Cartridge::MBCFactory() {
+	uint8_t mbcType = readAddress(0x0147);
+	switch (mbcType) {
+		case 0: return make_unique<MBC0>(romData);
+	}
+}
+
 uint8_t Cartridge::readAddress(const uint16_t address) const {
 	return romData.at(address);
 }
@@ -51,3 +59,4 @@ void Cartridge::writeAddress(uint16_t address, uint8_t byte) {
 const vector<uint8_t>& Cartridge::getRomData() {
 	return romData;
 }
+
