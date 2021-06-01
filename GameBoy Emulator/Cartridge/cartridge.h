@@ -6,6 +6,7 @@
 using namespace std;
 
 class MBC0;
+class MBC1;
 
 class Cartridge {
 public:

@@ -2,7 +2,6 @@
 
 MBC0::MBC0(vector<uint8_t>& newRomData): romData(newRomData) 
 {
-	romData = newRomData;
 }
 
 uint8_t MBC0::readAddress(const uint16_t address) const {

@@ -54,6 +54,9 @@
     <ClInclude Include="Cartridge\mbc0.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Cartridge\mbc1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="registers\split_register.cpp">
@@ -111,6 +114,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Cartridge\mbc0.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Cartridge\mbc1.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

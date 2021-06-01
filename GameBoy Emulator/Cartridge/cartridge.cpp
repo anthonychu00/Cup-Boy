@@ -1,8 +1,9 @@
-#include "cartridge.h"
-#include "mbc0.h"
 #include <fstream>
 #include <iostream>
 #include <direct.h>
+#include "cartridge.h"
+#include "mbc0.h"
+#include "mbc1.h"
 Cartridge::Cartridge(string path) {
 	romData = readRom(path);
 }
@@ -42,8 +43,12 @@ vector<uint8_t> Cartridge::readRom(string path) {
 
 unique_ptr<Cartridge> Cartridge::MBCFactory() {
 	uint8_t mbcType = readAddress(0x0147);
+	//printf("mbctype: %d\n", mbcType);
 	switch (mbcType) {
 		case 0: return make_unique<MBC0>(romData);
+		case 1:
+		case 2:
+		case 3: return make_unique<MBC1>(romData);
 	}
 }
 

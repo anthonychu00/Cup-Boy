@@ -147,6 +147,7 @@
   <ItemGroup>
     <ClInclude Include="Cartridge\cartridge.h" />
     <ClInclude Include="Cartridge\mbc0.h" />
+    <ClInclude Include="Cartridge\mbc1.h" />
     <ClInclude Include="CPU\CPU.h" />
     <ClInclude Include="joypad\joypad.h" />
     <ClInclude Include="system.h" />
@@ -162,6 +163,7 @@
   <ItemGroup>
     <ClCompile Include="Cartridge\cartridge.cpp" />
     <ClCompile Include="Cartridge\mbc0.cpp" />
+    <ClCompile Include="Cartridge\mbc1.cpp" />
     <ClCompile Include="CPU\CPU.cpp" />
     <ClCompile Include="CPU\opcodes_misc.cpp" />
     <ClCompile Include="CPU\opcodes_arithmetic.cpp" />
