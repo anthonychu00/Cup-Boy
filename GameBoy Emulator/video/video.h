@@ -74,6 +74,7 @@ private:
 											//8 by 8 pixels in each tile
 	const int screenWidth = 160;
 	const int screenHeight = 144;
+	const int screenScale = 4;
 
 	Mode mode = Mode::OAM_SCAN;
 	int cycles = 0;
@@ -89,6 +90,7 @@ private:
 	queue<int> backgroundPixelFIFO;
 	queue<int> spritePixelFIFO;
 	vector<tuple<int, int, int>> spritesInLine;
+	uint8_t currentSpritePalette = 0;
 
 	const int totalScanlineCycles = 456;
 	const int OAMCycles = 80;//mode 2
@@ -141,6 +143,7 @@ private:
 	void checkForSprites();
 	void pushPixelToLCD(uint8_t currentLY);
 	void writeFrameBufferData(uint32_t* newPixels);
+	void scalePixel(uint32_t* newPixels, uint32_t pixelColor, int x, int y);
 	uint32_t decipherPixelColor(int pixel);
 	void clearFIFO(queue<int>& FIFO);
 

@@ -14,8 +14,8 @@ void Video::initializeSDL() {
 		"CupBoy",
 		SDL_WINDOWPOS_UNDEFINED,
 		SDL_WINDOWPOS_UNDEFINED,
-		160,
-		144,
+		160 * screenScale,
+		144 * screenScale,
 		SDL_WINDOW_SHOWN
 	);
 	renderer = SDL_CreateRenderer(gbWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
@@ -23,8 +23,8 @@ void Video::initializeSDL() {
 		renderer, 
 		SDL_PIXELFORMAT_ARGB8888, 
 		SDL_TEXTUREACCESS_STREAMING, 
-		160, 
-		144);
+		160 * screenScale, 
+		144 * screenScale);
 
 	SDL_UpdateWindowSurface(gbWindow);
 	SDL_RenderCopy(renderer, gbTexture, NULL, NULL);
@@ -155,14 +155,14 @@ void Video::tick(int cpuCycles) {
 			}
 
 			pixelShift = SCX % 8;
-			windowInLine = currentLY >= windowY;
+			windowInLine = currentLY >= windowY;//checks if the window is present in this scanline, comparing LY to WY
 
 			fetcher.setX((SCX / 8));
 			fetcher.setY(currentLY + SCY & 255);
-			if (fetcher.isFetchingWindow()) {
+			if (fetcher.isFetchingWindow()) {//if window was drawn last line, increment internal window counter
 				fetcher.incrementWindowLine();
 			}
-			fetcher.setWindow(0);
+			fetcher.setWindow(0);//reset window
 			fetcher.resetState();
 			
 			clearFIFO(backgroundPixelFIFO);
@@ -298,7 +298,7 @@ void Video::advanceMode3(uint8_t currentLY, int drawCycles) {
 	if (isWindowEnabled() && !fetcher.isFetchingWindow() && windowInLine && nextLCDPosition + 7 == mm.readAddress(WX)) {//check if current x coordinate is within window
 		fetcher.setX(0);
 		fetcher.setY(fetcher.getWindowLine());
-		fetcher.setWindow(1);
+		fetcher.setWindow(1);//set a flag the window is being drawn this scanline
 		fetcher.resetState();
 		clearFIFO(backgroundPixelFIFO);
 		pixelShift = 0;
@@ -324,10 +324,10 @@ void Video::pushPixelToLCD(uint8_t currentLY) {
 
 		//background and window cover sprite if not transparent
 		if (bgWindowCovered && backgroundPixelFIFO.front() == 0) {
-			frameBuffer.at(currentLY * 160 + nextLCDPosition) = spritePixelFIFO.front();
+			frameBuffer.at(currentLY * 160 + nextLCDPosition) = applyPalette(spritePixelFIFO.front(), currentSpritePalette);
 		}
 		else if (!bgWindowCovered && spritePixelFIFO.front() != 0) {
-			frameBuffer.at(currentLY * 160 + nextLCDPosition) = spritePixelFIFO.front();
+			frameBuffer.at(currentLY * 160 + nextLCDPosition) = applyPalette(spritePixelFIFO.front(), currentSpritePalette);
 		}
 		spritePixelFIFO.pop();
 
@@ -335,13 +335,11 @@ void Video::pushPixelToLCD(uint8_t currentLY) {
 			spritesInLine.pop_back();
 		}
 	}
-
 	backgroundPixelFIFO.pop();
 	nextLCDPosition++;
 }
 
 void Video::renderFrameBuffer() {
-	//process other window events first?
 	SDL_RenderClear(renderer);
 
 	void* lockedPixels;
@@ -359,7 +357,17 @@ void Video::renderFrameBuffer() {
 void Video::writeFrameBufferData(uint32_t* newPixels) {
 	for (int y = 0; y < 144; y++) {
 		for (int x = 0; x < 160; x++) {
-			newPixels[160 * y + x] = decipherPixelColor(frameBuffer.at(160 * y + x));
+			uint32_t pixelColor = decipherPixelColor(frameBuffer.at(160 * y + x));
+			scalePixel(newPixels, pixelColor, x, y);
+			//newPixels[160 * y + x] = decipherPixelColor(frameBuffer.at(160 * y + x));
+		}
+	}
+}
+
+void Video::scalePixel(uint32_t* newPixels, uint32_t pixelColor, int x, int y) {
+	for (int scaleY = 0; scaleY < screenScale; scaleY++) {
+		for (int scaleX = 0; scaleX < screenScale; scaleX++) {
+			newPixels[(160 * screenScale) * (screenScale * y + scaleY) + (screenScale * x + scaleX)] = pixelColor;
 		}
 	}
 }
@@ -410,13 +418,9 @@ void Video::Fetcher::tick(uint8_t currentLY) {
 				vramIndex -= 128;
 			}
 		}
-
-		/*if (vramBaseAddress + vramIndex * 16 == 37568) {
-			printf("Very absurd\n");
-		}*/
 		nextTileAddress = vramBaseAddress + vramIndex * 16;
 		nextTileRow = fetcherY % 8;
-		fetcherX = (fetcherX + 1) & 0x1F;//increment fetcher
+		fetcherX = (fetcherX + 1) & 0x1F;//increment fetcher to get next tile in row
 
 		break;
 	case 2: //get first byte of tile data
@@ -526,7 +530,6 @@ void Video::getSpritePixels(int xIndex, int yIndex, int OAMIndex) {
 	int spriteSize = currentOBJSize() ? 15 : 7;
 	uint8_t tileIndex = mm.readAddress(0xFE00 + 4 * OAMIndex + 2);
 	uint8_t spriteAttr = mm.readAddress(0xFE00 + 4 * OAMIndex + 3);
-	uint8_t paletteValues = 0;
 
 	if (currentOBJSize()) {//if sprites are 8 by 16, ignore bit 0 of tile index
 		tileIndex = tileIndex & 0xFE;
@@ -539,10 +542,10 @@ void Video::getSpritePixels(int xIndex, int yIndex, int OAMIndex) {
 	}
 
 	if (getBit(spriteAttr, 4)) { //use OBJ palette 1
-		paletteValues = mm.readAddress(0xFF49);
+		currentSpritePalette = mm.readAddress(0xFF49);
 	}
 	else { //use OBJ palette 0
-		paletteValues = mm.readAddress(0xFF48);
+		currentSpritePalette = mm.readAddress(0xFF48);
 	}
 
 	uint8_t tileLow = mm.readAddress(tileAddress + 2 * yIndex);
@@ -561,7 +564,7 @@ void Video::getSpritePixels(int xIndex, int yIndex, int OAMIndex) {
 		}
 		
 		int pixelIndex = 2 * upperBit + lowerBit;
-		spritePixelFIFO.push(applyPalette(pixelIndex, paletteValues));
+		spritePixelFIFO.push(pixelIndex);
 	}
 }
 
@@ -574,6 +577,5 @@ int Video::applyPalette(int pixelIndex, uint8_t paletteValues) {
 	case 2: paletteColor = (paletteValues >> 4) & 0x3; break;
 	case 3: paletteColor = (paletteValues >> 6) & 0x3; break;
 	}
-
 	return paletteColor;
 }
