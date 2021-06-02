@@ -68,10 +68,6 @@ void Video::viewTileData() {
 	SDL_RenderCopy(tileRenderer, tileTexture, NULL, NULL);
 	SDL_RenderPresent(tileRenderer);
 
-	/*if (isLCDEnabled() && !tileViewerPresent) {
-		viewTileData();
-		tileViewerPresent = true;
-	}*/
 }
 
 void Video::drawTile(int x, int y, uint32_t* newPixels, uint16_t address) {
@@ -129,6 +125,11 @@ uint8_t Video::currentPPUMode() {
 }
 
 void Video::tick(int cpuCycles) {
+	/*if (isLCDEnabled() && !tileViewerPresent) {
+		viewTileData();
+		tileViewerPresent = true;
+	}*/
+	
 	uint8_t currentLY = mm.readAddress(LY);
 	uint8_t currentStatus = mm.readAddress(LCDStatus);
 	cycles += cpuCycles;
@@ -156,7 +157,7 @@ void Video::tick(int cpuCycles) {
 
 			pixelShift = SCX % 8;
 			windowInLine = currentLY >= windowY;//checks if the window is present in this scanline, comparing LY to WY
-
+			
 			fetcher.setX((SCX / 8));
 			fetcher.setY(currentLY + SCY & 255);
 			if (fetcher.isFetchingWindow()) {//if window was drawn last line, increment internal window counter
@@ -257,45 +258,17 @@ void Video::tick(int cpuCycles) {
 	}
 }
 
-void Video::checkForSprites() {
-	while (nextLCDPosition - get<0>(spritesInLine.back()) >= 0) {//case where we have a completely overlapped sprite remaining
-		spritesInLine.pop_back();
-	}
-	if (spritesInLine.empty()) {
-		return;
-	}
-	tuple<int, int, int> nextSprite = spritesInLine.back();
-
-	if (spritesInLine.size() > 1) {
-		int offset = 2;
-		tuple<int, int, int> comparedSprite = spritesInLine.at(spritesInLine.size() - offset);
-		while (get<0>(comparedSprite) == get<0>(nextSprite)) {//if two sprites completely overlap the one that's first in OAM gets priority
-
-			if (get<2>(comparedSprite) < get<2>(nextSprite)) {
-				nextSprite = comparedSprite;
-			}
-			offset++;
-			if (offset > spritesInLine.size()) {
-				break;
-			}
-			comparedSprite = spritesInLine.at(spritesInLine.size() - offset);
-		}
-	}
-
-	int spriteXPos = get<0>(nextSprite) - 8;
-	int spriteScroll = nextLCDPosition - spriteXPos;//starting location in row for pixels
-
-	if (spriteScroll >= 0 && spriteScroll < 8) {
-		getSpritePixels(spriteScroll, get<1>(nextSprite), get<2>(nextSprite));
-	}
-}
-
 void Video::advanceMode3(uint8_t currentLY, int drawCycles) {
 	if (backgroundPixelFIFO.size() > 8) {
 		pushPixelToLCD(currentLY);
 	}
+	
 	//start fetching from window instead, if enabled
-	if (isWindowEnabled() && !fetcher.isFetchingWindow() && windowInLine && nextLCDPosition + 7 == mm.readAddress(WX)) {//check if current x coordinate is within window
+	uint8_t windowX = mm.readAddress(WX);//some games have undocumented behavior where WX is set to 6 to enable the whole window
+	if (windowX < 7) {
+		windowX = 7;
+	}
+	if (isWindowEnabled() && !fetcher.isFetchingWindow() && windowInLine && nextLCDPosition + 7 == windowX) {//check if current x coordinate is within window
 		fetcher.setX(0);
 		fetcher.setY(fetcher.getWindowLine());
 		fetcher.setWindow(1);//set a flag the window is being drawn this scanline
@@ -391,6 +364,123 @@ void Video::clearFIFO(queue<int>& FIFO) {
 	swap(FIFO, empty);
 }
 
+void Video::findScanlineSprites(uint8_t currentLY) {
+	int spriteSize = currentOBJSize() ? 16 : 8;
+
+	for (int i = 0; i < 40; i++) {
+		int spriteYPos = static_cast<int>(mm.readAddress(0xFE00 + 4 * i)) - 16;
+		int spriteRow = currentLY - spriteYPos;
+
+		if (spriteRow >= 0 && spriteRow < spriteSize) {
+			uint8_t spriteXPos = mm.readAddress(0xFE00 + 4 * i + 1);
+			//printf("Sprite scanned at line %d, x-position %d\n", currentLY, spriteXPos);
+			tuple<int, int, int> spriteCoords = make_tuple(spriteXPos, spriteRow, i);//last arg is index of sprite in memory
+			spritesInLine.push_back(spriteCoords);
+		}
+
+		if (spritesInLine.size() >= 10) {
+			break;
+		}
+	}
+	sort(spritesInLine.rbegin(), spritesInLine.rend());
+}
+
+void Video::checkForSprites() {
+	while (nextLCDPosition - get<0>(spritesInLine.back()) >= 0) {//case where we have a completely overlapped sprite remaining
+		spritesInLine.pop_back();
+	}
+	if (spritesInLine.empty()) {
+		return;
+	}
+	tuple<int, int, int> nextSprite = spritesInLine.back();
+
+	if (spritesInLine.size() > 1) {
+		int offset = 2;//index getting sprite at size() - offset from the end
+		tuple<int, int, int> comparedSprite = spritesInLine.at(spritesInLine.size() - offset);
+		while (get<0>(comparedSprite) == get<0>(nextSprite)) {//if two sprites completely overlap the one that's first in OAM gets priority
+
+			if (get<2>(comparedSprite) < get<2>(nextSprite)) {//checking OAM priority
+				nextSprite = comparedSprite;
+			}
+			offset++;
+			if (offset > spritesInLine.size()) {
+				break;
+			}
+			comparedSprite = spritesInLine.at(spritesInLine.size() - offset);
+		}
+	}
+
+	int spriteXPos = get<0>(nextSprite) - 8;
+	int spriteScroll = nextLCDPosition - spriteXPos;//starting location in row for pixels
+
+	if (spriteScroll >= 0 && spriteScroll < 8) {
+		getSpritePixels(spriteScroll, get<1>(nextSprite), get<2>(nextSprite));
+	}
+}
+
+void Video::getSpritePixels(int xIndex, int yIndex, int OAMIndex) {
+	//xIndex, starting location of pixel row (7 = last pixel only)
+	//yIndex, which row in tile at index to get
+	//OAMIndex, where to get sprite info in OAM, mm.readAddress(0xFE00 + 4 * OAMIndex)
+	int spriteSize = currentOBJSize() ? 15 : 7;
+	uint8_t tileIndex = mm.readAddress(0xFE00 + 4 * OAMIndex + 2);
+	uint8_t spriteAttr = mm.readAddress(0xFE00 + 4 * OAMIndex + 3);
+
+	if (currentOBJSize()) {//if sprites are 8 by 16, ignore bit 0 of tile index
+		tileIndex = tileIndex & 0xFE;
+	}
+
+	uint16_t tileAddress = 0x8000 + tileIndex * 16;
+
+	if (getBit(spriteAttr, 6)) { //is sprite mirrored vertically
+		yIndex = spriteSize - yIndex;
+	}
+
+	if (getBit(spriteAttr, 4)) { //use OBJ palette 1
+		currentSpritePalette = mm.readAddress(0xFF49);
+	}
+	else { //use OBJ palette 0
+		currentSpritePalette = mm.readAddress(0xFF48);
+	}
+
+	uint8_t tileLow = mm.readAddress(tileAddress + 2 * yIndex);
+	uint8_t tileHigh = mm.readAddress(tileAddress + 2 * yIndex + 1);
+
+	for (int i = xIndex; i < 8; i++) {
+		bool lowerBit = 0, upperBit = 0;
+
+		if (getBit(spriteAttr, 5)) {//is sprite mirrored horizontally
+			lowerBit = getBit(tileLow, i);
+			upperBit = getBit(tileHigh, i);
+		}
+		else {
+			lowerBit = getBit(tileLow, 7 - i);
+			upperBit = getBit(tileHigh, 7 - i);
+		}
+		
+		int pixelIndex = 2 * upperBit + lowerBit;
+
+		/*if (pixelIndex == 0) {//if pixels  are transparent (index = 0) disregard them
+			break;
+		}//what if sprite starts off transparent?*/
+		//check multiple sprites at once
+
+		spritePixelFIFO.push(pixelIndex);
+	}
+}
+
+int Video::applyPalette(int pixelIndex, uint8_t paletteValues) {
+	int paletteColor = 0;
+
+	switch (pixelIndex) {
+	case 0: paletteColor = paletteValues & 0x3; break;
+	case 1: paletteColor = (paletteValues >> 2) & 0x3; break;
+	case 2: paletteColor = (paletteValues >> 4) & 0x3; break;
+	case 3: paletteColor = (paletteValues >> 6) & 0x3; break;
+	}
+	return paletteColor;
+}
+
 void Video::Fetcher::tick(uint8_t currentLY) {
 	uint16_t baseTilemapAddress = 0, vramIndex, vramBaseAddress;
 	int tilePos;
@@ -398,15 +488,15 @@ void Video::Fetcher::tick(uint8_t currentLY) {
 	//3 reads, idle
 	switch (currentState) {
 	case 1: //get tile index
-		if (!fetchingWindow) {		
-			baseTilemapAddress = ppu.currentBGTilemap() ? 0x9C00 : 0x9800;		
+		if (!fetchingWindow) {
+			baseTilemapAddress = ppu.currentBGTilemap() ? 0x9C00 : 0x9800;
 		}
 		else {//access from window tilemap
 			baseTilemapAddress = ppu.currentWindowTilemap() ? 0x9C00 : 0x9800;
 		}
 		tilePos = (fetcherY / 8) * 32 + fetcherX;
 		vramIndex = ppu.mm.readAddress(baseTilemapAddress + tilePos);
-		
+
 		vramBaseAddress = ppu.currentAddressMode() ? 0x8000 : 0x8800;
 
 		//handles signed addressing in 0x8800 mode
@@ -454,7 +544,7 @@ void Video::Fetcher::tick(uint8_t currentLY) {
 			currentState--;
 		}
 		break;
-	} 
+	}
 
 	currentState++;
 }
@@ -480,7 +570,7 @@ bool Video::Fetcher::isFetchingWindow() {
 }
 
 bool Video::Fetcher::attemptFIFOPush() {
-	
+
 	if (ppu.backgroundPixelFIFO.size() <= 8) {
 		for (int pixel : nextPixels) {
 			ppu.backgroundPixelFIFO.push(pixel);
@@ -500,82 +590,4 @@ void Video::Fetcher::incrementWindowLine() {
 
 void Video::Fetcher::resetWindowLine() {
 	internalWindowLine = 0;
-}
-
-void Video::findScanlineSprites(uint8_t currentLY) {
-	int spriteSize = currentOBJSize() ? 16 : 8;
-
-	for (int i = 0; i < 40; i++) {
-		int spriteYPos = static_cast<int>(mm.readAddress(0xFE00 + 4 * i)) - 16;
-		int spriteRow = currentLY - spriteYPos;
-
-		if (spriteRow >= 0 && spriteRow < spriteSize) {
-			uint8_t spriteXPos = mm.readAddress(0xFE00 + 4 * i + 1);
-			//printf("Sprite scanned at line %d, x-position %d\n", currentLY, spriteXPos);
-			tuple<int, int, int> spriteCoords = make_tuple(spriteXPos, spriteRow, i);//last arg is index of sprite in memory
-			spritesInLine.push_back(spriteCoords);
-		}
-
-		if (spritesInLine.size() >= 10) {
-			break;
-		}
-	}
-	sort(spritesInLine.rbegin(), spritesInLine.rend());
-}
-
-void Video::getSpritePixels(int xIndex, int yIndex, int OAMIndex) {
-	//xIndex, starting location of pixel row (7 = last pixel only)
-	//yIndex, which row in tile at index to get
-	//OAMIndex, where to get sprite info in OAM, mm.readAddress(0xFE00 + 4 * OAMIndex)
-	int spriteSize = currentOBJSize() ? 15 : 7;
-	uint8_t tileIndex = mm.readAddress(0xFE00 + 4 * OAMIndex + 2);
-	uint8_t spriteAttr = mm.readAddress(0xFE00 + 4 * OAMIndex + 3);
-
-	if (currentOBJSize()) {//if sprites are 8 by 16, ignore bit 0 of tile index
-		tileIndex = tileIndex & 0xFE;
-	}
-
-	uint16_t tileAddress = 0x8000 + tileIndex * 16;
-
-	if (getBit(spriteAttr, 6)) { //is sprite mirrored vertically
-		yIndex = spriteSize - yIndex;
-	}
-
-	if (getBit(spriteAttr, 4)) { //use OBJ palette 1
-		currentSpritePalette = mm.readAddress(0xFF49);
-	}
-	else { //use OBJ palette 0
-		currentSpritePalette = mm.readAddress(0xFF48);
-	}
-
-	uint8_t tileLow = mm.readAddress(tileAddress + 2 * yIndex);
-	uint8_t tileHigh = mm.readAddress(tileAddress + 2 * yIndex + 1);
-
-	for (int i = xIndex; i < 8; i++) {
-		bool lowerBit = 0, upperBit = 0;
-
-		if (getBit(spriteAttr, 5)) {//is sprite mirrored horizontally
-			lowerBit = getBit(tileLow, i);
-			upperBit = getBit(tileHigh, i);
-		}
-		else {
-			lowerBit = getBit(tileLow, 7 - i);
-			upperBit = getBit(tileHigh, 7 - i);
-		}
-		
-		int pixelIndex = 2 * upperBit + lowerBit;
-		spritePixelFIFO.push(pixelIndex);
-	}
-}
-
-int Video::applyPalette(int pixelIndex, uint8_t paletteValues) {
-	int paletteColor = 0;
-
-	switch (pixelIndex) {
-	case 0: paletteColor = paletteValues & 0x3; break;
-	case 1: paletteColor = (paletteValues >> 2) & 0x3; break;
-	case 2: paletteColor = (paletteValues >> 4) & 0x3; break;
-	case 3: paletteColor = (paletteValues >> 6) & 0x3; break;
-	}
-	return paletteColor;
 }
