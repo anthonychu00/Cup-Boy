@@ -13,6 +13,7 @@
 
 //class controlling the video of the GameBoy
 using namespace std;
+typedef tuple<int, uint8_t, bool> pixelInfo;
 
 class Video {
 public:
@@ -88,9 +89,10 @@ private:
 
 	array<int, 160 * 144> frameBuffer = {};
 	queue<int> backgroundPixelFIFO;
-	queue<int> spritePixelFIFO;
+
+	queue<pixelInfo> spritePixelFIFO;
 	vector<tuple<int, int, int>> spritesInLine;
-	uint8_t currentSpritePalette = 0;
+	int mainSpriteIndex = 0;
 
 	const int totalScanlineCycles = 456;
 	const int OAMCycles = 80;//mode 2
@@ -140,14 +142,15 @@ private:
 
 	void initializeSDL();
 	void advanceMode3(uint8_t currentLY, int drawCycles);
-	void checkForSprites();
 	void pushPixelToLCD(uint8_t currentLY);
 	void writeFrameBufferData(uint32_t* newPixels);
 	void scalePixel(uint32_t* newPixels, uint32_t pixelColor, int x, int y);
 	uint32_t decipherPixelColor(int pixel);
-	void clearFIFO(queue<int>& FIFO);
 
 	void findScanlineSprites(uint8_t currentLY);
+	void checkForSprites();
 	void getSpritePixels(int xIndex, int yIndex, int OAMIndex);
+	pixelInfo checkOverlappingSpritePixels(int OAMIndex, int LCDPosOffset, uint8_t originalPalette);
+	uint8_t getPalette(uint8_t spriteAttr);
 	int applyPalette(int pixelIndex, uint8_t paletteValues);
 };

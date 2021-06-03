@@ -152,7 +152,7 @@ void Video::tick(int cpuCycles) {
 			uint8_t windowY = mm.readAddress(WY);
 
 			if (currentLY == 0x82) {			
-				//printf("%d ********************************************\n", SCX);
+				printf("%d ********************************************\n", SCX);
 			}
 
 			pixelShift = SCX % 8;
@@ -166,8 +166,8 @@ void Video::tick(int cpuCycles) {
 			fetcher.setWindow(0);//reset window
 			fetcher.resetState();
 			
-			clearFIFO(backgroundPixelFIFO);
-			clearFIFO(spritePixelFIFO);
+			clearQueue(backgroundPixelFIFO);
+			clearQueue(spritePixelFIFO);
 			
 			//fire lyc=ly interrupt, if applicable
 			bool LYCEqualsLY = mm.readAddress(LYC) == currentLY;
@@ -273,7 +273,7 @@ void Video::advanceMode3(uint8_t currentLY, int drawCycles) {
 		fetcher.setY(fetcher.getWindowLine());
 		fetcher.setWindow(1);//set a flag the window is being drawn this scanline
 		fetcher.resetState();
-		clearFIFO(backgroundPixelFIFO);
+		clearQueue(backgroundPixelFIFO);
 		pixelShift = 0;
 	}
 
@@ -291,17 +291,31 @@ void Video::pushPixelToLCD(uint8_t currentLY) {
 
 	frameBuffer.at(currentLY * 160 + nextLCDPosition) = backgroundPixelFIFO.front();
 	if (!spritePixelFIFO.empty()) {
-		tuple<int, int, int> nextSprite = spritesInLine.back();
+		tuple<int, int, int> nextSprite = spritesInLine.at(spritesInLine.size() - mainSpriteIndex);
+		//tuple<int, int, int> nextSprite = spritesInLine.back();
 		uint8_t spriteAttr = mm.readAddress(0xFE00 + 4 * get<2>(nextSprite)  + 3);
 		bool bgWindowCovered = getBit(spriteAttr, 7);
 
+		pixelInfo currentSpritePixel = spritePixelFIFO.front();
 		//background and window cover sprite if not transparent
-		if (bgWindowCovered && backgroundPixelFIFO.front() == 0) {
-			frameBuffer.at(currentLY * 160 + nextLCDPosition) = applyPalette(spritePixelFIFO.front(), currentSpritePalette);
+		if (get<2>(currentSpritePixel)) {
+			if (bgWindowCovered && backgroundPixelFIFO.front() == 0) {
+				frameBuffer.at(currentLY * 160 + nextLCDPosition) = applyPalette(get<0>(currentSpritePixel), get<1>(currentSpritePixel));
+			}
+			else if (!bgWindowCovered && get<0>(currentSpritePixel) != 0) {
+				frameBuffer.at(currentLY * 160 + nextLCDPosition) = applyPalette(get<0>(currentSpritePixel), get<1>(currentSpritePixel));
+			}
 		}
-		else if (!bgWindowCovered && spritePixelFIFO.front() != 0) {
-			frameBuffer.at(currentLY * 160 + nextLCDPosition) = applyPalette(spritePixelFIFO.front(), currentSpritePalette);
+		else {
+			if (!bgWindowCovered) {
+				int finalColor = applyPalette(get<0>(currentSpritePixel), get<1>(currentSpritePixel));
+				if (finalColor != 0) {
+					frameBuffer.at(currentLY * 160 + nextLCDPosition) = finalColor;
+				}
+				
+			}
 		}
+		
 		spritePixelFIFO.pop();
 
 		if (spritePixelFIFO.empty()) {
@@ -359,10 +373,10 @@ uint32_t Video::decipherPixelColor(int pixel) {
 	return (r << 16) | (g << 8) | b;
 }
 
-void Video::clearFIFO(queue<int>& FIFO) {
+/*void Video::clearFIFO(queue<int>& FIFO) {
 	queue<int> empty;
 	swap(FIFO, empty);
-}
+}*/
 
 void Video::findScanlineSprites(uint8_t currentLY) {
 	int spriteSize = currentOBJSize() ? 16 : 8;
@@ -385,7 +399,7 @@ void Video::findScanlineSprites(uint8_t currentLY) {
 	sort(spritesInLine.rbegin(), spritesInLine.rend());
 }
 
-void Video::checkForSprites() {
+void Video::checkForSprites() {//********get pixels of all overlapping sprites and then mix them together
 	while (nextLCDPosition - get<0>(spritesInLine.back()) >= 0) {//case where we have a completely overlapped sprite remaining
 		spritesInLine.pop_back();
 	}
@@ -393,7 +407,7 @@ void Video::checkForSprites() {
 		return;
 	}
 	tuple<int, int, int> nextSprite = spritesInLine.back();
-
+	mainSpriteIndex = 1;
 	if (spritesInLine.size() > 1) {
 		int offset = 2;//index getting sprite at size() - offset from the end
 		tuple<int, int, int> comparedSprite = spritesInLine.at(spritesInLine.size() - offset);
@@ -401,6 +415,7 @@ void Video::checkForSprites() {
 
 			if (get<2>(comparedSprite) < get<2>(nextSprite)) {//checking OAM priority
 				nextSprite = comparedSprite;
+				mainSpriteIndex = offset;
 			}
 			offset++;
 			if (offset > spritesInLine.size()) {
@@ -408,9 +423,10 @@ void Video::checkForSprites() {
 			}
 			comparedSprite = spritesInLine.at(spritesInLine.size() - offset);
 		}
+		
 	}
 
-	int spriteXPos = get<0>(nextSprite) - 8;
+	int spriteXPos = get<0>(nextSprite) - 8;//true x-position of sprite on screen
 	int spriteScroll = nextLCDPosition - spriteXPos;//starting location in row for pixels
 
 	if (spriteScroll >= 0 && spriteScroll < 8) {
@@ -423,8 +439,10 @@ void Video::getSpritePixels(int xIndex, int yIndex, int OAMIndex) {
 	//yIndex, which row in tile at index to get
 	//OAMIndex, where to get sprite info in OAM, mm.readAddress(0xFE00 + 4 * OAMIndex)
 	int spriteSize = currentOBJSize() ? 15 : 7;
+	
 	uint8_t tileIndex = mm.readAddress(0xFE00 + 4 * OAMIndex + 2);
 	uint8_t spriteAttr = mm.readAddress(0xFE00 + 4 * OAMIndex + 3);
+	uint8_t currentSpritePalette = getPalette(spriteAttr);
 
 	if (currentOBJSize()) {//if sprites are 8 by 16, ignore bit 0 of tile index
 		tileIndex = tileIndex & 0xFE;
@@ -434,13 +452,6 @@ void Video::getSpritePixels(int xIndex, int yIndex, int OAMIndex) {
 
 	if (getBit(spriteAttr, 6)) { //is sprite mirrored vertically
 		yIndex = spriteSize - yIndex;
-	}
-
-	if (getBit(spriteAttr, 4)) { //use OBJ palette 1
-		currentSpritePalette = mm.readAddress(0xFF49);
-	}
-	else { //use OBJ palette 0
-		currentSpritePalette = mm.readAddress(0xFF48);
 	}
 
 	uint8_t tileLow = mm.readAddress(tileAddress + 2 * yIndex);
@@ -459,13 +470,88 @@ void Video::getSpritePixels(int xIndex, int yIndex, int OAMIndex) {
 		}
 		
 		int pixelIndex = 2 * upperBit + lowerBit;
+		if (pixelIndex == 0) {//transparent pixel, check if other sprites are opaque
+			//printf("original tile address: %d with OAMIndex %d\n", tileAddress, OAMIndex);
+			pixelInfo overlappedPixel = checkOverlappingSpritePixels(OAMIndex, spritePixelFIFO.size(), currentSpritePalette);
+			spritePixelFIFO.push(overlappedPixel);
+		}
+		else {
+			spritePixelFIFO.push(make_tuple(pixelIndex, currentSpritePalette, true));
+		}
+		//spritePixelFIFO.push(make_tuple(pixelIndex, currentSpritePalette, true));
+	}
+}
 
-		/*if (pixelIndex == 0) {//if pixels  are transparent (index = 0) disregard them
+pixelInfo Video::checkOverlappingSpritePixels(int OAMIndex, int LCDPosOffset, uint8_t originalPalette) {
+	pixelInfo noSprite = make_tuple(0, originalPalette, true);
+	int offset = 1;
+	while (offset <= spritesInLine.size()) {
+		tuple<int, int, int> nextSprite = spritesInLine.at(spritesInLine.size() - offset);//xPos, yPos, OAMIndex
+		int spriteIndex = get<2>(nextSprite);
+		if (spriteIndex == OAMIndex){
+			offset++;
+			continue;
+		}
+
+		int xIndex = get<0>(nextSprite);
+		int yIndex = get<1>(nextSprite);
+		//get spriteX
+		int spriteXPos = xIndex - 8;//true x-position of sprite on screen
+		int spriteScroll = (nextLCDPosition + LCDPosOffset) - spriteXPos;//starting location in row for pixels
+
+		if (spriteScroll >= 0 && spriteScroll < 8) {//disqualify here?
+			int spriteSize = currentOBJSize() ? 15 : 7;
+			uint8_t tileIndex = mm.readAddress(0xFE00 + 4 * spriteIndex + 2);
+			uint8_t spriteAttr = mm.readAddress(0xFE00 + 4 * spriteIndex + 3);
+			uint8_t currentSpritePalette = getPalette(spriteAttr);
+
+			if (currentOBJSize()) {//if sprites are 8 by 16, ignore bit 0 of tile index
+				tileIndex = tileIndex & 0xFE;
+			}
+
+			uint16_t tileAddress = 0x8000 + tileIndex * 16;
+
+			if (getBit(spriteAttr, 6)) { //is sprite mirrored vertically
+				yIndex = spriteSize - yIndex;
+			}
+
+			uint8_t tileLow = mm.readAddress(tileAddress + 2 * yIndex);
+			uint8_t tileHigh = mm.readAddress(tileAddress + 2 * yIndex + 1);
+
+			bool lowerBit = 0, upperBit = 0;
+
+			if (getBit(spriteAttr, 5)) {//is sprite mirrored horizontally
+				lowerBit = getBit(tileLow, spriteScroll);
+				upperBit = getBit(tileHigh, spriteScroll);
+			}
+			else {
+				lowerBit = getBit(tileLow, 7 - spriteScroll);
+				upperBit = getBit(tileHigh, 7 - spriteScroll);
+			}
+
+			int pixelIndex = 2 * upperBit + lowerBit;
+			if (pixelIndex != 0 || spriteIndex < OAMIndex) {
+				//printf("Overlapped tile address: %d with OAM %d\n", tileAddress, spriteIndex);
+				//printf("return overlapped pixel at LCDPos %d, line %d of color %d, size is %d\n", nextLCDPosition + LCDPosOffset, mm.readAddress(LY), pixelIndex, spritePixelFIFO.size());
+				return make_tuple(pixelIndex, currentSpritePalette, false);
+			}
+
+		}
+		else {
 			break;
-		}//what if sprite starts off transparent?*/
-		//check multiple sprites at once
+		}
 
-		spritePixelFIFO.push(pixelIndex);
+		offset++;
+	}
+	return noSprite;
+}
+
+uint8_t Video::getPalette(uint8_t spriteAttr) {
+	if (getBit(spriteAttr, 4)) { //use OBJ palette 1
+		return mm.readAddress(0xFF49);
+	}
+	else { //use OBJ palette 0
+		return mm.readAddress(0xFF48);
 	}
 }
 
