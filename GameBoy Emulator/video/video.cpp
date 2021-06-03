@@ -297,7 +297,7 @@ void Video::pushPixelToLCD(uint8_t currentLY) {
 
 		pixelInfo currentSpritePixel = spritePixelFIFO.front();
 		//background and window cover sprite if not transparent
-		if (get<2>(currentSpritePixel)) {
+		if (get<2>(currentSpritePixel)) {//checks if this is the main sprite
 			if (bgWindowCovered && backgroundPixelFIFO.front() == 0) {
 				frameBuffer.at(currentLY * 160 + nextLCDPosition) = applyPalette(get<0>(currentSpritePixel), get<1>(currentSpritePixel));
 			}
@@ -308,10 +308,10 @@ void Video::pushPixelToLCD(uint8_t currentLY) {
 		else {
 			if (!bgWindowCovered) {
 				int finalColor = applyPalette(get<0>(currentSpritePixel), get<1>(currentSpritePixel));
-				/*if (finalColor != 0) {
+				/*if (finalColor != 0) { //fixes acid2, but makes overlapped white pixels transparent?
 					frameBuffer.at(currentLY * 160 + nextLCDPosition) = finalColor;
 				}*/
-				frameBuffer.at(currentLY * 160 + nextLCDPosition) = finalColor;//white overlapped pixels become completely transparent
+				frameBuffer.at(currentLY * 160 + nextLCDPosition) = finalColor;
 			}
 		}
 		
@@ -321,6 +321,7 @@ void Video::pushPixelToLCD(uint8_t currentLY) {
 			spritesInLine.pop_back();
 		}
 	}
+
 	backgroundPixelFIFO.pop();
 	nextLCDPosition++;
 }
@@ -416,7 +417,6 @@ void Video::checkForSprites() {
 			}
 			comparedSprite = spritesInLine.at(spritesInLine.size() - offset);
 		}
-		
 	}
 
 	int spriteXPos = get<0>(nextSprite) - 8;//true x-position of sprite on screen
@@ -477,7 +477,7 @@ pixelInfo Video::checkOverlappingSpritePixels(int OAMIndex, int LCDPosOffset, ui
 			}
 
 		}
-		else {
+		else {//current sprite out of range, we break
 			break;
 		}
 
