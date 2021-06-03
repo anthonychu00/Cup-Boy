@@ -2,6 +2,12 @@
 #include <cstdint>
 
 template<typename T>
+void clearQueue(typename T& FIFO) {
+	T empty;
+	swap(FIFO, empty);
+}
+
+template<typename T>
 bool getBit(const T byte, const int position) {
 	return (byte >> position) & 0x1;
 }
