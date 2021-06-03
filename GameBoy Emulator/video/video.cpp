@@ -430,7 +430,6 @@ void Video::checkForSprites() {
 void Video::getSpritePixels(int xIndex, int yIndex, int OAMIndex) {
 	uint8_t spriteAttr = mm.readAddress(0xFE00 + 4 * OAMIndex + 3);
 	uint16_t tileAddress = getSpriteAddress(OAMIndex);
-	uint8_t currentSpritePalette = getPalette(spriteAttr);
 	yIndex = spriteVerticalFlip(yIndex, spriteAttr);
 
 	uint8_t tileLow = mm.readAddress(tileAddress + 2 * yIndex);
@@ -440,11 +439,11 @@ void Video::getSpritePixels(int xIndex, int yIndex, int OAMIndex) {
 		
 		int pixelIndex = getSpecificSpritePixel(i, tileLow, tileHigh, spriteAttr);
 		if (pixelIndex == 0) {//transparent pixel, check if other sprites are opaque
-			pixelInfo overlappedPixel = checkOverlappingSpritePixels(OAMIndex, spritePixelFIFO.size(), currentSpritePalette);
+			pixelInfo overlappedPixel = checkOverlappingSpritePixels(OAMIndex, spritePixelFIFO.size(), getPalette(spriteAttr));
 			spritePixelFIFO.push(overlappedPixel);
 		}
 		else {
-			spritePixelFIFO.push(make_tuple(pixelIndex, currentSpritePalette, true));
+			spritePixelFIFO.push(make_tuple(pixelIndex, getPalette(spriteAttr), true));
 		}
 	}
 }
@@ -468,14 +467,13 @@ pixelInfo Video::checkOverlappingSpritePixels(int OAMIndex, int LCDPosOffset, ui
 			uint8_t spriteAttr = mm.readAddress(0xFE00 + 4 * spriteIndex + 3);
 			uint16_t tileAddress = getSpriteAddress(spriteIndex);
 			int yIndex = spriteVerticalFlip(get<1>(nextSprite), spriteAttr);
-			uint8_t currentSpritePalette = getPalette(spriteAttr);
 
 			uint8_t tileLow = mm.readAddress(tileAddress + 2 * yIndex);
 			uint8_t tileHigh = mm.readAddress(tileAddress + 2 * yIndex + 1);
 
 			int pixelIndex = getSpecificSpritePixel(spriteScroll, tileLow, tileHigh, spriteAttr);
 			if (pixelIndex != 0) {
-				return make_tuple(pixelIndex, currentSpritePalette, false);
+				return make_tuple(pixelIndex, getPalette(spriteAttr), false);
 			}
 
 		}
