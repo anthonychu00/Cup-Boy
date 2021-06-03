@@ -151,6 +151,9 @@ private:
 	void checkForSprites();
 	void getSpritePixels(int xIndex, int yIndex, int OAMIndex);
 	pixelInfo checkOverlappingSpritePixels(int OAMIndex, int LCDPosOffset, uint8_t originalPalette);
+	int spriteVerticalFlip(int originalY, uint8_t spriteAttr);
+	int getSpecificSpritePixel(int rowIndex, uint8_t tileLow, uint8_t tileHigh, uint8_t spriteAttr);
+	uint16_t getSpriteAddress(int OAMIndex);
 	uint8_t getPalette(uint8_t spriteAttr);
 	int applyPalette(int pixelIndex, uint8_t paletteValues);
 };
