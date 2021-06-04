@@ -346,7 +346,6 @@ void Video::writeFrameBufferData(uint32_t* newPixels) {
 		for (int x = 0; x < 160; x++) {
 			uint32_t pixelColor = decipherPixelColor(frameBuffer.at(160 * y + x));
 			scalePixel(newPixels, pixelColor, x, y);
-			//newPixels[160 * y + x] = decipherPixelColor(frameBuffer.at(160 * y + x));
 		}
 	}
 }
