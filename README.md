@@ -14,6 +14,7 @@ Implemented:
 - Debugging tools to view VRAM data and trace the execution of opcodes
 
 To-do list:
+
 High priority:
 - implement sound
 - Add support for other MBCs
