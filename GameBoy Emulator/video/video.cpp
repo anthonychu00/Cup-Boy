@@ -235,20 +235,20 @@ void Video::tick(int cpuCycles) {
 		if (cycles >= totalScanlineCycles) {
 			cycles -= totalScanlineCycles;
 			if (currentLY + 1 == 154) {
-				mm.writeAddress(LY, 0);//reset LY, start new frame
-				setBit(currentStatus, 0, 0);
-				setBit(currentStatus, 1, 1);
-				mm.writeAddress(LCDStatus, currentStatus);
-
 				fetcher.resetWindowLine();//reset internal window line counter
-				mode = Mode::OAM_SCAN;
 
 				//render
 				if (currentFrameBlank) {//if LCD was disabled and enabled mid frame
 					frameBuffer.fill(0);
-					currentFrameBlank = false;
 				}
+				currentFrameBlank = false;
 				renderFrameBuffer();
+				mm.writeAddress(LY, 0);//reset LY, start new frame
+
+				setBit(currentStatus, 0, 0);
+				setBit(currentStatus, 1, 1);
+				mm.writeAddress(LCDStatus, currentStatus);	
+				mode = Mode::OAM_SCAN;
 			}
 			else {
 				mm.writeAddress(LY, currentLY + 1);
