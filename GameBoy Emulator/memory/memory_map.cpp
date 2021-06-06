@@ -3,7 +3,7 @@
 #include "../joypad/joypad.h"
 #include <iostream>
 
-MemoryMap::MemoryMap(CPU& newCpu, Joypad& newJoypad, unique_ptr<Cartridge> newCartridge) :
+MemoryMap::MemoryMap(CPU& newCpu, Joypad& newJoypad, std::unique_ptr<Cartridge> newCartridge) :
 cpu(newCpu), 
 joypad(newJoypad),
 cartridge(std::move(newCartridge)){

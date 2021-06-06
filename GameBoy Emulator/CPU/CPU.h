@@ -14,8 +14,8 @@ public:
 	int executeOperations();
 	int executeOpcode(const uint8_t opcode, uint16_t PCValue);
 	int executePrefixedOpcode(const uint8_t opcode, uint16_t PCValue);
-	string traceOpcode(const uint8_t opcode);
-	string tracePrefixedOpcode(const uint8_t opcode);
+	std::string traceOpcode(const uint8_t opcode);
+	std::string tracePrefixedOpcode(const uint8_t opcode);
 	void setClockPrevious(int ticks);
 	void setClockSpeed(int newSpeed);
 	int getClockSpeed();

@@ -4,51 +4,51 @@
 #include "cartridge.h"
 #include "mbc0.h"
 #include "mbc1.h"
-Cartridge::Cartridge(string path) {
+Cartridge::Cartridge(std::string path) {
 	romData = readRom(path);
 }
 
 //read binary file and convert to uint8_t
-vector<uint8_t> Cartridge::readRom(string path) {
+std::vector<uint8_t> Cartridge::readRom(std::string path) {
 	
 	//open file
-	ifstream file(path.c_str(), ios::binary);
+	std::ifstream file(path.c_str(), std::ios::binary);
 
 	if (!file) {
-		cout << "Error" << endl;
+		std::cout << "Error" << std::endl;
 
 		char buff[FILENAME_MAX]; //create string buffer to hold path
 		//_getcwd(buff, FILENAME_MAX);
-		string current_working_dir(buff);
+		std::string current_working_dir(buff);
 
-		cout << "Current dir: " << current_working_dir << endl;
+		std::cout << "Current dir: " << current_working_dir << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
 	//get size 
-	file.seekg(0, ios::end);
+	file.seekg(0, std::ios::end);
 	romSize = static_cast<int>(file.tellg());
-	file.seekg(0, ios::beg);
+	file.seekg(0, std::ios::beg);
 
 	//cout << "Size: " << romSize << endl;
 
 	//read
-	vector<char> charData(romSize);//temporary char array to convert later
+	std::vector<char> charData(romSize);//temporary char array to convert later
 	file.read(&charData[0], romSize);
 	file.close();
 
 	//ifstream.read() only reads char, so need to recast to vector<uint8_t> with iterator range
-	return vector<uint8_t>(charData.begin(), charData.end());
+	return std::vector<uint8_t>(charData.begin(), charData.end());
 }
 
-unique_ptr<Cartridge> Cartridge::MBCFactory() {
+std::unique_ptr<Cartridge> Cartridge::MBCFactory() {
 	uint8_t mbcType = readAddress(0x0147);
 	//printf("mbctype: %d\n", mbcType);
 	switch (mbcType) {
-		case 0: return make_unique<MBC0>(romData);
+	case 0: return std::make_unique<MBC0>(romData);
 		case 1:
 		case 2:
-		case 3: return make_unique<MBC1>(romData);
+		case 3: return std::make_unique<MBC1>(romData);
 	}
 }
 
@@ -61,7 +61,7 @@ void Cartridge::writeAddress(uint16_t address, uint8_t byte) {
 }
 
 //return unmodifiable reference to rom
-const vector<uint8_t>& Cartridge::getRomData() {
+const std::vector<uint8_t>& Cartridge::getRomData() {
 	return romData;
 }
 

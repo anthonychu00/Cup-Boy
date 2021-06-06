@@ -291,23 +291,23 @@ void Video::pushPixelToLCD(uint8_t currentLY) {
 
 	frameBuffer.at(currentLY * 160 + nextLCDPosition) = backgroundPixelFIFO.front();
 	if (!spritePixelFIFO.empty()) {
-		tuple<int, int, int> nextSprite = spritesInLine.at(spritesInLine.size() - mainSpriteIndex);
-		uint8_t spriteAttr = mm.readAddress(0xFE00 + 4 * get<2>(nextSprite)  + 3);
+		std::tuple<int, int, int> nextSprite = spritesInLine.at(spritesInLine.size() - mainSpriteIndex);
+		uint8_t spriteAttr = mm.readAddress(0xFE00 + 4 * std::get<2>(nextSprite)  + 3);
 		bool bgWindowCovered = getBit(spriteAttr, 7);
 
 		pixelInfo currentSpritePixel = spritePixelFIFO.front();
 		//background and window cover sprite if not transparent
-		if (get<2>(currentSpritePixel)) {//checks if this is the main sprite
+		if (std::get<2>(currentSpritePixel)) {//checks if this is the main sprite
 			if (bgWindowCovered && backgroundPixelFIFO.front() == 0) {
-				frameBuffer.at(currentLY * 160 + nextLCDPosition) = applyPalette(get<0>(currentSpritePixel), get<1>(currentSpritePixel));
+				frameBuffer.at(currentLY * 160 + nextLCDPosition) = applyPalette(std::get<0>(currentSpritePixel), std::get<1>(currentSpritePixel));
 			}
-			else if (!bgWindowCovered && get<0>(currentSpritePixel) != 0) {
-				frameBuffer.at(currentLY * 160 + nextLCDPosition) = applyPalette(get<0>(currentSpritePixel), get<1>(currentSpritePixel));
+			else if (!bgWindowCovered && std::get<0>(currentSpritePixel) != 0) {
+				frameBuffer.at(currentLY * 160 + nextLCDPosition) = applyPalette(std::get<0>(currentSpritePixel), std::get<1>(currentSpritePixel));
 			}
 		}
 		else {
 			if (!bgWindowCovered) {
-				int finalColor = applyPalette(get<0>(currentSpritePixel), get<1>(currentSpritePixel));
+				int finalColor = applyPalette(std::get<0>(currentSpritePixel), std::get<1>(currentSpritePixel));
 				/*if (finalColor != 0) { //fixes acid2, but makes overlapped white pixels transparent?
 					frameBuffer.at(currentLY * 160 + nextLCDPosition) = finalColor;
 				}*/
@@ -381,7 +381,7 @@ void Video::findScanlineSprites(uint8_t currentLY) {
 
 		if (spriteRow >= 0 && spriteRow < spriteSize) {
 			uint8_t spriteXPos = mm.readAddress(0xFE00 + 4 * i + 1);
-			tuple<int, int, int> spriteCoords = make_tuple(spriteXPos, spriteRow, i);//last arg is index of sprite in memory
+			std::tuple<int, int, int> spriteCoords = std::make_tuple(spriteXPos, spriteRow, i);//last arg is index of sprite in memory
 			spritesInLine.push_back(spriteCoords);
 		}
 
@@ -393,20 +393,20 @@ void Video::findScanlineSprites(uint8_t currentLY) {
 }
 
 void Video::checkForSprites() {
-	while (nextLCDPosition - get<0>(spritesInLine.back()) >= 0) {//case where we have a completely overlapped sprite remaining
+	while (nextLCDPosition - std::get<0>(spritesInLine.back()) >= 0) {//case where we have a completely overlapped sprite remaining
 		spritesInLine.pop_back();
 	}
 	if (spritesInLine.empty()) {
 		return;
 	}
-	tuple<int, int, int> nextSprite = spritesInLine.back();
+	std::tuple<int, int, int> nextSprite = spritesInLine.back();
 	mainSpriteIndex = 1;
 	if (spritesInLine.size() > 1) {
 		int offset = 2;//index getting sprite at size() - offset from the end
-		tuple<int, int, int> comparedSprite = spritesInLine.at(spritesInLine.size() - offset);
-		while (get<0>(comparedSprite) == get<0>(nextSprite)) {//if two sprites completely overlap the one that's first in OAM gets priority
+		std::tuple<int, int, int> comparedSprite = spritesInLine.at(spritesInLine.size() - offset);
+		while (std::get<0>(comparedSprite) == std::get<0>(nextSprite)) {//if two sprites completely overlap the one that's first in OAM gets priority
 
-			if (get<2>(comparedSprite) < get<2>(nextSprite)) {//checking OAM priority
+			if (std::get<2>(comparedSprite) < std::get<2>(nextSprite)) {//checking OAM priority
 				nextSprite = comparedSprite;
 				mainSpriteIndex = offset;
 			}
@@ -418,11 +418,11 @@ void Video::checkForSprites() {
 		}
 	}
 
-	int spriteXPos = get<0>(nextSprite) - 8;//true x-position of sprite on screen
+	int spriteXPos = std::get<0>(nextSprite) - 8;//true x-position of sprite on screen
 	int spriteScroll = nextLCDPosition - spriteXPos;//starting location in row for pixels
 
 	if (spriteScroll >= 0 && spriteScroll < 8) {
-		getSpritePixels(spriteScroll, get<1>(nextSprite), get<2>(nextSprite));
+		getSpritePixels(spriteScroll, std::get<1>(nextSprite), std::get<2>(nextSprite));
 	}
 }
 
@@ -442,37 +442,37 @@ void Video::getSpritePixels(int xIndex, int yIndex, int OAMIndex) {
 			spritePixelFIFO.push(overlappedPixel);
 		}
 		else {
-			spritePixelFIFO.push(make_tuple(pixelIndex, getPalette(spriteAttr), true));
+			spritePixelFIFO.push(std::make_tuple(pixelIndex, getPalette(spriteAttr), true));
 		}
 	}
 }
 
 pixelInfo Video::checkOverlappingSpritePixels(int OAMIndex, int LCDPosOffset, uint8_t originalPalette) {
-	pixelInfo noSprite = make_tuple(0, originalPalette, true);
+	pixelInfo noSprite = std::make_tuple(0, originalPalette, true);
 	int offset = 1;
 	while (offset <= spritesInLine.size()) {
-		tuple<int, int, int> nextSprite = spritesInLine.at(spritesInLine.size() - offset);//xPos, yPos, OAMIndex
-		int spriteIndex = get<2>(nextSprite);
+		std::tuple<int, int, int> nextSprite = spritesInLine.at(spritesInLine.size() - offset);//xPos, yPos, OAMIndex
+		int spriteIndex = std::get<2>(nextSprite);
 		if (spriteIndex == OAMIndex){
 			offset++;
 			continue;
 		}
 
 		//get spriteX
-		int spriteXPos = get<0>(nextSprite) - 8;//true x-position of sprite on screen
+		int spriteXPos = std::get<0>(nextSprite) - 8;//true x-position of sprite on screen
 		int spriteScroll = (nextLCDPosition + LCDPosOffset) - spriteXPos;//starting location in row for pixels
 
 		if (spriteScroll >= 0 && spriteScroll < 8) {
 			uint8_t spriteAttr = mm.readAddress(0xFE00 + 4 * spriteIndex + 3);
 			uint16_t tileAddress = getSpriteAddress(spriteIndex);
-			int yIndex = spriteVerticalFlip(get<1>(nextSprite), spriteAttr);
+			int yIndex = spriteVerticalFlip(std::get<1>(nextSprite), spriteAttr);
 
 			uint8_t tileLow = mm.readAddress(tileAddress + 2 * yIndex);
 			uint8_t tileHigh = mm.readAddress(tileAddress + 2 * yIndex + 1);
 
 			int pixelIndex = getSpecificSpritePixel(spriteScroll, tileLow, tileHigh, spriteAttr);
 			if (pixelIndex != 0) {
-				return make_tuple(pixelIndex, getPalette(spriteAttr), false);
+				return std::make_tuple(pixelIndex, getPalette(spriteAttr), false);
 			}
 
 		}

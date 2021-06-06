@@ -8,7 +8,7 @@ class Joypad;
 
 class MemoryMap {
 public:
-	MemoryMap(CPU& newCpu, Joypad& newJoypad, unique_ptr<Cartridge> newCartridge);
+	MemoryMap(CPU& newCpu, Joypad& newJoypad, std::unique_ptr<Cartridge> newCartridge);
 	uint8_t readAddress(const uint16_t address);//checks what type of memory to access
 	void writeAddress(const uint16_t address, const uint8_t byte);
 private:
@@ -17,5 +17,5 @@ private:
 
 	CPU& cpu;
 	Joypad& joypad;
-	unique_ptr<Cartridge> cartridge;
+	std::unique_ptr<Cartridge> cartridge;
 };

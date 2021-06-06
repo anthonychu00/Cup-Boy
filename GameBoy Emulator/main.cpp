@@ -1,7 +1,6 @@
 #include <memory>
 #include "system.h"
 #include "Cartridge/cartridge.h"
-using namespace std;
 
 int main() {
 	
@@ -14,10 +13,10 @@ int main() {
 
 	//string path = "../../../../gb-test-roms/dmg-acid2.gb";
 	//string path = "../../../../gb-test-roms/Tetris.gb";
-	string path = "../../../../gb-test-roms/Zelda.gb";
+	std::string path = "../../../../gb-test-roms/Zelda.gb";
 	//string path = "../../../../gb-test-roms/boot.gb";
 
-	unique_ptr<System> gb = make_unique<System>(path);
+	std::unique_ptr<System> gb = std::make_unique<System>(path);
 	gb->start();
 
 	

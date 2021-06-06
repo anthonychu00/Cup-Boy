@@ -1,8 +1,8 @@
 #pragma once
 #include "CPU.h"
 
-string CPU::traceOpcode(uint8_t opcode) {
-	string trace = "error";
+std::string CPU::traceOpcode(uint8_t opcode) {
+	std::string trace = "error";
 	//perform action according to the opcode
 	switch (opcode) {
 	case 0x00: trace = "NOP"; break;
@@ -265,8 +265,8 @@ string CPU::traceOpcode(uint8_t opcode) {
 	return trace;
 }
 
-string CPU::tracePrefixedOpcode(const uint8_t opcode) {
-	string trace = "error";
+std::string CPU::tracePrefixedOpcode(const uint8_t opcode) {
+	std::string trace = "error";
 	switch (opcode) {
 	case 0x00: trace = "RLC B"; break;
 	case 0x01: trace = "RLC C"; break;

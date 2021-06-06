@@ -12,8 +12,7 @@
 #include "../utils/utils.h"
 
 //class controlling the video of the GameBoy
-using namespace std;
-typedef tuple<int, uint8_t, bool> pixelInfo;
+typedef std::tuple<int, uint8_t, bool> pixelInfo;
 
 class Video {
 public:
@@ -49,7 +48,7 @@ private:
 		uint8_t tileLow = 0;
 		uint8_t tileHigh = 0;
 
-		array<int, 8> nextPixels = {};
+		std::array<int, 8> nextPixels = {};
 
 		bool attemptFIFOPush();
 	};
@@ -71,7 +70,7 @@ private:
 	SDL_Window* tileWindow;
 	SDL_Renderer* tileRenderer;
 	SDL_Texture* tileTexture;
-	array<int, 128 * 128> tileBuffer = {}; //16 tiles in each row/column
+	std::array<int, 128 * 128> tileBuffer = {}; //16 tiles in each row/column
 											//8 by 8 pixels in each tile
 	const int screenWidth = 160;
 	const int screenHeight = 144;
@@ -87,11 +86,11 @@ private:
 	bool windowInLine = false;
 	bool currentFrameBlank = false;
 
-	array<int, 160 * 144> frameBuffer = {};
-	queue<int> backgroundPixelFIFO;
+	std::array<int, 160 * 144> frameBuffer = {};
+	std::queue<int> backgroundPixelFIFO;
 
-	queue<pixelInfo> spritePixelFIFO;
-	vector<tuple<int, int, int>> spritesInLine;
+	std::queue<pixelInfo> spritePixelFIFO;
+	std::vector<std::tuple<int, int, int>> spritesInLine;
 	int mainSpriteIndex = 0;
 
 	const int totalScanlineCycles = 456;

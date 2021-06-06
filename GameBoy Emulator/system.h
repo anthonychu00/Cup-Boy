@@ -8,7 +8,7 @@
 
 class System {
 public:
-	System(string path);
+	System(std::string path);
 	~System() = default;
 
 	void start();

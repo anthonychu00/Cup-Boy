@@ -1,6 +1,6 @@
 #include "mbc0.h"
 
-MBC0::MBC0(vector<uint8_t>& newRomData): romData(newRomData) 
+MBC0::MBC0(std::vector<uint8_t>& newRomData): romData(newRomData) 
 {
 }
 

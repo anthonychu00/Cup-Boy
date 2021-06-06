@@ -1,8 +1,8 @@
 #include "mbc1.h"
 
-MBC1::MBC1(vector<uint8_t>& newRomData) : romData(newRomData) 
+MBC1::MBC1(std::vector<uint8_t>& newRomData) : romData(newRomData) 
 {
-	ramData = vector<uint8_t>(0x8000);
+	ramData = std::vector<uint8_t>(0x8000);
 }
 
 uint8_t MBC1::readAddress(const uint16_t address) const {
