@@ -4,6 +4,7 @@
 #include "cartridge.h"
 #include "mbc0.h"
 #include "mbc1.h"
+#include "mbc3.h"
 Cartridge::Cartridge(std::string path) {
 	romData = readRom(path);
 }
@@ -45,10 +46,15 @@ std::unique_ptr<Cartridge> Cartridge::MBCFactory() {
 	uint8_t mbcType = readAddress(0x0147);
 	//printf("mbctype: %d\n", mbcType);
 	switch (mbcType) {
-	case 0: return std::make_unique<MBC0>(romData);
-		case 1:
-		case 2:
-		case 3: return std::make_unique<MBC1>(romData);
+	case 0x0: return std::make_unique<MBC0>(romData);
+		case 0x01:
+		case 0x02:
+		case 0x03: return std::make_unique<MBC1>(romData);
+		case 0x0F:
+		case 0x10:
+		case 0x11:
+		case 0x12:
+		case 0x13: return std::make_unique<MBC3>(romData);
 	}
 }
 

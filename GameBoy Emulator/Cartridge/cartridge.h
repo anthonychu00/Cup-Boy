@@ -6,6 +6,7 @@
 
 class MBC0;
 class MBC1;
+class MBC3;
 
 class Cartridge {
 public:

@@ -12,8 +12,10 @@ int main() {
 	//string path = "../../../../gb-test-roms/mem_timing/individual/01-read_timing.gb";
 
 	//string path = "../../../../gb-test-roms/dmg-acid2.gb";
-	//string path = "../../../../gb-test-roms/Tetris.gb";
+	//std::string path = "../../../../gb-test-roms/Tetris.gb";
 	std::string path = "../../../../gb-test-roms/Zelda.gb";
+	//std::string path = "../../../../gb-test-roms/Pokemon.gb";
+	//std::string path = "../../../../gb-test-roms/Mega Man.gb";
 	//string path = "../../../../gb-test-roms/boot.gb";
 
 	std::unique_ptr<System> gb = std::make_unique<System>(path);
