@@ -8,7 +8,8 @@ System::System(std::string path) :
 	cpu(mm),
 	mm(cpu, joypad, cartridge.MBCFactory()),
 	video(cpu, mm),
-	joypad(cpu)
+	joypad(cpu),
+	apu(mm)
 {
 
 }

@@ -86,7 +86,7 @@ private:
 	bool windowInLine = false;
 	bool currentFrameBlank = false;
 
-	std::array<int, 160 * 144> frameBuffer = {};
+	std::array<int, 160 * 144> frameBuffer;
 	std::queue<int> backgroundPixelFIFO;
 
 	std::queue<pixelInfo> spritePixelFIFO;

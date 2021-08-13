@@ -60,6 +60,9 @@
     <ClInclude Include="Cartridge\mbc3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="APU\APU.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="registers\split_register.cpp">
@@ -123,6 +126,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Cartridge\mbc3.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="APU\APU.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

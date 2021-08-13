@@ -5,6 +5,7 @@
 #include "video/video.h"
 #include "Cartridge/cartridge.h"
 #include "joypad/joypad.h"
+#include "APU/APU.h"
 
 class System {
 public:
@@ -20,4 +21,5 @@ private:
 	MemoryMap mm;
 	Video video;
 	Joypad joypad;
+	APU apu;
 };
