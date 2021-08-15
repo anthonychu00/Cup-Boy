@@ -146,6 +146,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="APU\APU.h" />
+    <ClInclude Include="APU\channel.h" />
+    <ClInclude Include="APU\noise_channel.h" />
+    <ClInclude Include="APU\tone_sweep_channel.h" />
+    <ClInclude Include="APU\tone_channel.h" />
+    <ClInclude Include="APU\wave_channel.h" />
     <ClInclude Include="Cartridge\cartridge.h" />
     <ClInclude Include="Cartridge\mbc0.h" />
     <ClInclude Include="Cartridge\mbc1.h" />
@@ -164,6 +169,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="APU\APU.cpp" />
+    <ClCompile Include="APU\channel.cpp" />
+    <ClCompile Include="APU\noise_channel.cpp" />
+    <ClCompile Include="APU\tone_sweep_channel.cpp" />
+    <ClCompile Include="APU\tone_channel.cpp" />
+    <ClCompile Include="APU\wave_channel.cpp" />
     <ClCompile Include="Cartridge\cartridge.cpp" />
     <ClCompile Include="Cartridge\mbc0.cpp" />
     <ClCompile Include="Cartridge\mbc1.cpp" />
