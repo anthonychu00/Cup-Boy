@@ -15,7 +15,7 @@ class APU {
 public:
 	APU(MemoryMap& newmm);
 	~APU() = default;
-
+	void notifyRegistersWritten(const uint16_t address, const uint8_t byte);
 private:
 	MemoryMap& mm;
 
@@ -24,7 +24,7 @@ private:
 	std::unique_ptr<WaveChannel> channel3;
 	std::unique_ptr<NoiseChannel> channel4;
 
-	const int frameSequencerMaxTicks = 8096;
+	const int frameSequencerMaxTicks = 8192;
 	int frameSequencerTimer = 0;
 	int frameSequencerStep = 0;
 
@@ -36,4 +36,6 @@ private:
 	void incrementFrameSequencerTimer(int ticks);
 	void advanceFrameSequencer();
 
+	void decrementLengthCounters();
+	void decrementVolumeTimers();
 };

@@ -1,10 +1,12 @@
 #include "memory_map.h"
 #include "../CPU/CPU.h"
+#include "../APU/APU.h"
 #include "../joypad/joypad.h"
 #include <iostream>
 
-MemoryMap::MemoryMap(CPU& newCpu, Joypad& newJoypad, std::unique_ptr<Cartridge> newCartridge) :
-cpu(newCpu), 
+MemoryMap::MemoryMap(CPU& newCpu, APU& newApu, Joypad& newJoypad, std::unique_ptr<Cartridge> newCartridge) :
+cpu(newCpu),
+apu(newApu),
 joypad(newJoypad),
 cartridge(std::move(newCartridge)){
 	memory.at(0xFF50) = 0x1;//disable boot rom
@@ -68,8 +70,10 @@ void MemoryMap::writeAddress(const uint16_t address, const uint8_t byte) {
 		case(3): cpu.setClockSpeed(256); break;
 		}
 	}
-	//sound at FF10 - FF3F?
-	//{ }
+	else if (address >= 0xFF10 && address <= 0xFF3F) {
+		memory.at(address) = byte;
+		apu.notifyRegistersWritten(address, byte);
+	}
 	else if (address == 0xFF46) {
 		//DMA transfer
 		memory.at(address) = byte;

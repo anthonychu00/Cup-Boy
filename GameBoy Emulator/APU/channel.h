@@ -8,10 +8,17 @@ public:
 	Channel() = default;
 	Channel(MemoryMap& newmm);
 	~Channel() = default;
+
+	void decrementVolumeTimer();
+	void decrementLengthCounter();
+	void decrementFrequencyTimer(int ticks);
+	
 protected:
     MemoryMap& mm;
-	int frequencyTimer = 0, volumeTimer = 0;
-	int currentVolume = 0;
+	bool isDisabled = false; //controlled by length counter
+	int frequencyTimer = 0, volumeTimer = 0, currentVolume = 0, lengthCounter = 0;
+
+	//lengthCounter is bit 5 to 0 of NRx1, decremented every other frame clock
 
 	//NR0 = ch1 - sweep, ch3 - enabler
 	//NR1 = sound wave length, duty
@@ -20,15 +27,16 @@ protected:
 	//NR4 = frequency MSB, trigger, length enable
 	std::array<uint16_t, 5> NRRegisters;
 
-	void decrementVolumeTimer();
 	int getInitialVolume() const;
 	bool getVolumeDirection() const;//0 = decrease, 1 = increase
 	int getVolumePeriod() const;
 	void incrementVolume();
 	void decrementVolume();
+
+	uint8_t getLengthData();
+	bool lengthClocksEnabled();
 	
 	uint16_t getFrequency() const;
-	void decrementFrequencyTimer(int ticks);
 	void resetFrequencyTimer();
 
 };

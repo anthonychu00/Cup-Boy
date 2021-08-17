@@ -6,10 +6,10 @@
 System::System(std::string path) : 
 	cartridge(path), 
 	cpu(mm),
-	mm(cpu, joypad, cartridge.MBCFactory()),
+	apu(mm),
+	mm(cpu, apu, joypad, cartridge.MBCFactory()),
 	video(cpu, mm),
-	joypad(cpu),
-	apu(mm)
+	joypad(cpu)	
 {
 
 }

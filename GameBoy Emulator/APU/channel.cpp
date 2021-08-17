@@ -3,6 +3,7 @@
 Channel::Channel(MemoryMap& newmm) :
 	mm(newmm)
 {}
+
 void Channel::decrementVolumeTimer() {
 	volumeTimer--;//decremented every time it gets clocked by frame sequencer
 	if (volumeTimer <= 0) {
@@ -41,6 +42,24 @@ void Channel::decrementVolume() {
 		return;
 	}
 	currentVolume--;
+}
+
+uint8_t Channel::getLengthData() {
+	return NRRegisters[1] & 0x1F;
+}
+
+bool Channel::lengthClocksEnabled() {
+	return getBit(NRRegisters[4], 6);
+}
+
+void Channel::decrementLengthCounter() {
+	if (lengthClocksEnabled() && lengthCounter > 0) {
+		lengthCounter--;
+		if (lengthCounter == 0) {
+			isDisabled = true;
+		}
+	}
+	
 }
 
 uint16_t Channel::getFrequency() const {

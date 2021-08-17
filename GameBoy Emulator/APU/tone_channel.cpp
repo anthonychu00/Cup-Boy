@@ -15,6 +15,7 @@ ToneChannel::ToneChannel(MemoryMap& mm) : Channel(mm) {
 	frequencyTimer = (2048 - getFrequency()) * 4;//put in separate init()?
 	currentVolume = getInitialVolume();
 	volumeTimer = getVolumePeriod();
+	lengthCounter = getLengthData();
 }
 
 void ToneChannel::setDutyCycleLocation() {

@@ -9,6 +9,10 @@ APU::APU(MemoryMap& newmm) :
 	channel4 = std::make_unique<NoiseChannel>(mm);
 }
 
+void APU::notifyRegistersWritten(const uint16_t address, const uint8_t byte) {
+	//length counter written to resets it
+}
+
 void APU::playBeeps() {
 	
 }
@@ -22,9 +26,31 @@ void APU::incrementFrameSequencerTimer(int ticks) {
 }
 
 void APU::advanceFrameSequencer() {
+	switch (frameSequencerStep) {
+		case 0:
+		case 4: decrementLengthCounters(); break;
+		case 2:
+		case 6: decrementLengthCounters(); break; //sweep clocks here
+		case 7: decrementVolumeTimers(); break;
+
+	}
+
 	frameSequencerStep++;
 	if (frameSequencerStep >= 8) {
 		frameSequencerStep = 0;
 	}
-	//check steps to do in each part of the frame
+}
+
+void APU::decrementLengthCounters() {
+	channel1->decrementLengthCounter();
+	channel2->decrementLengthCounter();
+	channel3->decrementLengthCounter();
+	channel4->decrementLengthCounter();
+}
+
+void APU::decrementVolumeTimers() {
+	channel1->decrementVolumeTimer();
+	channel2->decrementVolumeTimer();
+	channel3->decrementVolumeTimer();//special behavior?
+	channel4->decrementVolumeTimer();
 }
