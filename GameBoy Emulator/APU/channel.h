@@ -9,6 +9,7 @@ public:
 	Channel(MemoryMap& newmm);
 	~Channel() = default;
 
+	uint8_t getSample () const;
 	void decrementVolumeTimer();
 	void decrementLengthCounter();
 	void decrementFrequencyTimer(int ticks);
@@ -17,8 +18,6 @@ protected:
     MemoryMap& mm;
 	bool isDisabled = false; //controlled by length counter
 	int frequencyTimer = 0, volumeTimer = 0, currentVolume = 0, lengthCounter = 0;
-
-	//lengthCounter is bit 5 to 0 of NRx1, decremented every other frame clock
 
 	//NR0 = ch1 - sweep, ch3 - enabler
 	//NR1 = sound wave length, duty

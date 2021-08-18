@@ -1,5 +1,6 @@
 #include "video.h"
 #include <cmath>
+
 Video::Video(CPU& newcpu, MemoryMap& newmm):
 	cpu(newcpu), 
 	mm(newmm),

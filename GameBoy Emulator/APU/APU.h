@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <array>
+#include <vector>
 #include <memory>
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
@@ -19,10 +20,20 @@ public:
 private:
 	MemoryMap& mm;
 
+	std::vector<uint8_t> samples;
+	const int samplingRate = 88; //gather a sample every 88 CPU ticks
+	const int maxSamples = 2048; //samples to gather before outputting them
+	int sampleTimer = 0;
+	
+	//add reference to a buffer
 	std::unique_ptr<ToneSweepChannel> channel1;
 	std::unique_ptr<ToneChannel> channel2;
 	std::unique_ptr<WaveChannel> channel3;
 	std::unique_ptr<NoiseChannel> channel4;
+
+	void initializeSDL();
+
+	void getSamples();
 
 	const int frameSequencerMaxTicks = 8192;
 	int frameSequencerTimer = 0;
@@ -32,7 +43,7 @@ private:
 	const uint16_t soundOutputLocation = 0xFF25;
 	const uint16_t soundEnabled = 0xFF26;
 
-	void playBeeps();
+	void tick(int ticks);
 	void incrementFrameSequencerTimer(int ticks);
 	void advanceFrameSequencer();
 

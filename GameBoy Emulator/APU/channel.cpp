@@ -2,7 +2,13 @@
 
 Channel::Channel(MemoryMap& newmm) :
 	mm(newmm)
-{}
+{
+	NRRegisters.fill(0);
+}
+
+uint8_t Channel::getSample() const {
+	//return modified volume level
+}
 
 void Channel::decrementVolumeTimer() {
 	volumeTimer--;//decremented every time it gets clocked by frame sequencer
