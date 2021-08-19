@@ -6,10 +6,6 @@ Channel::Channel(MemoryMap& newmm) :
 	NRRegisters.fill(0);
 }
 
-uint8_t Channel::getSample() const {
-	//return modified volume level
-}
-
 void Channel::decrementVolumeTimer() {
 	volumeTimer--;//decremented every time it gets clocked by frame sequencer
 	if (volumeTimer <= 0) {
@@ -51,11 +47,16 @@ void Channel::decrementVolume() {
 }
 
 uint8_t Channel::getLengthData() {
-	return NRRegisters[1] & 0x1F;
+	return NRRegisters[1] & 0x3F;
 }
 
 bool Channel::lengthClocksEnabled() {
 	return getBit(NRRegisters[4], 6);
+}
+
+void Channel::resetLengthCounter(uint8_t newLength) {
+	lengthCounter = newLength;
+	isDisabled = false;
 }
 
 void Channel::decrementLengthCounter() {

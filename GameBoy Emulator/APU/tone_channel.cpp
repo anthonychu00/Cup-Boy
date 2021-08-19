@@ -18,6 +18,18 @@ ToneChannel::ToneChannel(MemoryMap& mm) : Channel(mm) {
 	lengthCounter = getLengthData();
 }
 
+uint8_t ToneChannel::getSample() const {
+	if (isDisabled == true) {
+		return 0;
+	}
+	if (selectedDutyCycle * 8 + dutyCycleLocation == 0) {
+		return 0;
+	}
+	else {
+		return currentVolume;
+	}
+}
+
 void ToneChannel::setDutyCycleLocation() {
 	//bit 6 and 7 select the duty cycle
 	selectedDutyCycle = mm.readAddress(NRRegisters[1]) >> 6;

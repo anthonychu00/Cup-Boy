@@ -9,3 +9,7 @@ NoiseChannel::NoiseChannel(MemoryMap& mm): Channel(mm) {
 	currentVolume = getInitialVolume();
 	volumeTimer = getVolumePeriod();
 }
+
+uint8_t NoiseChannel::getSample() const {
+	return 0;
+}

@@ -8,3 +8,7 @@ WaveChannel::WaveChannel(MemoryMap& mm) : Channel(mm){
 	NRRegisters[4] = 0xFF1E;//hi frequency + other info
 	frequencyTimer = (2048 - getFrequency()) * 4;//put in separate init()?
 }
+
+uint8_t WaveChannel::getSample() const {
+	return 0;
+}

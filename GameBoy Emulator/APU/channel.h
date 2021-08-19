@@ -9,8 +9,9 @@ public:
 	Channel(MemoryMap& newmm);
 	~Channel() = default;
 
-	uint8_t getSample () const;
+	virtual uint8_t getSample () const = 0;
 	void decrementVolumeTimer();
+	void resetLengthCounter(uint8_t newLength);
 	void decrementLengthCounter();
 	void decrementFrequencyTimer(int ticks);
 	

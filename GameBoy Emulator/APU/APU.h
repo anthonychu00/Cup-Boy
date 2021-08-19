@@ -21,6 +21,7 @@ private:
 	MemoryMap& mm;
 
 	std::vector<uint8_t> samples;
+	std::array<float, 4> DACValues;
 	const int samplingRate = 88; //gather a sample every 88 CPU ticks
 	const int maxSamples = 2048; //samples to gather before outputting them
 	int sampleTimer = 0;
@@ -34,6 +35,8 @@ private:
 	void initializeSDL();
 
 	void getSamples();
+	void mixSamples();
+	float convertToDAC(uint8_t volumeLevel);
 
 	const int frameSequencerMaxTicks = 8192;
 	int frameSequencerTimer = 0;

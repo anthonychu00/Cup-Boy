@@ -5,6 +5,8 @@
 class WaveChannel : public Channel {
 public:
 	WaveChannel(MemoryMap& mm);
+
+	uint8_t getSample() const;
 private:
 	//FF30 - FF3F stores RAM for wave samples
 };

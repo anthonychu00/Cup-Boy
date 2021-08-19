@@ -6,6 +6,8 @@ class ToneChannel : public Channel {
 public:
 	ToneChannel(MemoryMap& mm);
 	~ToneChannel() = default;
+
+	uint8_t getSample() const;
 protected:
 	static const std::array<bool, 4 * 8> dutyCycleTable;
 	int selectedDutyCycle = 0;
