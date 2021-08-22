@@ -28,8 +28,9 @@ void APU::notifyRegistersWritten(const uint16_t address, const uint8_t byte) {
 void APU::tick(int ticks) {
 	if (sampleTimer >= samplingRate) {
 		sampleTimer -= samplingRate;
-		getSamples();
-		mixSamples();
+		std::array<float, 4> DACValues = getSamples();
+		std::pair<float, float> terminals = mixSamples(DACValues);
+		amplifyTerminals(terminals);
 	}
 	if ( samples.size() >= maxSamples) {
 		SDL_QueueAudio(1, static_cast<void*>(samples.data()), maxSamples);
@@ -39,16 +40,38 @@ void APU::tick(int ticks) {
 	sampleTimer += ticks;
 }
 
-void APU::getSamples() {
+channelArray APU::getSamples() {
+	std::array<float, 4> DACValues;
 	//get volume bytes [0, 15] -> [1, -1]
 	DACValues[0] = channel1->getSample();
 	DACValues[1] = channel2->getSample();
-
+	
+	return DACValues;
 }
 
-void APU::mixSamples() {
+std::pair<float, float> APU::mixSamples(channelArray values) {
+	float leftTerminal = 0.0f, rightTerminal = 0.0f;
 	uint8_t outputLocations = mm.readAddress(soundOutputLocation);
-	//mix
+	
+	if (getBit(outputLocations, 0)) {
+		//channel 1 to left terminal
+	}
+	if (getBit(outputLocations, 1)) {
+		leftTerminal += values[1];
+	}
+	if (getBit(outputLocations, 5)) {
+		rightTerminal += values[1];
+	}
+
+	return std::make_pair(leftTerminal, rightTerminal);
+}
+
+void APU::amplifyTerminals(std::pair<float, float>& terminals) {
+	uint8_t control = mm.readAddress(channelControl);
+	uint8_t leftAmp = control & 0x7; //SO1
+	uint8_t rightAmp = (control >> 4) & 0x7; //SO2
+	
+	//amplify terminals by amp level
 }
 
 float APU::convertToDAC(uint8_t volumeLevel) {

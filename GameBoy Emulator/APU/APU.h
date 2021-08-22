@@ -3,6 +3,7 @@
 #include <array>
 #include <vector>
 #include <memory>
+#include <utility>
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 #include <SDL_mixer.h>
@@ -11,6 +12,9 @@
 #include "tone_sweep_channel.h"
 #include "wave_channel.h"
 #include "noise_channel.h"
+#include "../utils/utils.h"
+
+using channelArray = std::array<float, 4>;
 
 class APU {
 public:
@@ -21,7 +25,6 @@ private:
 	MemoryMap& mm;
 
 	std::vector<uint8_t> samples;
-	std::array<float, 4> DACValues;
 	const int samplingRate = 88; //gather a sample every 88 CPU ticks
 	const int maxSamples = 2048; //samples to gather before outputting them
 	int sampleTimer = 0;
@@ -34,8 +37,9 @@ private:
 
 	void initializeSDL();
 
-	void getSamples();
-	void mixSamples();
+	channelArray getSamples();
+	std::pair<float, float> mixSamples(channelArray values);
+	void amplifyTerminals(std::pair<float, float>& terminals);
 	float convertToDAC(uint8_t volumeLevel);
 
 	const int frameSequencerMaxTicks = 8192;
