@@ -10,6 +10,7 @@ public:
 	~Channel() = default;
 
 	virtual uint8_t getSample () const = 0;
+	void resetVolumeTimer(uint8_t newPeriod);
 	void decrementVolumeTimer();
 	void resetLengthCounter(uint8_t newLength);
 	void decrementLengthCounter();
@@ -17,7 +18,7 @@ public:
 	
 protected:
     MemoryMap& mm;
-	bool isDisabled = false; //controlled by length counter
+	bool isDisabled = false, envelopeDisabled = false; //controlled by length counter
 	int frequencyTimer = 0, volumeTimer = 0, currentVolume = 0, lengthCounter = 0;
 
 	//NR0 = ch1 - sweep, ch3 - enabler

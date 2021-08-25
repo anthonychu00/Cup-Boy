@@ -4,7 +4,7 @@
 
 int main() {
 	
-	//string path = "../../../../gb-test-roms/cpu_instrs/cpu_instrs.gb";
+	//std::string path = "../../../../gb-test-roms/cpu_instrs/cpu_instrs.gb";
 	
 	//string path = "../../../../gb-test-roms/instr_timing/instr_timing.gb";
 

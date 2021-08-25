@@ -6,16 +6,27 @@ Channel::Channel(MemoryMap& newmm) :
 	NRRegisters.fill(0);
 }
 
+void Channel::resetVolumeTimer(uint8_t newPeriod) {
+	volumeTimer = newPeriod;
+	envelopeDisabled = false;
+}
+
 void Channel::decrementVolumeTimer() {
-	volumeTimer--;//decremented every time it gets clocked by frame sequencer
-	if (volumeTimer <= 0) {
-		volumeTimer = getVolumePeriod();
+	if (volumeTimer > 0) {
+		volumeTimer--;//decremented every time it gets clocked by frame sequencer
+	}
+	if (volumeTimer <= 0 && !envelopeDisabled) {
 		bool direction = getVolumeDirection();
 		if (!direction) {
 			decrementVolume();
 		}
 		else {
 			incrementVolume();
+		}
+
+		volumeTimer = getVolumePeriod();
+		if (volumeTimer == 0) {
+			envelopeDisabled = true;
 		}
 	}
 }

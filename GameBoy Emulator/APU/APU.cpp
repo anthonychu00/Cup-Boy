@@ -16,12 +16,14 @@ void APU::initializeSDL() {
 }
 
 void APU::notifyRegistersWritten(const uint16_t address, const uint8_t byte) {
-	uint8_t newLength = byte & 0x3F;
 	switch (address) {
-	case 0xFF11: channel1->resetLengthCounter(newLength); break;//channel 1 and so on, reset frequency counter and enable
-	case 0xFF16: channel2->resetLengthCounter(newLength); break;
-	case 0xFF1B: channel3->resetLengthCounter(newLength); break;
-	case 0xFF20: channel4->resetLengthCounter(newLength); break;
+	case 0xFF11: channel1->resetLengthCounter(byte & 0x3F); break;//channel 1 and so on, reset frequency counter and enable
+	case 0xFF12: channel1->resetVolumeTimer(byte & 0x7); break;
+	case 0xFF16: channel2->resetLengthCounter(byte & 0x3F); break;
+	case 0xFF17: channel2->resetVolumeTimer(byte & 0x7); break;
+	case 0xFF1B: channel3->resetLengthCounter(byte & 0x3F); break;
+	case 0xFF20: channel4->resetLengthCounter(byte & 0x3F); break;
+	case 0xFF21: channel4->resetVolumeTimer(byte & 0x7); break;
 	}
 }
 
@@ -31,6 +33,7 @@ void APU::tick(int ticks) {
 		std::array<float, 4> DACValues = getSamples();
 		std::pair<float, float> terminals = mixSamples(DACValues);
 		amplifyTerminals(terminals);
+		//convert to PCM?
 	}
 	if ( samples.size() >= maxSamples) {
 		SDL_QueueAudio(1, static_cast<void*>(samples.data()), maxSamples);
@@ -41,11 +44,13 @@ void APU::tick(int ticks) {
 }
 
 channelArray APU::getSamples() {
-	std::array<float, 4> DACValues;
+	channelArray DACValues;
 	//get volume bytes [0, 15] -> [1, -1]
-	DACValues[0] = channel1->getSample();
-	DACValues[1] = channel2->getSample();
-	
+	DACValues[0] = convertToDAC(channel1->getSample());
+	DACValues[1] = convertToDAC(channel2->getSample());
+	DACValues[2] = convertToDAC(channel3->getSample());
+	DACValues[3] = convertToDAC(channel4->getSample());
+
 	return DACValues;
 }
 
@@ -53,6 +58,7 @@ std::pair<float, float> APU::mixSamples(channelArray values) {
 	float leftTerminal = 0.0f, rightTerminal = 0.0f;
 	uint8_t outputLocations = mm.readAddress(soundOutputLocation);
 	
+	//mixed DAC values don't cap at 1 and -1
 	if (getBit(outputLocations, 0)) {
 		//channel 1 to left terminal
 	}
@@ -71,7 +77,8 @@ void APU::amplifyTerminals(std::pair<float, float>& terminals) {
 	uint8_t leftAmp = control & 0x7; //SO1
 	uint8_t rightAmp = (control >> 4) & 0x7; //SO2
 	
-	//amplify terminals by amp level
+	terminals.first *= (leftAmp + 1);
+	terminals.second *= (rightAmp + 1);
 }
 
 float APU::convertToDAC(uint8_t volumeLevel) {
