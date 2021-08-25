@@ -24,6 +24,7 @@ public:
 	void tick(int ticks);
 private:
 	MemoryMap& mm;
+	SDL_AudioDeviceID myDev;
 
 	std::vector<float> samples;
 	const int samplingRate = 88; //gather a sample every 88 CPU ticks

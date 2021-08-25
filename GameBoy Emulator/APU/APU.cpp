@@ -34,7 +34,7 @@ void APU::initializeSDL() {
 		}
 	}
 	SDL_PauseAudioDevice(dev, 0);
-
+	myDev = dev;
 }
 
 void APU::notifyRegistersWritten(const uint16_t address, const uint8_t byte) {
@@ -55,6 +55,7 @@ void APU::tick(int ticks) {
 		std::array<float, 4> DACValues = getSamples();
 		std::pair<float, float> terminals = mixSamples(DACValues);
 		amplifyTerminals(terminals);
+
 		
 		samples.push_back(terminals.first);
 		samples.push_back(terminals.second);
@@ -63,8 +64,8 @@ void APU::tick(int ticks) {
 		while ((SDL_GetQueuedAudioSize(1)) > maxSamples * bytesPerSample) {
 			SDL_Delay(1);
 		}
-		std::copy(samples.begin(), samples.end(), std::ostream_iterator<float>(std::cout, " "));
-		SDL_QueueAudio(1, static_cast<void*>(samples.data()), maxSamples * bytesPerSample);
+		//std::copy(samples.begin(), samples.end(), std::ostream_iterator<float>(std::cout, " "));
+		SDL_QueueAudio(myDev, static_cast<void*>(samples.data()), maxSamples * bytesPerSample);
 		samples.clear();//optimize?
 	}
 	incrementFrameSequencerTimer(ticks);
@@ -86,7 +87,8 @@ channelArray APU::getSamples() {
 std::pair<float, float> APU::mixSamples(channelArray values) {
 	float leftTerminal = 0.0f, rightTerminal = 0.0f;
 	uint8_t outputLocations = mm.readAddress(soundOutputLocation);
-	
+	//*****************amplify here instead?
+	// SDL_MixAudioFormat(), last arg would be amp value
 	//mixed DAC values don't cap at 1 and -1
 	if (getBit(outputLocations, 0)) {
 		//channel 1 to left terminal
