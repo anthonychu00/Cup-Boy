@@ -79,7 +79,7 @@ void Channel::decrementLengthCounter() {
 	}
 	
 }
-
+//frequency gets updated mid period
 uint16_t Channel::getFrequency() const {
 	uint16_t hiFrequency = mm.readAddress(NRRegisters[4]);
 	return ((hiFrequency & 0x7) << 8) | mm.readAddress(NRRegisters[3]);

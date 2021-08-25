@@ -32,6 +32,7 @@ void System::start() {
 			int previousTicks = cpu.executeOperations();
 			cpu.updateTimer(previousTicks);
 			video.tick(previousTicks);
+			apu.tick(previousTicks);
 			cpu.checkInterruptRequests();
 			cycles += previousTicks;
 		}

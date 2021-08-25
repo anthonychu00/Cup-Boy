@@ -21,14 +21,16 @@ public:
 	APU(MemoryMap& newmm);
 	~APU() = default;
 	void notifyRegistersWritten(const uint16_t address, const uint8_t byte);
+	void tick(int ticks);
 private:
 	MemoryMap& mm;
 
-	std::vector<uint8_t> samples;
+	std::vector<float> samples;
 	const int samplingRate = 88; //gather a sample every 88 CPU ticks
-	const int maxSamples = 2048; //samples to gather before outputting them
+	const int maxSamples = 4096; //samples to gather before outputting them
 	int sampleTimer = 0;
-	
+	const int bytesPerSample = sizeof(float);
+
 	//add reference to a buffer
 	std::unique_ptr<ToneSweepChannel> channel1;
 	std::unique_ptr<ToneChannel> channel2;
@@ -50,7 +52,6 @@ private:
 	const uint16_t soundOutputLocation = 0xFF25;
 	const uint16_t soundEnabled = 0xFF26;
 
-	void tick(int ticks);
 	void incrementFrameSequencerTimer(int ticks);
 	void advanceFrameSequencer();
 

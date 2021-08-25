@@ -1,3 +1,4 @@
+#include <iostream>
 #include "APU.h"
 
 APU::APU(MemoryMap& newmm) :
@@ -13,6 +14,27 @@ APU::APU(MemoryMap& newmm) :
 
 void APU::initializeSDL() {
 	SDL_Init(SDL_INIT_AUDIO);
+	SDL_AudioSpec want, have;
+	SDL_AudioDeviceID dev;
+
+	SDL_memset(&want, 0, sizeof(want));
+	want.freq = 44100;
+	want.format = AUDIO_F32;
+	want.channels = 2;
+	want.samples = maxSamples;
+	want.callback = NULL;
+
+	dev = SDL_OpenAudioDevice(NULL, 0, &want, &have, SDL_AUDIO_ALLOW_FORMAT_CHANGE);
+	if (dev == 0) {
+		SDL_Log("Couldn't open audio: %s", SDL_GetError());
+	}
+	else {
+		if (have.format != want.format) {
+			SDL_Log("Couldn't find format");
+		}
+	}
+	SDL_PauseAudioDevice(dev, 0);
+
 }
 
 void APU::notifyRegistersWritten(const uint16_t address, const uint8_t byte) {
@@ -33,14 +55,21 @@ void APU::tick(int ticks) {
 		std::array<float, 4> DACValues = getSamples();
 		std::pair<float, float> terminals = mixSamples(DACValues);
 		amplifyTerminals(terminals);
-		//convert to PCM?
+		
+		samples.push_back(terminals.first);
+		samples.push_back(terminals.second);
 	}
 	if ( samples.size() >= maxSamples) {
-		SDL_QueueAudio(1, static_cast<void*>(samples.data()), maxSamples);
+		while ((SDL_GetQueuedAudioSize(1)) > maxSamples * bytesPerSample) {
+			SDL_Delay(1);
+		}
+		std::copy(samples.begin(), samples.end(), std::ostream_iterator<float>(std::cout, " "));
+		SDL_QueueAudio(1, static_cast<void*>(samples.data()), maxSamples * bytesPerSample);
 		samples.clear();//optimize?
 	}
 	incrementFrameSequencerTimer(ticks);
 	sampleTimer += ticks;
+
 }
 
 channelArray APU::getSamples() {
@@ -95,6 +124,7 @@ float APU::convertToDAC(uint8_t volumeLevel) {
 
 void APU::incrementFrameSequencerTimer(int ticks) {
 	frameSequencerTimer += ticks;
+	channel2->decrementFrequencyTimer(ticks);
 	if (frameSequencerTimer >= frameSequencerMaxTicks) {
 		frameSequencerTimer -= frameSequencerMaxTicks;
 		advanceFrameSequencer();

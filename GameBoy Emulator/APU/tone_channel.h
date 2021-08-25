@@ -8,6 +8,7 @@ public:
 	~ToneChannel() = default;
 
 	uint8_t getSample() const;
+	void decrementFrequencyTimer(int ticks);
 protected:
 	static const std::array<bool, 4 * 8> dutyCycleTable;
 	int selectedDutyCycle = 0;
@@ -17,5 +18,5 @@ protected:
 	bool getDutyCycleLocation();
 	void incrementDutyCycleLocation();
 
-	void decrementFrequencyTimer(int ticks);
+	
 };

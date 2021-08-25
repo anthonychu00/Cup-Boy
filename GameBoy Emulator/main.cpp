@@ -14,6 +14,7 @@ int main() {
 	//string path = "../../../../gb-test-roms/dmg-acid2.gb";
 	//std::string path = "../../../../gb-test-roms/Tetris.gb";
 	std::string path = "../../../../gb-test-roms/Zelda.gb";
+	//std::string path = "../../../../gb-test-roms/Mario.gb";
 	//std::string path = "../../../../gb-test-roms/Pokemon.gb";
 	//std::string path = "../../../../gb-test-roms/Mega Man.gb";
 	//string path = "../../../../gb-test-roms/boot.gb";
