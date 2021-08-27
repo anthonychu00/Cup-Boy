@@ -109,8 +109,8 @@ void APU::amplifyTerminals(std::pair<float, float>& terminals) {
 	uint8_t leftAmp = control & 0x7; //SO1
 	uint8_t rightAmp = (control >> 4) & 0x7; //SO2
 	
-	terminals.first *= (leftAmp);//+1 the amp?
-	terminals.second *= (rightAmp);
+	terminals.first *= (leftAmp + 1);//+1 the amp?
+	terminals.second *= (rightAmp + 1);
 }
 
 float APU::convertToDAC(uint8_t volumeLevel) {
