@@ -63,11 +63,11 @@ void Channel::decrementVolume() {
 }
 
 uint8_t Channel::getLengthData() {
-	return NRRegisters[1] & 0x3F;
+	return mm.readAddress(NRRegisters[1]) & 0x3F;
 }
 
 bool Channel::lengthClocksEnabled() {
-	return getBit(NRRegisters[4], 6);
+	return getBit(mm.readAddress(NRRegisters[4]), 6);
 }
 
 void Channel::resetLengthCounter(uint8_t newLength) {

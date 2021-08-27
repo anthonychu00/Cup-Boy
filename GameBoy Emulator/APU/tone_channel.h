@@ -8,7 +8,6 @@ public:
 	~ToneChannel() = default;
 
 	void handleWrittenRegister(uint16_t address, uint8_t data) override;
-	void reset() override;
 	uint8_t getSample() const override;
 	void decrementFrequencyTimer(int ticks);
 protected:
@@ -16,6 +15,7 @@ protected:
 	int dutyCycleLocation = 0;//can't be reset with change 
 							  //in selected duty cycle, only reset trigger
 
+	void reset() override;
 	bool getDutyCycleLocation() const;
 	void incrementDutyCycleLocation();
 

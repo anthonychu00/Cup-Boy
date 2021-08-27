@@ -40,7 +40,7 @@ void APU::initializeSDL() {
 void APU::notifyRegistersWritten(const uint16_t address, const uint8_t byte) {
 	
 	if (address >= 0xFF10 && address <= 0xFF14) {
-		//channel 1 handler
+		channel1->handleWrittenRegister(address, byte);
 	}
 	else if (address >= 0xFF16 && address <= 0xFF19) {
 		channel2->handleWrittenRegister(address, byte);
@@ -68,6 +68,7 @@ void APU::tick(int ticks) {
 		samples.clear();//optimize?
 	}
 	incrementFrameSequencerTimer(ticks);
+	channel1->decrementFrequencyTimer(ticks);
 	channel2->decrementFrequencyTimer(ticks);
 	sampleTimer += ticks;
 
@@ -88,7 +89,10 @@ std::pair<float, float> APU::mixSamples(channelArray values) {
 	float leftTerminal = 0.0f, rightTerminal = 0.0f;
 	uint8_t outputLocations = mm.readAddress(soundOutputLocation);
 	if (getBit(outputLocations, 0)) {
-		//channel 1 to left terminal
+		leftTerminal += values[0];
+	}
+	if (getBit(outputLocations, 4)) {
+		rightTerminal += values[0];
 	}
 	if (getBit(outputLocations, 1)) {
 		leftTerminal += values[1];
@@ -105,8 +109,8 @@ void APU::amplifyTerminals(std::pair<float, float>& terminals) {
 	uint8_t leftAmp = control & 0x7; //SO1
 	uint8_t rightAmp = (control >> 4) & 0x7; //SO2
 	
-	terminals.first *= (leftAmp + 1);
-	terminals.second *= (rightAmp + 1);
+	terminals.first *= (leftAmp);//+1 the amp?
+	terminals.second *= (rightAmp);
 }
 
 float APU::convertToDAC(uint8_t volumeLevel) {
@@ -134,7 +138,7 @@ void APU::advanceFrameSequencer() {
 		case 0:
 		case 4: decrementLengthCounters(); break;
 		case 2:
-		case 6: decrementLengthCounters(); break; //sweep clocks here
+		case 6: channel1->decrementSweepTimer(); decrementLengthCounters(); break; //sweep clocks here
 		case 7: decrementVolumeTimers(); break;
 
 	}

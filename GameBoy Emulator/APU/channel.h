@@ -10,8 +10,7 @@ public:
 	~Channel() = default;
 
 	virtual void handleWrittenRegister(const uint16_t address, const uint8_t data) = 0;
-	virtual uint8_t getSample () const = 0;
-	virtual void reset() = 0;
+	virtual uint8_t getSample() const = 0;
 	void decrementVolumeTimer();
 	void decrementLengthCounter();
 	void decrementFrequencyTimer(int ticks);
@@ -28,6 +27,7 @@ protected:
 	//NR4 = frequency MSB, trigger, length enable
 	std::array<uint16_t, 5> NRRegisters;
 
+	virtual void reset() = 0;
 	int getInitialVolume() const;
 	bool getVolumeDirection() const;//0 = decrease, 1 = increase
 	int getVolumePeriod() const;

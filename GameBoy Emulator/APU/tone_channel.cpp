@@ -12,10 +12,10 @@ ToneChannel::ToneChannel(MemoryMap& mm) : Channel(mm) {
 	NRRegisters[2] = 0xFF17;//volume info
 	NRRegisters[3] = 0xFF18;//lo frequency, written by ROM automatically
 	NRRegisters[4] = 0xFF19;//hi frequency + other info
-	frequencyTimer = (2048 - getFrequency()) * 4;//put in separate init()?
+	frequencyTimer = (2048 - getFrequency()) * 4;
 	currentVolume = getInitialVolume();
 	volumeTimer = getVolumePeriod();
-	lengthCounter = getLengthData();
+	lengthCounter = 64 - getLengthData();
 }
 
 void ToneChannel::handleWrittenRegister(uint16_t address, uint8_t data) {
