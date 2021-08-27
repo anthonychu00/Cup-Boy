@@ -6,9 +6,13 @@ Channel::Channel(MemoryMap& newmm) :
 	NRRegisters.fill(0);
 }
 
-void Channel::resetVolumeTimer(uint8_t newPeriod) {
-	volumeTimer = newPeriod;
-	envelopeDisabled = false;
+void Channel::resetVolume() {
+	volumeTimer = getVolumePeriod();
+	if (volumeTimer > 0) {
+		envelopeDisabled = false;
+	}
+
+	currentVolume = getInitialVolume();
 }
 
 void Channel::decrementVolumeTimer() {

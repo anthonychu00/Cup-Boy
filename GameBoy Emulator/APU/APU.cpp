@@ -40,13 +40,14 @@ void APU::initializeSDL() {
 void APU::notifyRegistersWritten(const uint16_t address, const uint8_t byte) {
 	switch (address) {
 	case 0xFF11: channel1->resetLengthCounter(byte & 0x3F); break;//channel 1 and so on, reset frequency counter and enable
-	case 0xFF12: channel1->resetVolumeTimer(byte & 0x7); break;
+	case 0xFF12: channel1->resetVolume(); break;
 	case 0xFF16: channel2->resetLengthCounter(byte & 0x3F); break;
-	case 0xFF17: channel2->resetVolumeTimer(byte & 0x7); break;
+	case 0xFF17: channel2->resetVolume(); break;
 	case 0xFF1B: channel3->resetLengthCounter(byte & 0x3F); break;
 	case 0xFF20: channel4->resetLengthCounter(byte & 0x3F); break;
-	case 0xFF21: channel4->resetVolumeTimer(byte & 0x7); break;
+	case 0xFF21: channel4->resetVolume(); break;
 	}
+	//*****figure out what happens when frequency registers get written to
 }
 
 void APU::tick(int ticks) {
@@ -69,6 +70,7 @@ void APU::tick(int ticks) {
 		samples.clear();//optimize?
 	}
 	incrementFrameSequencerTimer(ticks);
+	channel2->decrementFrequencyTimer(ticks);
 	sampleTimer += ticks;
 
 }
@@ -126,7 +128,6 @@ float APU::convertToDAC(uint8_t volumeLevel) {
 
 void APU::incrementFrameSequencerTimer(int ticks) {
 	frameSequencerTimer += ticks;
-	channel2->decrementFrequencyTimer(ticks);
 	if (frameSequencerTimer >= frameSequencerMaxTicks) {
 		frameSequencerTimer -= frameSequencerMaxTicks;
 		advanceFrameSequencer();

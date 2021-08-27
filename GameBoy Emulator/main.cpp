@@ -11,7 +11,7 @@ int main() {
 	//string path = "../../../../gb-test-roms/mem_timing/mem_timing.gb"; //mem timings aren't strictly needed by many games
 	//string path = "../../../../gb-test-roms/mem_timing/individual/01-read_timing.gb";
 
-	//string path = "../../../../gb-test-roms/dmg-acid2.gb";
+	//std::string path = "../../../../gb-test-roms/dmg-acid2.gb";
 	//std::string path = "../../../../gb-test-roms/Tetris.gb";
 	std::string path = "../../../../gb-test-roms/Zelda.gb";
 	//std::string path = "../../../../gb-test-roms/Mario.gb";

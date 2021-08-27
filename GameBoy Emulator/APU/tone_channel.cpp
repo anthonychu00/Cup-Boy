@@ -22,7 +22,7 @@ uint8_t ToneChannel::getSample() const {
 	if (isDisabled == true) {
 		return 0;
 	}
-	if (selectedDutyCycle * 8 + dutyCycleLocation == 0) {
+	if (!getDutyCycleLocation()) {
 		return 0;
 	}
 	else {
@@ -30,13 +30,8 @@ uint8_t ToneChannel::getSample() const {
 	}
 }
 
-void ToneChannel::setDutyCycleLocation() {
-	//bit 6 and 7 select the duty cycle
-	selectedDutyCycle = mm.readAddress(NRRegisters[1]) >> 6;
-	dutyCycleLocation = 0;
-}
-
-bool ToneChannel::getDutyCycleLocation() {
+bool ToneChannel::getDutyCycleLocation() const {
+	int selectedDutyCycle = mm.readAddress(NRRegisters[1]) >> 6;
 	return dutyCycleTable[selectedDutyCycle * 8 + dutyCycleLocation];
 }
 

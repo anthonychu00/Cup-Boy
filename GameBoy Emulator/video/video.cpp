@@ -312,6 +312,7 @@ void Video::pushPixelToLCD(uint8_t currentLY) {
 				/*if (finalColor != 0) { //fixes acid2, but makes overlapped white pixels transparent?
 					frameBuffer.at(currentLY * 160 + nextLCDPosition) = finalColor;
 				}*/
+				//below as well
 				frameBuffer.at(currentLY * 160 + nextLCDPosition) = finalColor;
 			}
 		}

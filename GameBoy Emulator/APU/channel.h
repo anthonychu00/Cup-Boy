@@ -10,7 +10,7 @@ public:
 	~Channel() = default;
 
 	virtual uint8_t getSample () const = 0;
-	void resetVolumeTimer(uint8_t newPeriod);
+	void resetVolume();
 	void decrementVolumeTimer();
 	void resetLengthCounter(uint8_t newLength);
 	void decrementLengthCounter();

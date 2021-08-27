@@ -11,11 +11,10 @@ public:
 	void decrementFrequencyTimer(int ticks);
 protected:
 	static const std::array<bool, 4 * 8> dutyCycleTable;
-	int selectedDutyCycle = 0;
-	int dutyCycleLocation = 0;
+	int dutyCycleLocation = 0;//can't be reset by any means, even with change 
+							  //in selected duty cycle
 
-	void setDutyCycleLocation();
-	bool getDutyCycleLocation();
+	bool getDutyCycleLocation() const;
 	void incrementDutyCycleLocation();
 
 	
