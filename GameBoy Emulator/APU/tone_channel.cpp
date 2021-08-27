@@ -48,6 +48,6 @@ void ToneChannel::decrementFrequencyTimer(int ticks) {
 		int carryOver = frequencyTimer;
 		resetFrequencyTimer();
 		incrementDutyCycleLocation();
-		frequencyTimer -= carryOver;
+		frequencyTimer += carryOver;
 	}
 }

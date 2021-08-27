@@ -94,7 +94,7 @@ void Channel::decrementFrequencyTimer(int ticks) {
 	if (frequencyTimer < 0) {
 		int carryOver = frequencyTimer;
 		resetFrequencyTimer();
-		frequencyTimer -= carryOver;
+		frequencyTimer += carryOver;
 	}
 }
 
