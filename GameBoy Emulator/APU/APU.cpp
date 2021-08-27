@@ -38,16 +38,13 @@ void APU::initializeSDL() {
 }
 
 void APU::notifyRegistersWritten(const uint16_t address, const uint8_t byte) {
-	switch (address) {
-	case 0xFF11: channel1->resetLengthCounter(byte & 0x3F); break;//channel 1 and so on, reset frequency counter and enable
-	case 0xFF12: channel1->resetVolume(); break;
-	case 0xFF16: channel2->resetLengthCounter(byte & 0x3F); break;
-	case 0xFF17: channel2->resetVolume(); break;
-	case 0xFF1B: channel3->resetLengthCounter(byte & 0x3F); break;
-	case 0xFF20: channel4->resetLengthCounter(byte & 0x3F); break;
-	case 0xFF21: channel4->resetVolume(); break;
+	
+	if (address >= 0xFF10 && address <= 0xFF14) {
+		//channel 1 handler
 	}
-	//*****figure out what happens when frequency registers get written to
+	else if (address >= 0xFF16 && address <= 0xFF19) {
+		channel2->handleWrittenRegister(address, byte);
+	}
 }
 
 void APU::tick(int ticks) {
@@ -62,10 +59,11 @@ void APU::tick(int ticks) {
 		samples.push_back(terminals.second);
 	}
 	if ( samples.size() >= maxSamples) {
-		while ((SDL_GetQueuedAudioSize(1)) > maxSamples * bytesPerSample) {
+		//empty queue until it reaches a size less than buffer, prevents sound from going onto screen transitions
+		while ((SDL_GetQueuedAudioSize(myDev)) > maxSamples * bytesPerSample) {
 			SDL_Delay(1);
 		}
-		//std::copy(samples.begin(), samples.end(), std::ostream_iterator<float>(std::cout, " "));
+		//clear buffer/queue and add new samples
 		SDL_QueueAudio(myDev, static_cast<void*>(samples.data()), maxSamples * bytesPerSample);
 		samples.clear();//optimize?
 	}
@@ -89,9 +87,6 @@ channelArray APU::getSamples() {
 std::pair<float, float> APU::mixSamples(channelArray values) {
 	float leftTerminal = 0.0f, rightTerminal = 0.0f;
 	uint8_t outputLocations = mm.readAddress(soundOutputLocation);
-	//*****************amplify here instead?
-	// SDL_MixAudioFormat(), last arg would be amp value
-	//mixed DAC values don't cap at 1 and -1
 	if (getBit(outputLocations, 0)) {
 		//channel 1 to left terminal
 	}

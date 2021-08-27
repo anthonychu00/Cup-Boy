@@ -6,6 +6,7 @@ Channel::Channel(MemoryMap& newmm) :
 	NRRegisters.fill(0);
 }
 
+
 void Channel::resetVolume() {
 	volumeTimer = getVolumePeriod();
 	if (volumeTimer > 0) {
@@ -70,7 +71,7 @@ bool Channel::lengthClocksEnabled() {
 }
 
 void Channel::resetLengthCounter(uint8_t newLength) {
-	lengthCounter = newLength;
+	lengthCounter = 64 - newLength;
 	isDisabled = false;
 }
 

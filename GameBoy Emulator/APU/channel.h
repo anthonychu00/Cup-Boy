@@ -9,10 +9,10 @@ public:
 	Channel(MemoryMap& newmm);
 	~Channel() = default;
 
+	virtual void handleWrittenRegister(const uint16_t address, const uint8_t data) = 0;
 	virtual uint8_t getSample () const = 0;
-	void resetVolume();
+	virtual void reset() = 0;
 	void decrementVolumeTimer();
-	void resetLengthCounter(uint8_t newLength);
 	void decrementLengthCounter();
 	void decrementFrequencyTimer(int ticks);
 	
@@ -31,9 +31,11 @@ protected:
 	int getInitialVolume() const;
 	bool getVolumeDirection() const;//0 = decrease, 1 = increase
 	int getVolumePeriod() const;
+	void resetVolume();
 	void incrementVolume();
 	void decrementVolume();
 
+	void resetLengthCounter(uint8_t newLength);
 	uint8_t getLengthData();
 	bool lengthClocksEnabled();
 	

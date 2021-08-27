@@ -18,6 +18,28 @@ ToneChannel::ToneChannel(MemoryMap& mm) : Channel(mm) {
 	lengthCounter = getLengthData();
 }
 
+void ToneChannel::handleWrittenRegister(uint16_t address, uint8_t data) {
+	switch (address) {
+		case 0xFF16: resetLengthCounter(data & 0x3F); break;
+		case 0xFF17: resetVolume(); break;
+		case 0xFF18: break;
+		case 0xFF19: 
+			if (getBit(data, 7)) {
+				reset();
+			}
+			break;
+	}
+}
+
+void ToneChannel::reset() {
+	isDisabled = false;
+	if (lengthCounter == 0) {
+		lengthCounter = 64;
+	}
+	resetFrequencyTimer();
+	resetVolume();
+}
+
 uint8_t ToneChannel::getSample() const {
 	if (isDisabled == true) {
 		return 0;

@@ -12,3 +12,11 @@ WaveChannel::WaveChannel(MemoryMap& mm) : Channel(mm){
 uint8_t WaveChannel::getSample() const {
 	return 0;
 }
+
+void WaveChannel::handleWrittenRegister(const uint16_t address, const uint8_t data) {
+
+}
+
+void WaveChannel::reset() {
+
+}

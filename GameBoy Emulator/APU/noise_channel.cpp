@@ -13,3 +13,11 @@ NoiseChannel::NoiseChannel(MemoryMap& mm): Channel(mm) {
 uint8_t NoiseChannel::getSample() const {
 	return 0;
 }
+
+void NoiseChannel::handleWrittenRegister(const uint16_t address, const uint8_t data) {
+
+}
+
+void NoiseChannel::reset() {
+
+}
