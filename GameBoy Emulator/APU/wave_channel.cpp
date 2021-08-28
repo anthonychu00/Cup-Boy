@@ -17,7 +17,7 @@ WaveChannel::WaveChannel(MemoryMap& mm) : Channel(mm){
 }
 
 uint8_t WaveChannel::getSample() const {
-	if (isDisabled == true) {
+	if (isDisabled) {
 		return 0;
 	}
 	if (outputLevel == 0) {
@@ -28,7 +28,7 @@ uint8_t WaveChannel::getSample() const {
 		uint8_t ramData = mm.readAddress(0xFF30 + waveRamPostion);
 
 		bool nibble = waveTableCounter % 2; // 0 = higher nibble, 1 = lower nibble
-		if (nibble) {
+		if (!nibble) {
 			return (ramData >> 4) >> (outputLevel - 1);
 		}
 		else {

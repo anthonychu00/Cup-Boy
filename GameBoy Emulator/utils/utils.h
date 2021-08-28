@@ -12,6 +12,11 @@ bool getBit(const T byte, const int position) {
 	return (byte >> position) & 0x1;
 }
 
-void setBit(uint8_t& byte, const int position, const bool bitVal);
+template<typename T>
+void setBit(T& data, const int position, const bool bitVal) {
+	data = (data & ~(1UL << position)) | (bitVal << position);
+}
+
+//void setBit(uint8_t& byte, const int position, const bool bitVal);
 
 void setLowerNibble(uint8_t& byte, uint8_t nibble);
