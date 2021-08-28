@@ -13,7 +13,7 @@ WaveChannel::WaveChannel(MemoryMap& mm) : Channel(mm){
 	lengthCounter = 256 - getLengthData();
 	lengthEnabled = getBit(mm.readAddress(NRRegisters[4]), 6);
 
-	outputLevel = (mm.readAddress(NRRegisters[2]) >> 5) && 0x3;
+	outputLevel = (mm.readAddress(NRRegisters[2]) >> 5) & 0x3;
 }
 
 uint8_t WaveChannel::getSample() const {
@@ -41,7 +41,7 @@ void WaveChannel::handleWrittenRegister(const uint16_t address, const uint8_t da
 	switch (address) {
 	case 0xFF1A: isDisabled = !getBit(data, 7); break;
 	case 0xFF1B: resetLengthCounter(data); break;
-	case 0xFF1C: outputLevel = (mm.readAddress(NRRegisters[2]) >> 5) && 0x3; break;
+	case 0xFF1C: outputLevel = (mm.readAddress(NRRegisters[2]) >> 5) & 0x3; break;
 	case 0xFF1D: resetFrequencyPeriod();  break;
 	case 0xFF1E:
 		resetFrequencyPeriod();
@@ -60,7 +60,7 @@ void WaveChannel::reset() {
 		lengthCounter = 256;
 	}
 	resetFrequencyTimer();
-	outputLevel = (mm.readAddress(NRRegisters[2]) >> 5) && 0x3;
+	outputLevel = (mm.readAddress(NRRegisters[2]) >> 5) & 0x3;
 	waveTableCounter = 0;
 }
 
