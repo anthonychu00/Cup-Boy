@@ -5,7 +5,9 @@ A journey to build my own GameBoy emulator in C++.
 Game are now playable!
 
 Zelda demo : https://youtu.be/Z52HkgKxp34
+Pokemon Demo: https://youtu.be/0VYCkKw7jg4
 
+For some reason, Zelda doesn't like being recorded with all 4 audio channels playing, so that only has a few of the channels
 Implemented:
 - Working CPU/MMU that passes Blargg tests, with instruction level timing
 - Cartridges (MBC0, MBC1)
