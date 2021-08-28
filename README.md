@@ -4,7 +4,7 @@ A journey to build my own GameBoy emulator in C++.
 
 Game are now playable!
 
-Zelda demo : https://youtu.be/Z52HkgKxp34
+Zelda demo : https://youtu.be/k6hQsjLdoiY
 
 Pokemon Demo: https://youtu.be/0VYCkKw7jg4
 
