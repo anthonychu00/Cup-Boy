@@ -8,12 +8,14 @@ Channel::Channel(MemoryMap& newmm) :
 
 
 void Channel::resetVolume() {
-	volumeTimer = getVolumePeriod();
+	volumePeriod = mm.readAddress(NRRegisters[2]) & 0x7;
+	volumeTimer = volumePeriod;
 	if (volumeTimer > 0) {
 		envelopeDisabled = false;
 	}
 
-	currentVolume = getInitialVolume();
+	currentVolume = mm.readAddress(NRRegisters[2]) >> 4;
+	volumeDirection = getBit(mm.readAddress(NRRegisters[2]), 3);
 }
 
 void Channel::decrementVolumeTimer() {
@@ -21,7 +23,7 @@ void Channel::decrementVolumeTimer() {
 		volumeTimer--;//decremented every time it gets clocked by frame sequencer
 	}
 	if (volumeTimer <= 0 && !envelopeDisabled) {
-		bool direction = getVolumeDirection();
+		bool direction = volumeDirection;
 		if (!direction) {
 			decrementVolume();
 		}
@@ -29,23 +31,11 @@ void Channel::decrementVolumeTimer() {
 			incrementVolume();
 		}
 
-		volumeTimer = getVolumePeriod();
+		volumeTimer = volumePeriod;//change to stored value here?
 		if (volumeTimer == 0) {
 			envelopeDisabled = true;
 		}
 	}
-}
-
-int Channel::getInitialVolume() const {
-	return (mm.readAddress(NRRegisters[2]) >> 4);
-}
-
-bool Channel::getVolumeDirection() const {
-	return getBit(mm.readAddress(NRRegisters[2]), 3);
-}
-
-int Channel::getVolumePeriod() const {
-	return mm.readAddress(NRRegisters[2]) & 0x7;
 }
 
 void Channel::incrementVolume() {

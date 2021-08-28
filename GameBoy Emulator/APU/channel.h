@@ -18,8 +18,10 @@ public:
 protected:
     MemoryMap& mm;
 	bool isDisabled = false, envelopeDisabled = false; //controlled by length counter
-	int frequencyTimer = 0, volumeTimer = 0, currentVolume = 0, lengthCounter = 0;
+	int frequencyTimer = 0, currentVolume = 0, lengthCounter = 0;
 
+	int volumeTimer = 0, volumePeriod = 0;
+	bool volumeDirection = false;
 	//NR0 = ch1 - sweep, ch3 - enabler
 	//NR1 = sound wave length, duty
 	//NR2 = volume
@@ -28,9 +30,6 @@ protected:
 	std::array<uint16_t, 5> NRRegisters;
 
 	virtual void reset() = 0;
-	int getInitialVolume() const;
-	bool getVolumeDirection() const;//0 = decrease, 1 = increase
-	int getVolumePeriod() const;
 	void resetVolume();
 	void incrementVolume();
 	void decrementVolume();

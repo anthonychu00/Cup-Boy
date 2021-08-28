@@ -6,8 +6,11 @@ NoiseChannel::NoiseChannel(MemoryMap& mm): Channel(mm) {
 	NRRegisters[2] = 0xFF21;//volume info
 	NRRegisters[3] = 0xFF22;//polynomial counter
 	NRRegisters[4] = 0xFF23;//consecutive counter
-	currentVolume = getInitialVolume();
-	volumeTimer = getVolumePeriod();
+	
+	currentVolume = mm.readAddress(NRRegisters[2]) >> 4;
+	volumePeriod = mm.readAddress(NRRegisters[2]) & 0x7;
+	volumeTimer = volumePeriod;
+	volumeDirection = getBit(mm.readAddress(NRRegisters[2]), 3);
 }
 
 uint8_t NoiseChannel::getSample() const {

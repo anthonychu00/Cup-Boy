@@ -12,9 +12,14 @@ ToneChannel::ToneChannel(MemoryMap& mm) : Channel(mm) {
 	NRRegisters[2] = 0xFF17;//volume info
 	NRRegisters[3] = 0xFF18;//lo frequency, written by ROM automatically
 	NRRegisters[4] = 0xFF19;//hi frequency + other info
+
 	frequencyTimer = (2048 - getFrequency()) * 4;
-	currentVolume = getInitialVolume();
-	volumeTimer = getVolumePeriod();
+
+	currentVolume = mm.readAddress(NRRegisters[2]) >> 4;
+	volumePeriod = mm.readAddress(NRRegisters[2]) & 0x7;
+	volumeTimer = volumePeriod;
+	volumeDirection = getBit(mm.readAddress(NRRegisters[2]), 3);
+
 	lengthCounter = 64 - getLengthData();
 }
 
