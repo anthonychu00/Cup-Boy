@@ -10,13 +10,6 @@ NoiseChannel::NoiseChannel(MemoryMap& mm): Channel(mm) {
 	resetFrequencyPeriod(mm.readAddress(0xFF22));
 	resetFrequencyTimer();
 
-	currentVolume = mm.readAddress(NRRegisters[2]) >> 4;
-	volumePeriod = mm.readAddress(NRRegisters[2]) & 0x7;
-	volumeTimer = volumePeriod;
-	volumeDirection = getBit(mm.readAddress(NRRegisters[2]), 3);
-
-	lengthCounter = 64 - getLengthData();
-	lengthEnabled = getBit(mm.readAddress(NRRegisters[4]), 6);
 }
 
 uint8_t NoiseChannel::getSample() const {

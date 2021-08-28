@@ -10,10 +10,6 @@ WaveChannel::WaveChannel(MemoryMap& mm) : Channel(mm){
 	resetFrequencyPeriod();
 	resetFrequencyTimer();
 
-	lengthCounter = 256 - getLengthData();
-	lengthEnabled = getBit(mm.readAddress(NRRegisters[4]), 6);
-
-	outputLevel = (mm.readAddress(NRRegisters[2]) >> 5) & 0x3;
 }
 
 uint8_t WaveChannel::getSample() const {

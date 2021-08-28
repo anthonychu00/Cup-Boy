@@ -10,18 +10,6 @@ ToneSweepChannel::ToneSweepChannel(MemoryMap& mm): ToneChannel(mm) {
 	resetFrequencyPeriod();
 	frequencyTimer = (2048 - frequencyPeriod) * 4;
 
-	currentVolume = mm.readAddress(NRRegisters[2]) >> 4;
-	volumePeriod = mm.readAddress(NRRegisters[2]) & 0x7;
-	volumeTimer = volumePeriod;
-	volumeDirection = getBit(mm.readAddress(NRRegisters[2]), 3);
-
-	lengthCounter = 64 - getLengthData();
-	lengthEnabled = getBit(mm.readAddress(NRRegisters[4]), 6);
-
-	sweepPeriod = (mm.readAddress(NRRegisters[0]) >> 4) & 0x7;
-	sweepTimer = sweepPeriod;
-	sweepDirection = getBit(mm.readAddress(NRRegisters[0]), 3);
-	sweepShift = mm.readAddress(NRRegisters[0]) & 0x7;
 }
 
 void ToneSweepChannel::handleWrittenRegister(uint16_t address, uint8_t data) {
