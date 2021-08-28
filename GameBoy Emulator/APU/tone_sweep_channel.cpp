@@ -50,10 +50,6 @@ void ToneSweepChannel::resetSweep() {
 	sweepDirection = getBit(mm.readAddress(NRRegisters[0]), 3);
 	sweepShift = mm.readAddress(NRRegisters[0]) & 0x7;
 
-	if (sweepTimer == 0) {
-		sweepTimer = 8;
-	}
-
 	if (sweepPeriod > 0 || sweepShift > 0) {
 		sweepDisabled = false;
 	}
@@ -96,9 +92,6 @@ void ToneSweepChannel::decrementSweepTimer() {
 	}
 	if (sweepTimer <= 0) {
 		sweepTimer = sweepPeriod;
-		if (sweepTimer == 0) {
-			sweepTimer = 8;
-		}
 
 		if (sweepPeriod > 0 && !sweepDisabled) {
 			uint16_t newFrequency = frequencyCalculation();
