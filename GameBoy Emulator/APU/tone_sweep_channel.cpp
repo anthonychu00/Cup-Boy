@@ -18,7 +18,10 @@ ToneSweepChannel::ToneSweepChannel(MemoryMap& mm): ToneChannel(mm) {
 	lengthCounter = 64 - getLengthData();
 	lengthEnabled = getBit(mm.readAddress(NRRegisters[4]), 6);
 
-	sweepTimer = getSweepTime();
+	sweepPeriod = (mm.readAddress(NRRegisters[0]) >> 4) & 0x7;
+	sweepTimer = sweepPeriod;
+	sweepDirection = getBit(mm.readAddress(NRRegisters[0]), 3);
+	sweepShift = mm.readAddress(NRRegisters[0]) & 0x7;
 }
 
 void ToneSweepChannel::handleWrittenRegister(uint16_t address, uint8_t data) {
@@ -47,15 +50,18 @@ void ToneSweepChannel::reset() {
 	//sweep stuff
 	resetSweep();
 	frequencyShadowRegister = frequencyPeriod;
-	if (getSweepShift() != 0) {
+	if (sweepShift != 0) {
 		frequencyCalculation();
 	}
 
 }
 
 void ToneSweepChannel::resetSweep() {
-	sweepTimer = getSweepTime();
-	if (sweepTimer > 0 || getSweepShift() > 0) {
+	sweepPeriod = (mm.readAddress(NRRegisters[0]) >> 4) & 0x7;
+	sweepTimer = sweepPeriod;
+	sweepDirection = getBit(mm.readAddress(NRRegisters[0]), 3);
+	sweepShift = mm.readAddress(NRRegisters[0]) & 0x7;
+	if (sweepTimer > 0 || sweepShift > 0) {
 		sweepDisabled = false;
 	}
 	else {
@@ -75,9 +81,8 @@ void ToneSweepChannel::setFrequency(uint16_t newFrequency) {
 
 void ToneSweepChannel::frequencyCalculation() {
 	uint16_t newFrequency = 0;
-	uint8_t shift = getSweepShift();
-	uint16_t addedFrequency = frequencyShadowRegister >> shift;
-	bool direction = getSweepDirection();
+	uint16_t addedFrequency = frequencyShadowRegister >> sweepShift;
+	bool direction = sweepDirection;
 	if (!direction) {//increase frequency
 		newFrequency = frequencyShadowRegister + addedFrequency;
 	}
@@ -88,13 +93,13 @@ void ToneSweepChannel::frequencyCalculation() {
 	if (newFrequency > 2047) {
 		isDisabled = true;
 	}
-	else if (shift > 0) {
+	else if (sweepShift > 0) {
 		isDisabled = false;
 		frequencyShadowRegister = newFrequency;
 		setFrequency(newFrequency);
 		
 		//frequency calculation/overflow is run again with new value, but not written
-		addedFrequency = frequencyShadowRegister >> shift;
+		addedFrequency = frequencyShadowRegister >> sweepShift;
 		if (!direction) {//increase frequency
 			newFrequency = frequencyShadowRegister + addedFrequency;
 		}
@@ -113,30 +118,17 @@ void ToneSweepChannel::frequencyCalculation() {
 }
 
 void ToneSweepChannel::decrementSweepTimer() {
-	uint8_t newTime = getSweepTime();
 	if (sweepTimer > 0) {
 		sweepTimer--;
 	}
-	if (sweepTimer <= 0 && newTime > 0 && !sweepDisabled) {
+	if (sweepTimer <= 0 && sweepPeriod > 0 && !sweepDisabled) {
 		frequencyCalculation();
-		sweepTimer = newTime;
-		if (sweepTimer == 0 && getSweepShift() == 0) {
+		sweepTimer = sweepPeriod;
+		if (sweepTimer == 0 && sweepShift == 0) {
 			sweepDisabled = true;
 		}
 		else {
 			sweepDisabled = false;
 		}
 	}
-}
-
-uint8_t ToneSweepChannel::getSweepTime() const {
-	return (mm.readAddress(NRRegisters[0]) >> 4) & 0x7;
-}
-
-bool ToneSweepChannel::getSweepDirection() const {
-	return getBit(mm.readAddress(NRRegisters[0]), 3);
-}
-
-uint8_t ToneSweepChannel::getSweepShift() const {
-	return mm.readAddress(NRRegisters[0]) & 0x7;
 }

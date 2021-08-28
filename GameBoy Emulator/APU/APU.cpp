@@ -45,6 +45,10 @@ void APU::notifyRegistersWritten(const uint16_t address, const uint8_t byte) {
 	else if (address >= 0xFF16 && address <= 0xFF19) {
 		channel2->handleWrittenRegister(address, byte);
 	}
+	else if (address >= 0xFF1A && address <= 0xFF1E) {
+		channel3->handleWrittenRegister(address, byte);
+	}
+	
 }
 
 void APU::tick(int ticks) {
@@ -70,6 +74,7 @@ void APU::tick(int ticks) {
 	incrementFrameSequencerTimer(ticks);
 	channel1->decrementFrequencyTimer(ticks);
 	channel2->decrementFrequencyTimer(ticks);
+	channel3->decrementFrequencyTimer(ticks);
 	sampleTimer += ticks;
 
 }
@@ -99,6 +104,13 @@ std::pair<float, float> APU::mixSamples(channelArray values) {
 	}
 	if (getBit(outputLocations, 5)) {
 		rightTerminal += values[1];
+	}
+	//TODO: Slight sound bug with channel 3, sometimes plays sounds when it shouldn't
+	if (getBit(outputLocations, 2)) {
+		leftTerminal += values[2];
+	}
+	if (getBit(outputLocations, 6)) {
+		rightTerminal += values[2];
 	}
 
 	return std::make_pair(leftTerminal, rightTerminal);
@@ -159,6 +171,5 @@ void APU::decrementLengthCounters() {
 void APU::decrementVolumeTimers() {
 	channel1->decrementVolumeTimer();
 	channel2->decrementVolumeTimer();
-	channel3->decrementVolumeTimer();//special behavior?
 	channel4->decrementVolumeTimer();
 }
