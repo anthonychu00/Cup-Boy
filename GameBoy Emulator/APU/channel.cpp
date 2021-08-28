@@ -56,17 +56,14 @@ uint8_t Channel::getLengthData() {
 	return mm.readAddress(NRRegisters[1]) & 0x3F;
 }
 
-bool Channel::lengthClocksEnabled() {
-	return getBit(mm.readAddress(NRRegisters[4]), 6);
-}
-
 void Channel::resetLengthCounter(uint8_t newLength) {
 	lengthCounter = 64 - newLength;
 	isDisabled = false;
+	lengthEnabled = getBit(mm.readAddress(NRRegisters[4]), 6);
 }
 
 void Channel::decrementLengthCounter() {
-	if (lengthClocksEnabled() && lengthCounter > 0) {
+	if (lengthEnabled && lengthCounter > 0) {
 		lengthCounter--;
 		if (lengthCounter == 0) {
 			isDisabled = true;

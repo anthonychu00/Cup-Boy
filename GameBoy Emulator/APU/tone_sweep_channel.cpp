@@ -14,6 +14,8 @@ ToneSweepChannel::ToneSweepChannel(MemoryMap& mm): ToneChannel(mm) {
 	volumeDirection = getBit(mm.readAddress(NRRegisters[2]), 3);
 
 	lengthCounter = 64 - getLengthData();
+	lengthEnabled = getBit(mm.readAddress(NRRegisters[4]), 6);
+
 	sweepTimer = getSweepTime();
 }
 

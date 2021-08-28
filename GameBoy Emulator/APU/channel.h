@@ -18,9 +18,12 @@ public:
 protected:
     MemoryMap& mm;
 	bool isDisabled = false, envelopeDisabled = false; //controlled by length counter
-	int frequencyTimer = 0, currentVolume = 0, lengthCounter = 0;
+	int frequencyTimer = 0;
 
-	int volumeTimer = 0, volumePeriod = 0;
+	int lengthCounter = 0;
+	bool lengthEnabled = false;
+
+	int volumeTimer = 0, volumePeriod = 0, currentVolume = 0;
 	bool volumeDirection = false;
 	//NR0 = ch1 - sweep, ch3 - enabler
 	//NR1 = sound wave length, duty
@@ -36,7 +39,6 @@ protected:
 
 	void resetLengthCounter(uint8_t newLength);
 	uint8_t getLengthData();
-	bool lengthClocksEnabled();
 	
 	uint16_t getFrequency() const;
 	void resetFrequencyTimer();

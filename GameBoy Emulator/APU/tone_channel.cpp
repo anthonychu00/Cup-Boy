@@ -21,6 +21,7 @@ ToneChannel::ToneChannel(MemoryMap& mm) : Channel(mm) {
 	volumeDirection = getBit(mm.readAddress(NRRegisters[2]), 3);
 
 	lengthCounter = 64 - getLengthData();
+	lengthEnabled = getBit(mm.readAddress(NRRegisters[4]), 6);
 }
 
 void ToneChannel::handleWrittenRegister(uint16_t address, uint8_t data) {
