@@ -38,7 +38,7 @@ void ToneSweepChannel::reset() {
 	//sweep stuff
 	resetSweep();
 	frequencyShadowRegister = frequencyPeriod;
-	if (sweepShift != 0) {
+	if (sweepShift > 0) {
 		frequencyCalculation();
 	}
 
@@ -49,7 +49,12 @@ void ToneSweepChannel::resetSweep() {
 	sweepTimer = sweepPeriod;
 	sweepDirection = getBit(mm.readAddress(NRRegisters[0]), 3);
 	sweepShift = mm.readAddress(NRRegisters[0]) & 0x7;
-	if (sweepTimer > 0 || sweepShift > 0) {
+
+	if (sweepTimer == 0) {
+		sweepTimer = 8;
+	}
+
+	if (sweepPeriod > 0 || sweepShift > 0) {
 		sweepDisabled = false;
 	}
 	else {
@@ -67,7 +72,7 @@ void ToneSweepChannel::setFrequency(uint16_t newFrequency) {
 	mm.writeAddress(NRRegisters[4], hiFrequency | hiRegister);
 }
 
-void ToneSweepChannel::frequencyCalculation() {
+uint16_t ToneSweepChannel::frequencyCalculation() {
 	uint16_t newFrequency = 0;
 	uint16_t addedFrequency = frequencyShadowRegister >> sweepShift;
 	bool direction = sweepDirection;
@@ -81,42 +86,27 @@ void ToneSweepChannel::frequencyCalculation() {
 	if (newFrequency > 2047) {
 		isDisabled = true;
 	}
-	else if (sweepShift > 0) {
-		isDisabled = false;
-		frequencyShadowRegister = newFrequency;
-		setFrequency(newFrequency);
-		
-		//frequency calculation/overflow is run again with new value, but not written
-		addedFrequency = frequencyShadowRegister >> sweepShift;
-		if (!direction) {//increase frequency
-			newFrequency = frequencyShadowRegister + addedFrequency;
-		}
-		else {
-			newFrequency = frequencyShadowRegister - addedFrequency;
-		}
 
-		if (newFrequency > 2047) {
-			isDisabled = true;
-		}
-		else {
-			isDisabled = false;
-		}
-	}
-
+	return newFrequency;
 }
 
 void ToneSweepChannel::decrementSweepTimer() {
 	if (sweepTimer > 0) {
 		sweepTimer--;
 	}
-	if (sweepTimer <= 0 && sweepPeriod > 0 && !sweepDisabled) {
-		frequencyCalculation();
+	if (sweepTimer <= 0) {
 		sweepTimer = sweepPeriod;
-		if (sweepTimer == 0 && sweepShift == 0) {
-			sweepDisabled = true;
+		if (sweepTimer == 0) {
+			sweepTimer = 8;
 		}
-		else {
-			sweepDisabled = false;
+
+		if (sweepPeriod > 0 && !sweepDisabled) {
+			uint16_t newFrequency = frequencyCalculation();
+			if (newFrequency <= 2047 && sweepShift > 0) {
+				frequencyShadowRegister = newFrequency;
+				sweepPeriod = newFrequency;
+				frequencyCalculation();
+			}
 		}
 	}
 }

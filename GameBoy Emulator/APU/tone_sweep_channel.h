@@ -18,5 +18,5 @@ private:
 	void resetSweep();
 
 	void setFrequency(uint16_t newFrequency);
-	void frequencyCalculation();
+	uint16_t frequencyCalculation();
 };
