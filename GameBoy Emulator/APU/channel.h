@@ -18,7 +18,7 @@ public:
 protected:
     MemoryMap& mm;
 	bool isDisabled = false, envelopeDisabled = false; //controlled by length counter
-	int frequencyTimer = 0;
+	int frequencyTimer = 0, frequencyPeriod = 0;
 
 	int lengthCounter = 0;
 	bool lengthEnabled = false;
@@ -40,7 +40,7 @@ protected:
 	void resetLengthCounter(uint8_t newLength);
 	uint8_t getLengthData();
 	
-	uint16_t getFrequency() const;
+	void resetFrequencyPeriod();
 	void resetFrequencyTimer();
 
 };

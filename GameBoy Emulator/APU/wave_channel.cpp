@@ -6,7 +6,9 @@ WaveChannel::WaveChannel(MemoryMap& mm) : Channel(mm){
 	NRRegisters[2] = 0xFF1C;//volume level
 	NRRegisters[3] = 0xFF1D;//lo frequency, written by ROM automatically
 	NRRegisters[4] = 0xFF1E;//hi frequency + other info
-	frequencyTimer = (2048 - getFrequency()) * 4;//put in separate init()?
+
+	resetFrequencyPeriod();
+	frequencyTimer = (2048 - frequencyPeriod) * 4;
 }
 
 uint8_t WaveChannel::getSample() const {

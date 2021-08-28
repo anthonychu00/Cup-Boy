@@ -6,7 +6,9 @@ ToneSweepChannel::ToneSweepChannel(MemoryMap& mm): ToneChannel(mm) {
 	NRRegisters[2] = 0xFF12;//volume info
 	NRRegisters[3] = 0xFF13;//lo frequency, written by ROM automatically
 	NRRegisters[4] = 0xFF14;//hi frequency + other info
-	frequencyTimer = (2048 - getFrequency()) * 4;
+	
+	resetFrequencyPeriod();
+	frequencyTimer = (2048 - frequencyPeriod) * 4;
 
 	currentVolume = mm.readAddress(NRRegisters[2]) >> 4;
 	volumePeriod = mm.readAddress(NRRegisters[2]) & 0x7;
@@ -24,8 +26,10 @@ void ToneSweepChannel::handleWrittenRegister(uint16_t address, uint8_t data) {
 	case 0xFF10: resetSweep(); break;//sweep stuff
 	case 0xFF11: resetLengthCounter(data & 0x3F); break;
 	case 0xFF12: resetVolume(); break;
-	case 0xFF13: break;
+	case 0xFF13: resetFrequencyPeriod(); break;
 	case 0xFF14:
+		resetFrequencyPeriod();
+		lengthEnabled = getBit(data, 6);
 		if (getBit(data, 7)) {
 			reset();
 		}
@@ -42,7 +46,7 @@ void ToneSweepChannel::reset() {
 	resetVolume();
 	//sweep stuff
 	resetSweep();
-	frequencyShadowRegister = getFrequency();
+	frequencyShadowRegister = frequencyPeriod;
 	if (getSweepShift() != 0) {
 		frequencyCalculation();
 	}

@@ -8,14 +8,15 @@ Channel::Channel(MemoryMap& newmm) :
 
 
 void Channel::resetVolume() {
-	volumePeriod = mm.readAddress(NRRegisters[2]) & 0x7;
+	uint8_t volumeData = mm.readAddress(NRRegisters[2]);
+	volumePeriod = volumeData & 0x7;
 	volumeTimer = volumePeriod;
 	if (volumeTimer > 0) {
 		envelopeDisabled = false;
 	}
 
-	currentVolume = mm.readAddress(NRRegisters[2]) >> 4;
-	volumeDirection = getBit(mm.readAddress(NRRegisters[2]), 3);
+	currentVolume = volumeData >> 4;
+	volumeDirection = getBit(volumeData, 3);
 }
 
 void Channel::decrementVolumeTimer() {
@@ -59,7 +60,7 @@ uint8_t Channel::getLengthData() {
 void Channel::resetLengthCounter(uint8_t newLength) {
 	lengthCounter = 64 - newLength;
 	isDisabled = false;
-	lengthEnabled = getBit(mm.readAddress(NRRegisters[4]), 6);
+	//lengthEnabled = getBit(mm.readAddress(NRRegisters[4]), 6);
 }
 
 void Channel::decrementLengthCounter() {
@@ -71,11 +72,6 @@ void Channel::decrementLengthCounter() {
 	}
 	
 }
-//frequency gets updated mid period
-uint16_t Channel::getFrequency() const {
-	uint16_t hiFrequency = mm.readAddress(NRRegisters[4]);
-	return ((hiFrequency & 0x7) << 8) | mm.readAddress(NRRegisters[3]);
-}
 
 void Channel::decrementFrequencyTimer(int ticks) {
 	frequencyTimer -= ticks;
@@ -86,7 +82,12 @@ void Channel::decrementFrequencyTimer(int ticks) {
 	}
 }
 
+void Channel::resetFrequencyPeriod() {
+	uint16_t hiFrequency = mm.readAddress(NRRegisters[4]);
+	frequencyPeriod = ((hiFrequency & 0x7) << 8) | mm.readAddress(NRRegisters[3]);
+}
+
 void Channel::resetFrequencyTimer() {
-	frequencyTimer = (2048 - getFrequency()) * 4;
+	frequencyTimer = (2048 - frequencyPeriod) * 4;
 }
 
