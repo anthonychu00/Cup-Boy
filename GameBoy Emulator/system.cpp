@@ -11,10 +11,11 @@ System::System(std::string path) :
 	video(cpu, mm),
 	joypad(cpu)	
 {
-
+	SDL_Init(SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER);
 }
 
 void System::start() {
+	
 	SDL_Event e;
 	bool quit = false;
 	int cycles  = 0;

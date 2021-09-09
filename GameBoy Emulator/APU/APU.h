@@ -6,7 +6,6 @@
 #include <utility>
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
-#include <SDL_mixer.h>
 #include "../memory/memory_map.h"
 #include "tone_channel.h"
 #include "tone_sweep_channel.h"

@@ -3,6 +3,10 @@
 #include "Cartridge/cartridge.h"
 
 int main() {
+	//setup imgui
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+
 	
 	//std::string path = "../../../../gb-test-roms/cpu_instrs/cpu_instrs.gb";
 	

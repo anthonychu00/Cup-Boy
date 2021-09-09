@@ -6,10 +6,20 @@
 #include <utility>
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
+#include <gl/glew.h>
+#if defined(IMGUI_IMPL_OPENGL_ES2)
+#include <SDL_opengles2.h>
+#else
+#include <SDL_opengl.h>
+#endif
+#include <gl/GLU.h>
 #include <stdio.h>
 #include "../CPU/CPU.h"
 #include "../memory/memory_map.h"
 #include "../utils/utils.h"
+#include "../imgui/imgui.h"
+#include "../imgui/imgui_impl_sdl.h"
+#include "../imgui/imgui_impl_opengl3.h"
 
 //class controlling the video of the GameBoy
 typedef std::tuple<int, uint8_t, bool> pixelInfo;
@@ -65,6 +75,11 @@ private:
 	SDL_Renderer* renderer;
 	SDL_Texture* gbTexture;
 
+	SDL_GLContext glContext;
+	GLuint glTexture;
+	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+	uint32_t* newPixels;
+
 	//testing tilemap
 	bool tileViewerPresent = false;
 	SDL_Window* tileWindow;
@@ -72,9 +87,9 @@ private:
 	SDL_Texture* tileTexture;
 	std::array<int, 128 * 128> tileBuffer = {}; //16 tiles in each row/column
 											//8 by 8 pixels in each tile
-	const int screenWidth = 160;
-	const int screenHeight = 144;
-	const int screenScale = 4;
+	static constexpr int screenWidth = 160;
+	static constexpr int screenHeight = 144;
+	static constexpr int screenScale = 4;
 
 	Mode mode = Mode::OAM_SCAN;
 	int cycles = 0;

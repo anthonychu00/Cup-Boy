@@ -6,20 +6,67 @@ Video::Video(CPU& newcpu, MemoryMap& newmm):
 	mm(newmm),
 	fetcher(*this)
 {
+	newPixels = new uint32_t[(screenWidth * screenScale) * (screenHeight * screenScale)];
 	initializeSDL();
 }
 
 void Video::initializeSDL() {
 	SDL_Init(SDL_INIT_VIDEO);
+
+#if defined(IMGUI_IMPL_OPENGL_ES2)
+	// GL ES 2.0 + GLSL 100
+	const char* glsl_version = "#version 100";
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+#elif defined(__APPLE__)
+	// GL 3.2 Core + GLSL 150
+	const char* glsl_version = "#version 150";
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG); // Always required on Mac
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+#else
+	// GL 3.0 + GLSL 130
+	const char* glsl_version = "#version 130";
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+#endif
+	SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
 	gbWindow = SDL_CreateWindow(
 		"CupBoy",
 		SDL_WINDOWPOS_UNDEFINED,
 		SDL_WINDOWPOS_UNDEFINED,
 		160 * screenScale,
 		144 * screenScale,
-		SDL_WINDOW_SHOWN
+		SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
 	);
-	renderer = SDL_CreateRenderer(gbWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+
+	glContext = SDL_GL_CreateContext(gbWindow);
+	SDL_GL_MakeCurrent(gbWindow, glContext);
+	SDL_GL_SetSwapInterval(1);
+
+	ImGui::StyleColorsDark();
+
+	ImGui_ImplSDL2_InitForOpenGL(gbWindow, glContext);
+	ImGui_ImplOpenGL3_Init(glsl_version);
+
+	glGenTextures(1, &glTexture);
+	glBindTexture(GL_TEXTURE_2D, glTexture);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	/*renderer = SDL_CreateRenderer(gbWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 	gbTexture = SDL_CreateTexture(
 		renderer, 
 		SDL_PIXELFORMAT_ARGB8888, 
@@ -28,7 +75,8 @@ void Video::initializeSDL() {
 		144 * screenScale);
 
 	SDL_UpdateWindowSurface(gbWindow);
-	SDL_RenderCopy(renderer, gbTexture, NULL, NULL);
+	SDL_RenderCopy(renderer, gbTexture, NULL, NULL);*/
+
 }
 
 void Video::viewTileData() {
@@ -329,18 +377,52 @@ void Video::pushPixelToLCD(uint8_t currentLY) {
 }
 
 void Video::renderFrameBuffer() {
-	SDL_RenderClear(renderer);
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplSDL2_NewFrame();
+	ImGui::NewFrame();
+
+	writeFrameBufferData(newPixels);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 160 * screenScale,
+		144 * screenScale, 0, GL_RGBA, GL_UNSIGNED_BYTE, newPixels);
+
+	ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
+	ImGui::SetNextWindowPos({ -1,-1 });
+	ImGui::Begin("T", nullptr, 
+		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoResize);
+	/*if (ImGui::BeginMainMenuBar()) {
+		if (ImGui::BeginMenu("File"))
+		{
+			if (ImGui::MenuItem("New"))
+			{
+				//Do something
+			}
+			ImGui::EndMenu();
+		}
+
+		ImGui::EndMainMenuBar();
+	}*/
+	ImGui::Image((void*)(intptr_t)glTexture, ImVec2(160 * screenScale, 144 * screenScale));
+	ImGui::End();
+
+	ImGui::Render();
+	glViewport(0, 0, 160 * screenScale, 144 * screenScale);
+	glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
+	glClear(GL_COLOR_BUFFER_BIT);
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	SDL_GL_SwapWindow(gbWindow);
+
+	/*SDL_RenderClear(renderer);
 
 	void* lockedPixels;
 	int pitch;
 	SDL_LockTexture(gbTexture, NULL, &lockedPixels, &pitch);
 
-	uint32_t* newPixels = static_cast<uint32_t*>(lockedPixels);
+	newPixels = static_cast<uint32_t*>(lockedPixels);
 	writeFrameBufferData(newPixels);
-	SDL_UnlockTexture(gbTexture);
-	
-	SDL_RenderCopy(renderer, gbTexture, NULL, NULL);
-	SDL_RenderPresent(renderer);
+	SDL_UnlockTexture(gbTexture);*/
+	//SDL_RenderCopy(renderer, gbTexture, NULL, NULL);
+	//SDL_RenderPresent(renderer);
 }
 
 void Video::writeFrameBufferData(uint32_t* newPixels) {
@@ -363,7 +445,6 @@ void Video::scalePixel(uint32_t* newPixels, uint32_t pixelColor, int x, int y) {
 uint32_t Video::decipherPixelColor(int pixel) {
 	uint8_t r = 0, g = 0, b = 0;
 	
-	uint32_t color = -1;
 	switch (pixel) {
 	case 0: r = g = b = 255; break;//white
 	case 1: r = g = b = 170; break;//white-gray
@@ -371,7 +452,8 @@ uint32_t Video::decipherPixelColor(int pixel) {
 	case 3: r = g = b = 0; break;//black
 	}
 
-	return (r << 16) | (g << 8) | b;
+	//return (r << 16) | (g << 8) | b;
+	return (r << 24) | (g << 16) | (b << 8)  | 0xAF;
 }
 
 void Video::findScanlineSprites(uint8_t currentLY) {

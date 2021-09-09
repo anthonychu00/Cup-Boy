@@ -6,6 +6,8 @@
 #include "Cartridge/cartridge.h"
 #include "joypad/joypad.h"
 #include "APU/APU.h"
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_sdl.h"
 
 class System {
 public:
