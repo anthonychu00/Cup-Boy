@@ -10,10 +10,16 @@ Pokemon Demo: https://youtu.be/0VYCkKw7jg4
 
 For some reason, Zelda doesn't like being recorded with all 4 audio channels playing, so recording is with some of the channels turned off
 
+Main tools used:
+- SDL2 : Window creation and management, audio, input handling
+- OpenGL : rendering backend (2D textures)
+- ImGUI : GUI, debugging tools
+
+
 Implemented:
 - Working CPU/MMU that passes Blargg tests, with instruction level timing
 - Cartridges (MBC0, MBC1)
-- PPU using Pixel FIFO algorithm in SDL2, passes acid2 tests
+- PPU using Pixel FIFO algorithm, passes acid2 tests
 - Audio (all channels, passes some Blargg tests)
 - Joypad support
 - Debugging tools to view VRAM data and trace the execution of opcodes
