@@ -90,6 +90,7 @@ private:
 	static constexpr int screenWidth = 160;
 	static constexpr int screenHeight = 144;
 	static constexpr int screenScale = 4;
+	const float menuBarHeight = 19;
 
 	Mode mode = Mode::OAM_SCAN;
 	int cycles = 0;

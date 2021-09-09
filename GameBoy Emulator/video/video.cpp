@@ -41,7 +41,7 @@ void Video::initializeSDL() {
 		SDL_WINDOWPOS_UNDEFINED,
 		SDL_WINDOWPOS_UNDEFINED,
 		160 * screenScale,
-		144 * screenScale,
+		(144 * screenScale) + menuBarHeight,
 		SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
 	);
 	
@@ -387,10 +387,10 @@ void Video::renderFrameBuffer() {
 		144 * screenScale, 0, GL_RGBA, GL_UNSIGNED_BYTE, newPixels);
 
 	ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
-	ImGui::SetNextWindowPos({ -1,-1 });
+	ImGui::SetNextWindowPos({ -1, menuBarHeight });
 	ImGui::Begin("T", nullptr, 
 		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoResize);
-	/*if (ImGui::BeginMainMenuBar()) {
+	if (ImGui::BeginMainMenuBar()) {
 		if (ImGui::BeginMenu("File"))
 		{
 			if (ImGui::MenuItem("New"))
@@ -401,7 +401,7 @@ void Video::renderFrameBuffer() {
 		}
 
 		ImGui::EndMainMenuBar();
-	}*/
+	}
 	ImGui::Image((void*)(intptr_t)glTexture, ImVec2(160 * screenScale, 144 * screenScale));
 	ImGui::End();
 
