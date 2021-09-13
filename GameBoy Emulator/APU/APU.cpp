@@ -12,6 +12,10 @@ APU::APU(MemoryMap& newmm) :
 	channel4 = std::make_unique<NoiseChannel>(mm);
 }
 
+void APU::reset() {
+	samples.clear();
+}
+
 void APU::initializeSDL() {
 	SDL_Init(SDL_INIT_AUDIO);
 	SDL_AudioSpec want, have;

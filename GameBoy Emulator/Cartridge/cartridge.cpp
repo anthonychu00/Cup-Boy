@@ -5,7 +5,7 @@
 #include "mbc0.h"
 #include "mbc1.h"
 #include "mbc3.h"
-Cartridge::Cartridge(std::string path) {
+void Cartridge::loadRom(std::string path) {
 	romData = readRom(path);
 }
 

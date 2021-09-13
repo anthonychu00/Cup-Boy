@@ -11,8 +11,9 @@ class MBC3;
 class Cartridge {
 public:
 	Cartridge() = default;
-	Cartridge(std::string path);
 	~Cartridge() = default;
+
+	void loadRom(std::string path);
 	const std::vector<uint8_t>& getRomData();
 	std::unique_ptr<Cartridge> MBCFactory();
 	virtual uint8_t readAddress(const uint16_t address) const;

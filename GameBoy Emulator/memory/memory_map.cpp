@@ -4,11 +4,15 @@
 #include "../joypad/joypad.h"
 #include <iostream>
 
-MemoryMap::MemoryMap(CPU& newCpu, APU& newApu, Joypad& newJoypad, std::unique_ptr<Cartridge> newCartridge) :
+MemoryMap::MemoryMap(CPU& newCpu, APU& newApu, Joypad& newJoypad) :
 cpu(newCpu),
 apu(newApu),
-joypad(newJoypad),
-cartridge(std::move(newCartridge)){
+joypad(newJoypad){
+	memory.at(0xFF50) = 0x1;//disable boot rom
+}
+
+void MemoryMap::resetMemory() {
+	memory.fill(0);
 	memory.at(0xFF50) = 0x1;//disable boot rom
 }
 
@@ -99,3 +103,6 @@ void MemoryMap::writeAddress(const uint16_t address, const uint8_t byte) {
 	}
 }
 
+void MemoryMap::loadCartridgeToMemory(std::unique_ptr<Cartridge> newCartridge) {
+	cartridge = std::move(newCartridge);
+}

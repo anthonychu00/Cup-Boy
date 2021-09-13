@@ -28,6 +28,8 @@ class Video {
 public:
 	Video(CPU& cpu, MemoryMap& mm);
 	~Video() = default;
+	void reset();
+	void initializeSDL(SDL_Window* myWindow, const int scale, const float barHeight);
 	void tick(int cpuCycles);
 	void viewTileData();
 	void renderFrameBuffer();
@@ -89,8 +91,8 @@ private:
 											//8 by 8 pixels in each tile
 	static constexpr int screenWidth = 160;
 	static constexpr int screenHeight = 144;
-	static constexpr int screenScale = 4;
-	const float menuBarHeight = 19;
+	int screenScale = 4;
+	float menuBarHeight = 19;
 
 	Mode mode = Mode::OAM_SCAN;
 	int cycles = 0;
@@ -155,7 +157,6 @@ private:
 	//LCDStatus bits (FF41)
 	uint8_t currentPPUMode();
 
-	void initializeSDL();
 	void advanceMode3(uint8_t currentLY, int drawCycles);
 	void pushPixelToLCD(uint8_t currentLY);
 	void writeFrameBufferData(uint32_t* newPixels);

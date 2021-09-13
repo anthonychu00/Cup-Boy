@@ -6,13 +6,20 @@ Video::Video(CPU& newcpu, MemoryMap& newmm):
 	mm(newmm),
 	fetcher(*this)
 {
-	newPixels = new uint32_t[(screenWidth * screenScale) * (screenHeight * screenScale)];
-	initializeSDL();
 }
 
-void Video::initializeSDL() {
-	SDL_Init(SDL_INIT_VIDEO);
+void Video::reset() {
+	clearQueue(backgroundPixelFIFO);
+	clearQueue(spritePixelFIFO);
+	frameBuffer.fill(0);
+}
 
+void Video::initializeSDL(SDL_Window* myWindow, const int scale, const float barHeight) {
+	if (SDL_Init(SDL_INIT_VIDEO) != 0)
+	{
+		printf("Unable to initialize SDL due error: %s", SDL_GetError());
+	}
+	
 #if defined(IMGUI_IMPL_OPENGL_ES2)
 	// GL ES 2.0 + GLSL 100
 	const char* glsl_version = "#version 100";
@@ -35,15 +42,12 @@ void Video::initializeSDL() {
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 #endif
+
 	SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
-	gbWindow = SDL_CreateWindow(
-		"CupBoy",
-		SDL_WINDOWPOS_UNDEFINED,
-		SDL_WINDOWPOS_UNDEFINED,
-		160 * screenScale,
-		(144 * screenScale) + menuBarHeight,
-		SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
-	);
+	gbWindow = myWindow;
+	screenScale = scale;
+	menuBarHeight = barHeight;
+	newPixels = new uint32_t[(screenWidth * screenScale) * (screenHeight * screenScale)];
 	
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
@@ -377,10 +381,6 @@ void Video::pushPixelToLCD(uint8_t currentLY) {
 }
 
 void Video::renderFrameBuffer() {
-	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplSDL2_NewFrame();
-	ImGui::NewFrame();
-
 	writeFrameBufferData(newPixels);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 160 * screenScale,
@@ -390,18 +390,6 @@ void Video::renderFrameBuffer() {
 	ImGui::SetNextWindowPos({ -1, menuBarHeight });
 	ImGui::Begin("T", nullptr, 
 		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoResize);
-	if (ImGui::BeginMainMenuBar()) {
-		if (ImGui::BeginMenu("File"))
-		{
-			if (ImGui::MenuItem("New"))
-			{
-				//Do something
-			}
-			ImGui::EndMenu();
-		}
-
-		ImGui::EndMainMenuBar();
-	}
 	ImGui::Image((void*)(intptr_t)glTexture, ImVec2(160 * screenScale, 144 * screenScale));
 	ImGui::End();
 

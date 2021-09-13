@@ -13,6 +13,15 @@ CPU::CPU(MemoryMap& newMM):
 	clockSpeed = 1024;
 }
 
+void CPU::reset() {
+	PC.set(0x0100);
+	AF.set(0x0000);
+	BC.set(0x0000);
+	DE.set(0x0000);
+	HL.set(0x0000);
+	SP.set(0x0000);
+}
+
 int CPU::executeOperations() {//69905
 	
 	if (halt) {

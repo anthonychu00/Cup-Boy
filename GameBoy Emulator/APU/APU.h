@@ -19,6 +19,7 @@ class APU {
 public:
 	APU(MemoryMap& newmm);
 	~APU() = default;
+	void reset();
 	void notifyRegistersWritten(const uint16_t address, const uint8_t byte);
 	void tick(int ticks);
 private:

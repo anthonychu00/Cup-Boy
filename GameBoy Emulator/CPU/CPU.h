@@ -7,10 +7,10 @@
 
 class CPU {
 public:
-	
 	CPU(MemoryMap& newMM);//registers default to 0x00 value
 	~CPU() = default;
 
+	void reset();
 	int executeOperations();
 	int executeOpcode(const uint8_t opcode, uint16_t PCValue);
 	int executePrefixedOpcode(const uint8_t opcode, uint16_t PCValue);
@@ -75,10 +75,7 @@ private:
 
 	void interruptExecute(int vectorPosition);
 	
-	
-
 	bool checkCondition(Flag fl);
-
 
 	//opcodes
 	int opcodeNOP();//0x00
@@ -176,7 +173,6 @@ private:
 	int opcodeJPHL();
 	int opcodeJP(Flag fl);
 	
-
 	int opcodeJR();
 	int opcodeJR(Flag fl);
 
