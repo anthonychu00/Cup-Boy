@@ -39,7 +39,7 @@ Nice to have:
 
 # Usage
 
-Run the .exe file. All necessary .dll files are included. If the program doesn't work, check if you have the dependencies for SDL and OpenGL.
+Run the .exe file. All necessary .dll files are included. If the program doesn't work, check if you have the dependencies for SDL and OpenGL. Only games that run on MBC0, MBC1, and MBC3 are supported right now, so make sure your ROM is one of those MBC types.
 
 # Controls
 
