@@ -22,6 +22,7 @@ Implemented:
 - PPU using Pixel FIFO algorithm, passes acid2 tests
 - Audio (all channels, passes some Blargg tests)
 - Joypad support
+- File explorer to enable choosing/switching roms from user directory
 - Debugging tools to view VRAM data and trace the execution of opcodes
 
 To-do list:
