@@ -18,7 +18,7 @@ Main tools used:
 
 Implemented:
 - Working CPU/MMU that passes Blargg tests, with instruction level timing
-- Cartridges (MBC0, MBC1)
+- Cartridges (MBC0, MBC1, MBC3)
 - PPU using Pixel FIFO algorithm, passes acid2 tests
 - Audio (all channels, passes some Blargg tests)
 - Joypad support
@@ -32,5 +32,7 @@ High priority:
 - Persistent .sav data
 
 Nice to have:
+- Memory level timing
 - Linkports
 - CGB
+- debugging some graphical/audio quirks
