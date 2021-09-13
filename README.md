@@ -44,7 +44,11 @@ Run the .exe file. All necessary .dll files are included. If the program doesn't
 # Controls
 
 D-pad : arrow keys
+
 Start : S
+
 Select : A
+
 A : Z
+
 B : X
