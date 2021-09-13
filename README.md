@@ -36,3 +36,15 @@ Nice to have:
 - Linkports
 - CGB
 - debugging some graphical/audio quirks
+
+# Usage
+
+Run the .exe file. All necessary .dll files are included. If the program doesn't work, check if you have the dependencies for SDL and OpenGL.
+
+# Controls
+
+D-pad : arrow keys
+Start : S
+Select : A
+A : Z
+B : X
