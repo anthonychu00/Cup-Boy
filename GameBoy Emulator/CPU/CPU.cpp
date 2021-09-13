@@ -20,6 +20,10 @@ void CPU::reset() {
 	DE.set(0x0000);
 	HL.set(0x0000);
 	SP.set(0x0000);
+	divTime = 0;
+	tima = 0;
+	clockSpeed = 1024;
+	halt = false;
 }
 
 int CPU::executeOperations() {//69905
